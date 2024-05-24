@@ -11,7 +11,7 @@ OBJDIR = obj
 OBJ = $(SRC:$(SRCDIR)/%=$(OBJDIR)/%.o)
 
 BINDIR = bin
-BIN = cam
+BIN = chasm
 
 
 default: all
@@ -35,6 +35,6 @@ $(OBJDIR)/%.cpp.o: $(SRCDIR)/%.cpp
 .PHONY: clean
 
 clean:
-	rm -r -f $(BIN) $(OBJ)
+	rm -f $(wildcard $(OBJDIR)/*)
 
 
