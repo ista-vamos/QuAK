@@ -190,7 +190,7 @@ int Automaton::weight_persistance () const {
 double Automaton::weight_avg (void) {
 	unsigned int size = this->states->size();
 	int distance[size+1][size];
-	int infinity = size*max_weight+1;
+	int infinity = -size*min_weight+1;
 
 	for (unsigned int len = 0; len <= size; ++len) {
 		for (unsigned int id = 0; id < size; ++id) {
@@ -223,7 +223,7 @@ double Automaton::weight_avg (void) {
 	}
 
 
-	double min_id = max_weight + 0.0;
+	/*double min_id = max_weight + 0.0;
 	bool id_flag = false;
 	for (unsigned int id = 0; id < size; ++id) {
 		double max_len = min_weight + 0.0;
@@ -242,9 +242,24 @@ double Automaton::weight_avg (void) {
 			id_flag = true;
 		}
 	}
-	if (id_flag == false) min_id = min_weight - 1;
-
-	return min_id;
+	if (id_flag == false) return min_weight - 1;
+	*/
+	double max_id = min_weight - 1.0;
+	for (unsigned int id = 0; id < size; ++id) {
+		double min_len = max_weight + 1.0;
+		bool len_flag = false;
+		if (distance[size][id] != infinity) {
+			for (unsigned int len = 0; len < size; ++len) {
+				if (distance[len][id] != infinity) {
+					double x = (distance[len][id] - distance[size][id] + 0.0) / (size - len + 0.0);
+					min_len = std::min(min_len, x);
+					len_flag = true;
+				}
+			}
+		}
+		if (len_flag) max_id = std::max(max_id, min_len);
+	}
+	return max_id;
 }
 
 
