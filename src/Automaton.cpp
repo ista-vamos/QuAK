@@ -254,7 +254,7 @@ void Automaton::emptiness() {
 	printf("\temptiness:\n");
 	int x = weight_reachably(initial, false);
 	printf("\t\t   Sup: exists w : A(w) > x iff %s > x\n", x<min_weight ? "-infinity" : std::to_string(x).c_str());
-	double y = ONLYKarp();
+	double y = weight_avg();
 	printf("\t\tLimAvg: exists w : A(w) > y iff %s > y\n", y<min_weight ? "-infinity" : std::to_string(y).c_str());
 	int z = weight_responce();
 	printf("\t\tLimSup: exists w : A(w) > z iff %s > z\n", z<min_weight ? "-infinity" : std::to_string(z).c_str());
