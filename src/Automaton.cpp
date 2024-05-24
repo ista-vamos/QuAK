@@ -187,7 +187,7 @@ int Automaton::weight_persistance () const {
 }
 
 
-double Automaton::ONLYKarp (void) {
+double Automaton::weight_avg (void) {
 	unsigned int size = this->states->size();
 	int distance[size+1][size];
 	int infinity = size*max_weight+1;

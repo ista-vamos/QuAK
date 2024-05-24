@@ -41,7 +41,7 @@ private:
 	int weight_persistance () const;
 	unsigned int initialize_SCC_recursive (State* state, int* time, int* discovery, SetList<State*>* SCCs) const;
 	void initialize_SCC (void);
-	double ONLYKarp (void);
+	double weight_avg (void);
 public:
 	Automaton(std::string filename);
 	~Automaton();
