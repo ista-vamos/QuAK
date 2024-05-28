@@ -1,15 +1,15 @@
-#include <stdlib.h>
-#include <stdio.h>
 #include <iostream>
 #include "Automaton.h"
-#include "Map.h"
-#include <set>
-#include "State.h"
 
 
 int main(int argc, char **argv) {
-	Automaton A = Automaton("./samples/B.txt");
+	Automaton B = Automaton("./samples/B.txt");
+	std::cout << B.toString() << std::endl;
+	//B.toto();
+
+	Automaton A = Automaton("./samples/A.txt");
 	std::cout << A.toString() << std::endl;
-	A.emptiness();
+	//A.toto();
+
 	return EXIT_SUCCESS;
 }

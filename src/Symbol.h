@@ -7,14 +7,14 @@
 
 class Symbol {
 	private:
-		const int id;
+		const int my_id;
 		std::string name;
 	public:
 		Symbol(std::string name);
 		~Symbol();
 		std::string getName() const;
 		const int getId() const;
-
+		static void RESET();
 		static std::string toString(Symbol* symbol);
 		std::string toString() const;
 

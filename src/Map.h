@@ -102,20 +102,20 @@ public:
 
 
 
-struct scc_data_struct;
+#include "Weight.h"
 class Symbol;
 class State;
 class Edge;
 template <class T> class SetStd;
+template <class T> class SetList;
 
 template class MapStd<std::string, Symbol*>;
-template class MapStd<int, State*>;
-template class MapStd<int, int>;
+template class MapStd<weight_t, Weight<weight_t>*>;
 template class MapStd<std::string, State*>;
 
-template class MapVec<scc_data_struct*>;
-template class MapVec<int>;
+template class MapVec<Weight<weight_t>*>;
 template class MapVec<State*>;
+template class MapVec<SetList<Edge*>*>;
 template class MapVec<Symbol*>;
 template class MapVec<SetStd<Edge*>*>;
 

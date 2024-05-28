@@ -3,14 +3,25 @@
 #define UTILITY_H_
 
 
+
 #define fail(text)										\
 	do {												\
-		fprintf(stderr, "Failure : %s\n", text);		\
-		fprintf(stderr, "File : %s\n", __FILE__);		\
-		fprintf(stderr, "Line : %d\n", __LINE__);		\
-		fprintf(stderr, "Function : %s\n", __func__ );	\
-		fflush(stderr);									\
+		fprintf(stdout, "Failure: %s\n", text);		\
+		fprintf(stdout, "File: %s\n", __FILE__);		\
+		fprintf(stdout, "Line: %d\n", __LINE__);		\
+		fprintf(stdout, "Function: %s\n", __func__ );	\
+		fflush(stdout);									\
 		exit(EXIT_FAILURE);								\
+	} while(0)
+
+
+#define warning(text)									\
+	do {												\
+		fprintf(stdout, "Warning: %s\n", text);			\
+		fprintf(stdout, "File: %s\n", __FILE__);		\
+		fprintf(stdout, "Line: %d\n", __LINE__);		\
+		fprintf(stdout, "Function: %s\n", __func__ );	\
+		fflush(stdout);									\
 	} while(0)
 
 

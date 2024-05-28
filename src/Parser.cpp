@@ -53,8 +53,12 @@ std::string Parser::readEdge (std::string line) {
 	std::string weightname;
 	buffer >> weightname;
 	if (weightname.empty()) abort("transition without weight");
-	int weight = atoi(weightname.c_str());
-	parser_verbose("Parser: Weight = '%d'\n", weight);
+	std::istringstream string_to_weight(weightname);
+	weight_t weight;
+	string_to_weight >> weight;
+	this->weights.insert(weight);
+	if (string_to_weight.eof() == false) abort("non-integer weight");
+	parser_verbose("Parser: Weight = '%s'\n", std::to_string(weight).c_str());
 
 	std::string fromname;
 	buffer >> fromname;
@@ -68,7 +72,7 @@ std::string Parser::readEdge (std::string line) {
 	this->states.insert(toname);
 	parser_verbose("Parser: To = '%s'\n", toname.c_str());
 
-	std::pair<std::pair<std::string, int>,std::pair<std::string, std::string>> edge;
+	std::pair<std::pair<std::string, weight_t>,std::pair<std::string, std::string>> edge;
 	edge.first.first = symbolname;
 	edge.first.second = weight;
 	edge.second.first = fromname;
@@ -148,7 +152,7 @@ static std::list<std::string> mytokenizer(std::string line, const std::string to
 
 Parser::Parser(std::string filename) {
 	this->filename = filename;
-	this->line_counter = -1;
+	this->line_counter = 0;
 	this->file.open(filename);
 
 
@@ -178,7 +182,7 @@ Parser::Parser(std::string filename) {
 }
 
 Parser::~Parser() {
-	delete_verbose("@Detail: 3 SetStd will be deleted (parser)\n");
+	delete_verbose("@Detail: 4 SetStd will be deleted (parser)\n");
 }
 
 

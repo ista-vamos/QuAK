@@ -11,23 +11,26 @@
 
 class State{
 private:
-	const int id;
+	const int my_id;
 	std::string name;
 	int scc_tag;
-	SetStd<Edge*>* edges;
+	SetStd<Edge*>* edges; // fixme : consider removing edges eventually
 	MapVec<SetStd<Edge*>*>* successors;
-private:
-	void addSuccessor(Edge* edge);
+	MapVec<SetStd<Edge*>*>* predecessors;
 public:
 	State (std::string name, unsigned int alphabet_size);
 	~State();
+	static void RESET();
 	std::string getName() const;
 	const int getId() const;
 	const int getTag() const;
 	void setTag(int tag);
-	SetStd<Edge*>* getEdges() const; // fixme : consider removing edges eventually
-	MapVec<SetStd<Edge*>*>* getSuccessors() const;
+	SetStd<Edge*>* getEdges() const;
 	void addEdge (Edge *edge);
+	SetStd<Edge*>* getSuccessors(unsigned int symbol_id) const;
+	void addSuccessor (Edge* edge);
+	SetStd<Edge*>* getPredecessors(unsigned int symbol_id) const;
+	void addPredecessor (Edge* edge);
 	static std::string toString (State *state);
 	std::string toString() const;
 

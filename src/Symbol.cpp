@@ -1,19 +1,23 @@
+
 #include "Symbol.h"
 #include "utility.h"
 
 int ID_of_Symbols = 0;
+void Symbol::Symbol::RESET() { ID_of_Symbols = 0; }
 
 
-Symbol::Symbol(std::string name) : id(ID_of_Symbols++), name(name) {}
+Symbol::Symbol(std::string name) : my_id(ID_of_Symbols++), name(name) {}
 
 
-Symbol::~Symbol() { delete_verbose("@Memory: Symbol deleted\n"); }
+Symbol::~Symbol() {
+	delete_verbose("@Memory: Symbol deleted (%s)\n", this->toString().c_str());
+}
 
 
 std::string Symbol::getName() const { return this->name; }
 
 
-const int Symbol::getId() const { return this->id; }
+const int Symbol::getId() const { return this->my_id; }
 
 
 std::string Symbol::Symbol::toString (Symbol* symbol) { return symbol->toString(); }

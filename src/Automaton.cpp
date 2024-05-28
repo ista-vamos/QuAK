@@ -1,57 +1,92 @@
 
-#include <climits> // INT_MIN, INT_MAX
 #include "Automaton.h"
 #include "Parser.h"
 #include "Edge.h"
 #include "utility.h"
 
 
-struct scc_data_struct {
-	State* origin;
-	int karp;
-	int min_weight;
-	int max_weight;
-};
-
 
 
 Automaton::~Automaton () {
-	for (unsigned int id = 0; id < alphabet->size(); ++id) {
-		delete alphabet->at(id);
+	delete_verbose("@Memory: Automaton deletion started (automaton %s)\n", this->name.c_str());
+
+	delete_verbose("@Detail: %u Edges will be deleted (automaton %s)\n", this->edges_size, this->name.c_str());
+	for (unsigned int state_id = 0; state_id < states->size(); ++state_id) {
+		for (auto edge : *(states->at(state_id)->getEdges())) {
+			delete edge;
+		}
 	}
-	for (unsigned int id = 0; id < states->size(); ++id) {
-		delete states->at(id);
+
+	delete_verbose("@Detail: %u Symbols will be deleted (automaton %s)\n", this->alphabet->size(), this->name.c_str());
+	for (unsigned int id = 0; id < this->alphabet->size(); ++id) {
+		delete this->alphabet->at(id);
 	}
+	delete_verbose("@Detail: 1 MapVec (alphabet) will be deleted (automaton %s)\n", this->name.c_str());
+	delete alphabet;
+	delete_verbose("@Detail: %u States will be deleted (automaton %s)\n", this->states->size(), this->name.c_str());
+	for (unsigned int id = 0; id < this->states->size(); ++id) {
+		delete this->states->at(id);
+	}
+	delete_verbose("@Detail: 1 MapVec (states) will be deleted (automaton %s)\n", this->name.c_str());
+	delete states;
+	delete_verbose("@Detail: %u Weights will be deleted (automaton %s)\n", this->weights->size(), this->name.c_str());
+	for (unsigned int id = 0; id < this->weights->size(); ++id) {
+		delete this->weights->at(id);
+	}
+	delete_verbose("@Detail: 1 MapVec (weights) will be deleted (automaton %s)\n", this->name.c_str());
 	delete weights;
-	if (SCCs != NULL) delete SCCs;
-	delete_verbose("@Detail: 2 MapVec will be deleted (automaton)\n");
-	delete_verbose("@Detail: 1 SetStd will be deleted (automaton)\n");
+	delete_verbose("@Detail: 1 SetList (SCCs) will be deleted (automaton %s)\n", this->name.c_str());
+	delete this->SCCs;
+	delete_verbose("@Memory: Automaton deletion finished (%s)\n", this->name.c_str());
 }
+
+
+Automaton::Automaton (
+		std::string name,
+		MapVec<Symbol*>* alphabet,
+		MapVec<State*>* states,
+		MapVec<Weight<weight_t>*>* weights,
+		SetList<State*>* SCCs,
+		weight_t min_weight,
+		weight_t max_weight,
+		State* initial,
+		unsigned int edges_size
+) :
+		name(name),
+		alphabet(alphabet),
+		states(states),
+		weights(weights),
+		SCCs(SCCs),
+		min_weight(min_weight),
+		max_weight(max_weight),
+		initial(initial),
+		edges_size(edges_size)
+{}
+
 
 Automaton::Automaton (std::string filename) :
 		name(filename),
 		alphabet(NULL),
 		states(NULL),
-		SCCs(NULL),
-		min_weight(INT_MAX),
-		max_weight(INT_MIN),
 		weights(NULL),
-		initial (NULL)
+		SCCs(NULL),
+		initial(NULL)
 {
 	Parser parser(filename);
+	min_weight = *(parser.weights.begin());
+	max_weight = *(parser.weights.begin());
+	edges_size = parser.edges.size();
+
+	MapStd<weight_t, Weight<weight_t>*> weight_register;
 	MapStd<std::string, Symbol*> symbol_register;
 	MapStd<std::string, State*> state_register;
 
-	this->weights = new SetStd<int>();
+	Weight<weight_t>::RESET();
+	this->weights = new MapVec<Weight<weight_t>*>(parser.weights.size());
+	Symbol::RESET();
 	this->alphabet = new MapVec<Symbol*>(parser.alphabet.size());
+	State::RESET();
 	this->states = new MapVec<State*>(parser.states.size()+1);// +1 because of INITIAL
-
-	for (std::string symbolname : parser.alphabet) {
-		Symbol* symbol = new Symbol(symbolname);
-		this->alphabet->insert(symbol->getId(), symbol);
-		symbol_register.insert(symbol->getName(), symbol);
-	}
-
 
 	this->initial = new State(parser.initial, alphabet->size());
 	this->states->insert(initial->getId(), initial);
@@ -62,20 +97,33 @@ Automaton::Automaton (std::string filename) :
 		state_register.insert(state->getName(), state);
 	}
 
-	for (auto tuple : parser.edges) {
-		int weight = tuple.first.second;
-		Symbol* symbol = symbol_register.at(tuple.first.first);
-		State* from = state_register.at(tuple.second.first);
-		State* to = state_register.at(tuple.second.second);
-		weights->insert(weight);
-		this->min_weight = std::min(this->min_weight, weight);
-		this->max_weight = std::max(this->max_weight, weight);
-		Edge *edge = new Edge(symbol, weight, from, to);
-		from->addEdge(edge);
+	for (std::string symbolname : parser.alphabet) {
+		Symbol* symbol = new Symbol(symbolname);
+		this->alphabet->insert(symbol->getId(), symbol);
+		symbol_register.insert(symbol->getName(), symbol);
 	}
 
-	initialize_SCC();
-	delete_verbose("@Detail: 2 MapStd will be deleted (register)\n");
+	for (weight_t value : parser.weights) {
+		Weight<weight_t>* weight = new Weight<weight_t>(value);
+		this->weights->insert(weight->getId(), weight);
+		weight_register.insert(weight->getValue(), weight);
+		this->min_weight = std::min(this->min_weight, value);
+		this->max_weight = std::max(this->max_weight, value);
+	}
+
+	for (auto tuple : parser.edges) {
+		Symbol* symbol = symbol_register.at(tuple.first.first);
+		Weight<weight_t>* weight = weight_register.at(tuple.first.second);
+		State* from = state_register.at(tuple.second.first);
+		State* to = state_register.at(tuple.second.second);
+		Edge *edge = new Edge(symbol, weight, from, to);
+		from->addEdge(edge);
+		from->addSuccessor(edge);
+		to->addPredecessor(edge);
+	}
+
+	initialize_SCC();// do not remove without changing ~Automaton
+	delete_verbose("@Detail: 3 MapStd will be deleted (automaton constructor registers)\n");
 }
 
 
@@ -85,135 +133,220 @@ State* Automaton::getInitial () const { return initial; }
 bool Automaton::isDeterministic () const {
 	for (unsigned int state_id = 0; state_id < this->states->size(); ++state_id) {
 		for (unsigned int symbol_id = 0; symbol_id < this->alphabet->size(); ++symbol_id) {
-			if (1 < this->states->at(state_id)->getSuccessors()->at(symbol_id)->size()) return false;
+			if (1 < this->states->at(state_id)->getSuccessors(symbol_id)->size()) return false;
 		}
 	}
 	return true;
 }
 
 
-unsigned int Automaton::initialize_SCC_recursive (State* state, int* time, int* discovery, SetList<State*>* list) const {
-	unsigned int nb_SCCs = 0;
-	discovery[state->getId()] = *time;
-	state->setTag(*time);
-	int min = *time;
+void Automaton::initialize_SCC_flood (State* state, weight_t value) const {
+	if (state->getTag() > -1) return;
+	state->setTag(value);
+	for (auto edge : *(state->getEdges())) {
+		initialize_SCC_flood(edge->getTo(), value);
+	}
+}
+
+
+void Automaton::initialize_SCC_explore (State* state, int* time, int* spot, int* low, SetList<State*>* list) const {
+	spot[state->getId()] = *time;
+	low[state->getId()] = *time;
 	(*time)++;
-	SetStd<Edge*>* set = state->getEdges();
-	for (auto edge : *set) {
-		if (discovery[edge->getTo()->getId()] == -1) {
-			nb_SCCs += initialize_SCC_recursive(edge->getTo(), time, discovery, list);
+
+	for (auto edge : *(state->getEdges())) {
+		if (spot[edge->getTo()->getId()] == -1) {
+			initialize_SCC_explore(edge->getTo(), time, spot, low, list);
 		}
-		min = std::min(min, edge->getTo()->getTag());
+		low[state->getId()] = std::min(low[state->getId()], low[edge->getTo()->getId()]);
 	}
-	state->setTag(min);
-	if (min==discovery[state->getId()]) {
-		list->insert(state);
-		return nb_SCCs+1;
+
+	if (low[state->getId()] == spot[state->getId()]) {
+		list->push(state);
+		initialize_SCC_flood(state, low[state->getId()]);
 	}
-	return nb_SCCs;
 }
 
 void Automaton::initialize_SCC (void) {
 	unsigned int size = this->states->size();
-	int discovery[size];
+	int spot[size];
+	int low[size];
 	int time = 0;
-	SetList<State*> list;
-	for (unsigned int id = 0; id < size; ++id) {
-		discovery[id] = -1;
+	this->SCCs = new SetList<State*>;
+	for (unsigned int state_id = 0; state_id < size; ++state_id) {
+		spot[state_id] = -1;
 	}
-	unsigned int n = initialize_SCC_recursive(initial, &time, discovery, &list);
-	this->SCCs = new MapVec<scc_data_struct*>(n);
-
-	unsigned int id = 0;
-	for (auto state : list) {
-		scc_data_t* data = new scc_data_t;
-		data->origin = state;
-		this->SCCs->insert(id, data);
-		++id;
-	}
-
-/*
-	printf("THERE ARE %u SCCs\n", this->SCCs->size());
-	for (unsigned int id = 0; id < this->SCCs->size(); ++id) {
-		printf("SCC %d origin %s\n",
-				SCCs->at(id)->origin->getTag(),
-				SCCs->at(id)->origin->getName().c_str());
-	}
-*/
-	return;
+	initialize_SCC_explore(initial, &time, spot, low, this->SCCs);
 };
 
 
-int Automaton::weight_reachably_recursive (State* state, bool scc_restriction, bool* discovery) const {
+weight_t Automaton::weight_reachably_recursive (State* state, bool scc_restriction, bool* discovery) const {
 	if (discovery[state->getId()] == true) return min_weight - 1;
 	discovery[state->getId()] = true;
-	int weight = this->min_weight - 1;
+	weight_t value = this->min_weight - 1;
 	for (auto edge : *(state->getEdges())) {
 		if (scc_restriction == false || edge->getTo()->getTag() == state->getTag()) {
-			weight = std::max(weight, edge->getWeight());
-			weight = std::max(weight, weight_reachably_recursive(edge->getTo(), scc_restriction, discovery));
+			value = std::max(value, edge->getWeight()->getValue());
+			value = std::max(value, weight_reachably_recursive(edge->getTo(), scc_restriction, discovery));
 		}
 	}
-	return weight;
+	return value;
 }
 
-int Automaton::weight_reachably (State* state, bool scc_restriction) const {
+weight_t Automaton::weight_reachably (State* state, bool scc_restriction) const {
 	unsigned int size = this->states->size();
 	bool discovery[size];
-	for (unsigned int id = 0; id < size; ++id) {
-		discovery[id] = false;
-	}
+	for (unsigned int state_id = 0; state_id < size; ++state_id) discovery[state_id] = false;
 	return weight_reachably_recursive (state, scc_restriction, discovery);
 }
 
 
-
-
-int Automaton::weight_responce () const {
-	int weight = this->min_weight - 1;
-	for (unsigned int id = 0; id < this->SCCs->size(); ++id) {
-		int n = weight_reachably(SCCs->at(id)->origin, true);
-		weight = std::max(weight, n);
+weight_t Automaton::weight_responce () const {
+	weight_t value = this->min_weight - 1;
+	for (auto iter = this->SCCs->cbegin(); iter != this->SCCs->cend(); ++iter) {
+		value = std::max(value, weight_reachably(*iter, true));
 	}
-	return weight;
+	return value;
 }
 
 
-int Automaton::weight_safety () const {
-	fail("not implemented");
-}
-int Automaton::weight_persistance () const {
-	fail("not implemented");
-}
+void Automaton::toto_handle_edge (Edge* edge, int* values, int** counters) {
+	if (values[edge->getFrom()->getId()] <= this->max_weight) {
+		printf("\t\tNO HANDLE OF %s\n", edge->toString().c_str());
+		return;
+	}
 
+	State* state = edge->getFrom();
+	counters[state->getId()][edge->getSymbol()->getId()]--;
+	printf("\t\tCOUNTER[%u][%u] = %d\n", state->getId(), edge->getSymbol()->getId(), counters[state->getId()][edge->getSymbol()->getId()]);
+	if (counters[state->getId()][edge->getSymbol()->getId()] == 0) {
+		weight_t max_value = this->min_weight;
+		printf("\t\tMAX VALUE: ");
+		for (Edge* succ : *(state->getSuccessors(edge->getSymbol()->getId()))) {
+			weight_t tmp = std::min(succ->getWeight()->getValue(), values[succ->getTo()->getId()]);
+			max_value = std::max(max_value, tmp);
+			printf(" %d", max_value);
+		}
+		printf("\n");
+		values[state->getId()] = max_value;
+		printf("\t\tVALUE[%u] = %d\n", state->getId(), max_value);
 
-double Automaton::weight_avg (void) {
-	unsigned int size = this->states->size();
-	int distance[size+1][size];
-	int infinity = -size*min_weight+1;
+		for (unsigned int symbol_id = 0; symbol_id < this->alphabet->size(); ++symbol_id) {
+			for (Edge* pred : *(state->getPredecessors(symbol_id))) {
+				toto_handle_edge(pred, values, counters);
+			}
+		}
+	}
+};
 
-	for (unsigned int len = 0; len <= size; ++len) {
-		for (unsigned int id = 0; id < size; ++id) {
-			distance[len][id] = infinity;
+void Automaton::toto () {
+	warning("memory not handled");
+
+	MapVec<SetList<Edge*>*> edges(this->weights->size());
+	for (unsigned int weight_id = 0; weight_id < this->weights->size(); ++weight_id) {
+		edges.insert(weight_id, new SetList<Edge*>);
+	}
+
+	weight_t values[this->states->size()];
+	int* counters[this->states->size()];
+	for (unsigned int state_id = 0; state_id < this->states->size(); ++state_id) {
+		counters[state_id] = new int[this->alphabet->size()];
+		values[state_id] = this->max_weight + 1;
+		for (unsigned int symbol_id = 0; symbol_id < this->alphabet->size(); ++symbol_id) {
+			counters[state_id][symbol_id] = states->at(state_id)->getSuccessors(symbol_id)->size();
+			for (Edge* edge : *(this->states->at(state_id)->getSuccessors(symbol_id))) {
+				edges.at(edge->getWeight()->getId())->push(edge);
+			}
 		}
 	}
 
-	for (unsigned int scc_id = 0; scc_id < this->SCCs->size(); ++scc_id) {
-		distance[0][this->SCCs->at(scc_id)->origin->getId()] = 0;
+	for (unsigned int weight_id = 0; weight_id < this->weights->size(); ++weight_id) {
+		while (edges.at(weight_id)->size() > 0) {
+			Edge* edge = edges.at(weight_id)->head();
+			edges.at(weight_id)->pop();
+			printf("\tTAKE EDGE %s\n", edge->toString().c_str());
+			toto_handle_edge(edge, values, counters);
+		}
 	}
 
+	for (unsigned int state_id = 0; state_id < this->states->size(); ++state_id) {
+		printf("STATE %s TOP VALUE %d\n", this->states->at(state_id)->getName().c_str(), values[state_id]);
+	}
+}
+
+
+
+
+weight_t Automaton::weight_safety_recursive (State* state, bool scc_restriction, bool* discovery) const {
+	if (discovery[state->getId()] == true) return max_weight + 1;
+	discovery[state->getId()] = true;
+	weight_t min_symbol_value = max_weight + 1;
+	for (unsigned int symbol_id = 0; symbol_id < alphabet->size(); ++symbol_id) {
+		weight_t max_branching_value = min_weight;
+		bool flag = false;
+		for (Edge* edge : *(state->getSuccessors(symbol_id))){
+			if (scc_restriction == false || edge->getTo()->getTag() == state->getTag()) {
+				weight_t tmp = std::min(edge->getWeight()->getValue(), weight_safety_recursive(edge->getTo(), scc_restriction, discovery));
+				max_branching_value = std::max (max_branching_value, tmp);
+				flag = true;
+			}
+		}
+		if (flag == true) min_symbol_value = std::min(min_symbol_value, max_branching_value);
+	}
+	return min_symbol_value;
+}
+
+
+weight_t Automaton::weight_safety (State* state, bool scc_restriction) const {
+	unsigned int size = this->states->size();
+	bool discovery[size];
+	for (unsigned int state_id = 0; state_id < size; ++state_id) discovery[state_id] = false;
+	return weight_safety_recursive (state, scc_restriction, discovery);
+}
+
+
+
+weight_t Automaton::weight_persistence () const {
+	weight_t value = this->min_weight - 1;
+	for (unsigned int state_id = 0; state_id < this->states->size(); ++state_id) {
+		weight_t tmp = weight_safety(this->states->at(state_id), true);
+		if (tmp > this->max_weight) tmp = this->min_weight - 1;
+		value = std::max(value, tmp);
+	}
+	return value;
+}
+
+
+
+double Automaton::weight_avg (void) const {
+	unsigned int size = this->states->size();
+	weight_t distance[size + 1][size];
+	weight_t infinity = 1 - (size*(this->min_weight)); //fixme : replacable by a array of initializations
+
+	// O(n)
+	for (unsigned int length = 0; length <= size; ++length) {
+		for (unsigned int state_id = 0; state_id < size; ++state_id) {
+			distance[length][state_id] = infinity;
+		}
+	}
+
+	// O(n)
+	for (auto iter = this->SCCs->cbegin(); iter != this->SCCs->cend(); ++iter) {
+		distance[0][(*iter)->getId()] = 0;
+	}
+
+	// O(n.m)
 	for (unsigned int len = 1; len <= size; ++len) {
-		for (unsigned int id = 0; id < size; ++id)	{
-			for (auto edge : *(states->at(id)->getEdges())) {
+		for (unsigned int state_id = 0; state_id < size; ++state_id)	{
+			for (auto edge : *(states->at(state_id)->getEdges())) {
 				if (edge->getFrom()->getTag() == edge->getTo()->getTag()) {
 					if (distance[len-1][edge->getFrom()->getId()] != infinity) {
-						int x = distance[len-1][edge->getFrom()->getId()] - edge->getWeight();
+						weight_t value = distance[len-1][edge->getFrom()->getId()] - edge->getWeight()->getValue();
 						if (distance[len][edge->getTo()->getId()] == infinity) {
-							distance[len][edge->getTo()->getId()] = x;
+							distance[len][edge->getTo()->getId()] = value;
 						}
 						else {
-							distance[len][edge->getTo()->getId()] = std::min(x,
-									distance[len][edge->getTo()->getId()]
+							distance[len][edge->getTo()->getId()] = std::min(value, distance[len][edge->getTo()->getId()]
 							);
 						}
 					}
@@ -222,57 +355,77 @@ double Automaton::weight_avg (void) {
 		}
 	}
 
+	//O(n.m)
+	double max_state_avg = this->min_weight - 1.0;
+	for (unsigned int state_id = 0; state_id < size; ++state_id) {
+		double min_lenght_avg = this->max_weight + 1.0;
+		bool len_flag = false;
+		if (distance[size][state_id] != infinity) { // => id has an ongoing edge (inside its SCC)
+			for (unsigned int lenght = 0; lenght < size; ++lenght) { // hence the nested loop is call at most O(m) times
+				if (distance[lenght][state_id] != infinity) {
+					double avg = (distance[lenght][state_id] - distance[size][state_id] + 0.0) / (size - lenght + 0.0);
+					min_lenght_avg = std::min(min_lenght_avg, avg);
+					len_flag = true;
+				}
+			}
+		}
+		if (len_flag) max_state_avg = std::max(max_state_avg, min_lenght_avg);
+	}
+	return max_state_avg;
+}
 
-	/*double min_id = max_weight + 0.0;
-	bool id_flag = false;
-	for (unsigned int id = 0; id < size; ++id) {
-		double max_len = min_weight + 0.0;
-		bool len_flag = false;
-		if (distance[size][id] != infinity) {
-			for (unsigned int len = 0; len < size; ++len) {
-				if (distance[len][id] != infinity) {
-					double x = (distance[size][id] - distance[len][id] + 0.0) / (size - len + 0.0);
-					max_len = std::max(max_len, x);
-					len_flag = true;
-				}
-			}
-		}
-		if (len_flag) {
-			min_id = std::min(min_id, max_len);
-			id_flag = true;
-		}
+
+double Automaton::computeTop (value_function_t value_function) const {
+	switch (value_function) {
+		case Inf:
+			return weight_safety(this->initial, false);
+		case Sup:
+			return weight_reachably(this->initial, false);
+		case LimInf:
+			return weight_persistence();
+		case LimSup:
+			return weight_responce();
+		case LimAvg:
+			return weight_avg();
+		default:
+			fail("automata top");
 	}
-	if (id_flag == false) return min_weight - 1;
-	*/
-	double max_id = min_weight - 1.0;
-	for (unsigned int id = 0; id < size; ++id) {
-		double min_len = max_weight + 1.0;
-		bool len_flag = false;
-		if (distance[size][id] != infinity) {
-			for (unsigned int len = 0; len < size; ++len) {
-				if (distance[len][id] != infinity) {
-					double x = (distance[len][id] - distance[size][id] + 0.0) / (size - len + 0.0);
-					min_len = std::min(min_len, x);
-					len_flag = true;
-				}
-			}
-		}
-		if (len_flag) max_id = std::max(max_id, min_len);
-	}
-	return max_id;
 }
 
 
 
-void Automaton::emptiness() {
-	//int (*max)(int, int) = [](int a, int b) { return std::max(a, b); };
-	printf("\temptiness:\n");
-	int x = weight_reachably(initial, false);
-	printf("\t\t   Sup: exists w : A(w) > x iff %s > x\n", x<min_weight ? "-infinity" : std::to_string(x).c_str());
-	double y = weight_avg();
-	printf("\t\tLimAvg: exists w : A(w) > y iff %s > y\n", y<min_weight ? "-infinity" : std::to_string(y).c_str());
-	int z = weight_responce();
-	printf("\t\tLimSup: exists w : A(w) > z iff %s > z\n", z<min_weight ? "-infinity" : std::to_string(z).c_str());
+std::string Automaton::top_toString() const {
+	weight_t x;
+	double y;
+	std::string s = "\ttop:";
+
+	x = weight_safety(this->initial, false);
+	s.append("\n\t\t   Inf -> ");
+	s.append(x>max_weight ? "+infinity" : std::to_string(x));
+
+	x = weight_reachably(this->initial, false);
+	s.append("\n\t\t   Sup -> ");
+	s.append(x<min_weight ? "-infinity" : std::to_string(x));
+
+	x = weight_persistence();
+	s.append("\n\t\tLimInf -> ");
+	s.append(x<min_weight ? "+infinity" : std::to_string(x));
+
+	x = weight_responce();
+	s.append("\n\t\tLimSup -> ");
+	s.append(x<min_weight ? "-infinity" : std::to_string(x));
+
+	y = weight_avg();
+	s.append("\n\t\tLimAvg -> ");
+	s.append(y<min_weight ? "-infinity" : std::to_string(y));
+
+	s.append("\n");
+	return s;
+}
+
+
+std::string Automaton::Automaton::toString (Automaton* A) {
+	return A->toString();
 }
 
 
@@ -284,7 +437,7 @@ std::string Automaton::toString () const {
 	s.append(alphabet->toString(Symbol::toString));
 	s.append("\n\t");
 	s.append("weights:");
-	s.append(weights->toString(std::to_string));
+	s.append(weights->toString(Weight<weight_t>::toString));
 	s.append("\n\t\tMIN = ");
 	s.append(std::to_string(min_weight));
 	s.append("\n\t\tMAX = ");
@@ -293,143 +446,16 @@ std::string Automaton::toString () const {
 	s.append("states:");
 	s.append(states->toString(State::toString));
 	s.append("\n\t\tINITIAL = ");
-	s.append(initial->toString());
+	s.append(initial->getName());
 	s.append("\n\t");
 	s.append("edges:");
-	for (unsigned int id = 0; id < states->size(); ++id) {
-		s.append(states->at(id)->getEdges()->toString(Edge::toString));
+	for (unsigned int state_id = 0; state_id < states->size(); ++state_id) {
+		s.append(states->at(state_id)->getEdges()->toString(Edge::toString));
 	}
+	s.append("\n");
+	s.append(top_toString());
 	return s;
 }
 
-
-
-
-
-
-
-/*
-void Automaton::Karp (void) {
-	unsigned int size = this->states->size();
-	int distance[size+1][size];
-	int infinity = size*max_weight+1;
-
-	for (unsigned int len = 0; len <= size; ++len) {
-		for (unsigned int id = 0; id < size; ++id) {
-			distance[len][id] = infinity;
-		}
-	}
-	distance[0][0] = 0;
-
-	for (unsigned int len = 1; len <= size; ++len) {
-		for (unsigned int id = 0; id < size; ++id)	{
-			SetStd<Edge*>* set = states->at(id)->getEdges();
-			for (auto iter = set->cbegin(); iter != set->cend(); ++iter) {
-				Edge* edge = *iter;
-				if (distance[len-1][edge->getFrom()->getId()] != infinity) {
-					int x = distance[len-1][edge->getFrom()->getId()] + edge->getWeight();
-					if (distance[len][edge->getTo()->getId()] == infinity) {
-						distance[len][edge->getTo()->getId()] = x;
-					}
-					else {
-						distance[len][edge->getTo()->getId()] = std::min(x,
-								distance[len][edge->getTo()->getId()]
-						);
-					}
-				}
-			}
-		}
-	}
-
-	double min_id = max_weight + 0.0;
-	for (unsigned int id = 0; id < size; ++id) {
-		double max_len = min_weight + 0.0;
-		bool flag = false;
-		if (distance[size][id] != infinity) {
-			for (unsigned int len = 0; len < size; ++len) {
-				if (distance[len][id] != infinity) {
-					double x = (distance[size][id] - distance[len][id] + 0.0) / (size - len + 0.0);
-					max_len = std::max(max_len, x);
-					flag = true;
-				}
-			}
-		}
-		if (flag) min_id = std::min(min_id, max_len);
-	}
-
-	printf("KARP : %lf\n", min_id);
-}
-*/
-
-
-
-/*void shortest (State* source) const {
-	printf("################################# SHORTEST PATH BEGIN\n");fflush(stdout);
-	unsigned int length = this->states.size();
-	printf("LENGTH = %u\n", length);fflush(stdout);
-	unsigned int* edge_distance = new unsigned int[length];
-	unsigned int* weight_distance = new unsigned int[length];
-	for (unsigned int key = 0; key < length; ++key) {
-		edge_distance[states.at(key)->getId()] = UINT_MAX;
-		weight_distance[states.at(key)->getId()] = UINT_MAX;
-	}
-	edge_distance[source->getId()] = 0;
-	weight_distance[source->getId()] = 0;
-
-
-	std::multimap<int, State*> queue = std::multimap<int, State*>();
-	queue.insert(std::pair<int, State*>(0,source));
-	// (Map: distance -> state)
-
-	bool* inQueue = new bool[length];
-	memset(inQueue, false, length*sizeof(bool));
-	inQueue[source->getId()] = true;
-
-	while (queue.size() > 0) {
-		//int x = queue.begin()->first;
-		State* from = queue.begin()->second;
-		queue.erase(queue.begin());
-		inQueue[from->getId()] = false;
-		printf("State %s pop from the queue distance (%u)\n",
-				from->getName().c_str(),
-				weight_distance[from->getId()]-min_weight*edge_distance[from->getId()]
-		);fflush(stdout);
-
-		SetStd<Edge*>* set = from->getEdges();/
-		for (auto iter = set->cbegin(); iter != set->cend(); ++iter) {
-			printf("Edge (%s) considered\n", (*iter)->toString().c_str());fflush(stdout);
-			State* to = (*iter)->getTo();
-			int weight = (*iter)->getWeight();
-			printf("State %s -> %s old distance (%u - %d -> %u)\n",
-					from->getName().c_str(),
-					to->getName().c_str(),
-					distance[from->getId()],
-					weight + min_weight,
-					distance[to->getId()]
-			);fflush(stdout);
-			if (distance[to->getId()] > distance[from->getId()] + weight + min_weight) {
-				printf("State %s new distance (%u)\n",
-						to->getName().c_str(),
-						distance[to->getId()] + weight + min_weight
-				);fflush(stdout);
-				distance[to->getId()] = distance[from->getId()] + weight + min_weight;
-				if (inQueue[to->getId()] == false) {
-					printf("State %s in queue\n", to->getName().c_str());fflush(stdout);
-					queue.insert(std::pair<int, State*>(distance[to->getId()],to));
-					inQueue[to->getId()] = true;
-				}
-			}
-		}
-	}
-
-	for (unsigned int key = 0; key < length; ++key) {
-		State* state = states.at(key);
-		printf("DISTANCE FROM INITIAL %s = %u\n", state->getName().c_str(), distance[state->getId()]-min_weight);fflush(stdout);
-	}
-	delete[] distance;
-	delete[] inQueue;
-	printf("################################# SHORTEST PATH END\n");fflush(stdout);
-}
-*/
 
 

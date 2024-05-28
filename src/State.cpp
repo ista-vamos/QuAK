@@ -4,31 +4,44 @@
 
 
 int ID_of_States = 0;
+void State::State::RESET() { ID_of_States = 0; }
 
 
 State::~State () {
-	delete_verbose("@Memory: State deleted\n");
-	for (auto edge : *edges) {
-		delete edge;
-	}
-	delete_verbose("@Detail: 1 SetStd will be deleted (state)\n");
+	delete_verbose("@Memory: State deletion start (%s)\n", this->toString().c_str());
+	delete_verbose("@Detail: 1 SetStd (edges) will be deleted (state %s)\n", this->toString().c_str());
 	delete edges;
-	for (unsigned int id = 0; id < successors->size(); ++id) {
-		delete successors->at(id);
+	delete_verbose("@Detail: %u SetStd (successors) will be deleted (state %s)\n", this->successors->size(), this->toString().c_str());
+	for (unsigned int symbol_id = 0; symbol_id  < this->successors->size(); ++symbol_id ) {
+		delete successors->at(symbol_id);
 	}
+	delete_verbose("@Detail: 1 MapVec (successors) will be deleted (state %s)\n", this->toString().c_str());
 	delete successors;
+	delete_verbose("@Detail: %u SetStd (predecessors) will be deleted (state %s)\n", this->predecessors->size(), this->toString().c_str());
+	for (unsigned int symbol_id = 0; symbol_id  < this->predecessors->size(); ++symbol_id ) {
+		delete predecessors->at(symbol_id);
+	}
+	delete_verbose("@Detail: 1 MapVec (predecessors) will be deleted (state %s)\n", this->toString().c_str());
+	delete predecessors;
+	delete_verbose("@Memory: State deletion finish (%s)\n", this->toString().c_str());
 }
 
 
 State::State (std::string name, unsigned int alphabet_size) :
-		id(ID_of_States++),
+		my_id(ID_of_States++),
 		name(name),
 		scc_tag(-1),
 		edges(NULL),
-		successors(NULL)
+		successors(NULL),
+		predecessors(NULL)
 {
 	this->edges = new SetStd<Edge*>();
 	this->successors = new MapVec<SetStd<Edge*>*>(alphabet_size);
+	this->predecessors = new MapVec<SetStd<Edge*>*>(alphabet_size);
+	for (unsigned int symbol_id = 0; symbol_id < this->successors->size(); ++symbol_id) {
+		this->successors->insert(symbol_id, new SetStd<Edge*>());
+		this->predecessors->insert(symbol_id, new SetStd<Edge*>());
+	}
 }
 
 
@@ -38,7 +51,7 @@ std::string State::getName() const {
 
 
 const int State::getId() const {
-	return this->id;
+	return this->my_id;
 }
 
 const int State::getTag() const {
@@ -54,28 +67,29 @@ SetStd<Edge*>* State::getEdges() const {
 }
 
 
-MapVec<SetStd<Edge*>*>* State::getSuccessors() const {
-	return this->successors;
+SetStd<Edge*>* State::getSuccessors(unsigned int symbol_id) const {
+	return this->successors->at(symbol_id);
 }
+
+
+SetStd<Edge*>* State::getPredecessors(unsigned int symbol_id) const {
+	return this->predecessors->at(symbol_id);
+}
+
 
 
 void State::addEdge (Edge *edge) {
 	this->edges->insert(edge);
-	addSuccessor(edge);
 }
 
 
 void State::addSuccessor (Edge* edge) {
-	Symbol* symbol = edge->getSymbol();
-	SetStd<Edge*>* set = this->successors->at(symbol->getId());
-	if (set == NULL) {
-		set = new SetStd<Edge*>();
-		set->insert(edge);
-		successors->insert(symbol->getId(), set);
-	}
-	else {
-		set->insert(edge);
-	}
+	this->successors->at(edge->getSymbol()->getId())->insert(edge);
+}
+
+
+void State::addPredecessor (Edge* edge) {
+	this->predecessors->at(edge->getSymbol()->getId())->insert(edge);
 }
 
 
@@ -85,7 +99,7 @@ std::string State::State::toString(State *state) {
 
 
 std::string State::toString() const {
-	return this->name;
+	return this->name + ", scc: " + std::to_string(this->scc_tag);
 }
 
 

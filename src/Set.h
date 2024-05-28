@@ -22,16 +22,16 @@ public:
 */
 
 
-template <typename T> class SetStd {//: public Set<T> {
+template <typename T_element> class SetStd {//: public Set<T> {
 private:
-	std::set<T> all;
+	std::set<T_element> all;
 public:
 	SetStd();
 	~SetStd();
-	void insert(T element);
-	void erase(T element);
+	void insert(T_element element);
+	void erase(T_element element);
 	unsigned int size() const;
-	std::string toString(std::string (*f) (T element)) const;
+	std::string toString (std::string (*f) (T_element element)) const;
 	auto begin() {return all.begin();};
 	auto end() {return all.end();};
 	auto cbegin() {return all.cbegin();};
@@ -40,15 +40,18 @@ public:
 
 
 
-template <typename T_value> class SetList {//: public Set<T> {
+template <typename T_element> class SetList {//: public Set<T> {
 private:
-	std::list<T_value> all;
+	std::list<T_element> all;
 public:
 	SetList();
 	~SetList();
-	void insert(T_value element);
+	void push(T_element element);
+	void queue(T_element element);
+	void pop();
+	T_element head();
 	unsigned int size() const;
-	std::string toString(std::string (*f) (T_value element)) const;
+	std::string toString (std::string (*f) (T_element element)) const;
 	auto begin() {return all.begin();};
 	auto end() {return all.end();};
 	auto cbegin() {return all.cbegin();};
@@ -57,16 +60,19 @@ public:
 
 
 
+
+#include "Weight.h"
 class Symbol;
 class State;
 class Edge;
-template class SetStd<std::pair<std::pair<std::string, int>,std::pair<std::string, std::string>>>;
+template class SetStd<std::pair<std::pair<std::string, weight_t>,std::pair<std::string, std::string>>>;
 template class SetStd<std::string>;
-template class SetStd<int>;
+template class SetStd<weight_t>;
 template class SetStd<Symbol*>;
 template class SetStd<State*>;
 template class SetStd<Edge*>;
-template class SetList<State*>;
 
+template class SetList<State*>;
+template class SetList<Edge*>;
 
 #endif /* SET_H_ */

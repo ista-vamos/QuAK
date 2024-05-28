@@ -3,10 +3,9 @@
 #define AUTOMATON_H_
 
 #include <string>
-#include <climits> // INT_MAX
-#include <cstring> // memset
 #include "Map.h"
 #include "Set.h"
+#include "Weight.h"
 #include "State.h"
 #include "Symbol.h"
 
@@ -17,7 +16,7 @@ typedef enum {
 	LimInf,
 	LimSup,
 	LimAvg,
-} ValueFunction;
+} value_function_t;
 
 
 struct scc_data_struct;
@@ -29,26 +28,45 @@ private:
 	std::string name;
 	MapVec<Symbol*>* alphabet;
 	MapVec<State*>* states;
-	MapVec<scc_data_t*>* SCCs;
-	int min_weight;
-	int max_weight;
-	SetStd<int>* weights;
+	MapVec<Weight<weight_t>*>* weights;
+	SetList<State*>* SCCs;
+	weight_t min_weight;
+	weight_t max_weight;
 	State* initial;
-	int weight_reachably_recursive (State* state, bool scc_restriction, bool* discovery) const;
-	int weight_reachably (State* state, bool scc_restriction) const;
-	int weight_safety() const;
-	int weight_responce () const;
-	int weight_persistance () const;
-	unsigned int initialize_SCC_recursive (State* state, int* time, int* discovery, SetList<State*>* SCCs) const;
+	unsigned int edges_size;
+private:
+	Automaton(
+			std::string name,
+			MapVec<Symbol*>* alphabet,
+			MapVec<State*>* states,
+			MapVec<Weight<weight_t>*>* weights,
+			SetList<State*>* SCCs,
+			weight_t min_weight,
+			weight_t max_weight,
+			State* initial,
+			unsigned int edges_size
+	);
+	weight_t weight_reachably_recursive (State* state, bool scc_restriction, bool* discovery) const;
+	weight_t weight_reachably (State* state, bool scc_restriction) const;
+	weight_t weight_safety_recursive (State* state, bool scc_restriction, bool* discovery) const;
+	weight_t weight_safety (State* state, bool scc_restriction) const;
+	weight_t weight_responce () const;
+	weight_t weight_persistence () const;
+	void initialize_SCC_flood (State* state, weight_t value) const;
+	void initialize_SCC_explore (State* state, int* time, int* discovery, int* low, SetList<State*>* SCCs) const;
 	void initialize_SCC (void);
-	double weight_avg (void);
+	double weight_avg (void) const;
+	std::string top_toString() const;
 public:
-	Automaton(std::string filename);
-	~Automaton();
+	void toto ();
+	void toto_handle_edge (Edge* edge, weight_t* values, int** counters);
+	Automaton (std::string filename);
+	~Automaton ();
 	bool isDeterministic () const;
 	State* getInitial () const;
+	double computeTop (value_function_t type) const;
+	static std::string toString (Automaton* A);
 	std::string toString () const;
-	void emptiness ();
 };
 
 #endif /* AUTOMATON_H_ */

@@ -3,22 +3,24 @@
 #define EDGE_H_
 
 #include <string>
+#include "Weight.h"
 #include "State.h"
 #include "Symbol.h"
+
 
 class Edge {
 private:
 	Symbol *symbol;
-	int weight;
+	Weight<weight_t>* weight;
 	State* from;
 	State* to;
 
 public:
-	Edge(Symbol* symbol, int weight, State* from, State* to);
+	Edge(Symbol* symbol, Weight<weight_t>* weight, State* from, State* to);
 	~Edge();
 	Symbol* getSymbol() const;
-	int getWeight() const;
-	State *getFrom() const;
+	Weight<weight_t>* getWeight() const;
+	State* getFrom() const;
 	State* getTo() const;
 
 	static std::string toString(Edge* edge);

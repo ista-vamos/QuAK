@@ -35,17 +35,16 @@ unsigned int MapStd<T_key, T_value>::size () const {
 
 template <typename T_key, typename T_value>
 std::string MapStd<T_key, T_value>::toString (std::string (*f_key) (T_key key), std::string (*f_value) (T_value value)) const {
-	std::string s = "{";
+	std::string s = "";
 	for (std::pair<T_key, T_value> pair : this->all){
-		s.append(" (");
-		s.append(f_key(pair.first));
-		s.append(", ");
+		s.append("\n\t\t");
 		s.append(f_value(pair.second));
-		s.append(")");
+		s.append(" -> ");
+		s.append(f_key(pair.first));
 	}
-	s.append("}");
 	return s;
 }
+
 
 
 // -------------------------------- MapVec -------------------------------- //
@@ -58,36 +57,12 @@ MapVec<T_value>::MapVec(unsigned int capacity) {
 	memset(all, 0, capacity * sizeof(T_value));
 }
 
-/*
-template <typename T_value>
-MapVec<T_value>::MapVec() {
-	this->all = NULL;
-	this->capacity = 0;
-}
-*/
-
 
 template <typename T_value>
 MapVec<T_value>::~MapVec() {
-	if (this->all != NULL) {
-		delete_verbose("@Memory: MapVec deleted (array size = %d)\n", this->capacity);
-		delete[] this->all;
-	}
-	else {
-		delete_verbose("@Memory: MapVec deleted (array size = 0)\n");
-	}
+	delete_verbose("@Memory: MapVec deleted (array size = %d)\n", this->capacity);
+	delete[] this->all;
 }
-
-
-/*
-template <typename T_value>
-void MapVec<T_value>::operator() (MapVec<T_value> other) {
-	this->all = other.all;
-	this->capacity = other.capacity;
-	other.capacity = 0;
-	other.all = NULL;
-}
-*/
 
 
 template <typename T_value>

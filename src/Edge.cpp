@@ -3,12 +3,12 @@
 #include "utility.h"
 
 
-Edge::Edge(Symbol* symbol, int weight, State* from, State* to) :
+Edge::Edge(Symbol* symbol, Weight<weight_t>* weight, State* from, State* to) :
 	symbol(symbol), weight(weight), from(from), to(to) {}
 
 
 Edge::~Edge () {
-	delete_verbose("@Memory: Edge deleted\n");
+	delete_verbose("@Memory: Edge deleted (%s)\n", this->toString().c_str());
 }
 
 
@@ -17,7 +17,7 @@ Symbol* Edge::getSymbol() const {
 }
 
 
-int Edge::getWeight() const {
+Weight<weight_t>* Edge::getWeight() const {
 	return this->weight;
 }
 
@@ -39,9 +39,9 @@ std::string Edge::Edge::toString(Edge* edge) {
 
 std::string Edge::toString() const {
 	std::string s = "";
-	s.append(this->symbol->getName());
+	s.append(this->symbol->toString());
 	s.append(" : ");
-	s.append(std::to_string(this->weight));
+	s.append(this->weight->toString());
 	s.append(", ");
 	s.append(this->from->getName());
 	s.append(" -> ");
