@@ -15,10 +15,14 @@ BIN = chasm
 
 
 default: all
-	
+
+
+exe:
+	./$(BINDIR)/$(BIN)
+
 
 all: $(BINDIR)/$(BIN)
-	./$(BINDIR)/$(BIN)
+
 
 $(BINDIR)/$(BIN): $(OBJ)
 	$(GPP) $(CPPFLAG) $^ -o $@
@@ -33,6 +37,7 @@ $(OBJDIR)/%.cpp.o: $(SRCDIR)/%.cpp
 
 
 .PHONY: clean
+
 
 clean:
 	rm -f $(wildcard $(OBJDIR)/*)

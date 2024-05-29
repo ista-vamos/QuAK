@@ -61,7 +61,6 @@ private:
 	T_value* all = NULL;
 	unsigned int capacity = 0;
 public:
-	//MapVec();
 	~MapVec();
 	MapVec(unsigned int capacity);
 	void insert(unsigned int key, T_value value);
