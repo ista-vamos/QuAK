@@ -3,42 +3,13 @@
 #ifndef MAP_H_
 #define MAP_H_
 
-#include <iostream>
 #include <string>
 #include <map>
 
 
-/*
-template <typename T_key, typename T_value>
-class Map {
-protected:
-	Map();
-	~Map();
-public:
-	void insert(T_key key, T_value value);
-	unsigned int size () const;
-	T_value at (T_key key);
-	//void operator() (Map<T_key, T_value> other);
-	std::string toString(std::string (*f_key) (T_key key), std::string (*f_value) (T_value value)) const;
-
-	////////
-	//edges.insert(edges.begin() + a->getId(), q); // THIS IS FOR VECTOR
-	//edges[a->getId()] = q; //THIS IS FOR ARRAY
-	//edges.insert(pair<int, State*>(a->getId(), q)); // THIS IS FOR MAP
-	////////
-	//vector<State*> edges = {0}; //VECTOR DOES NOT WORK WELL FOR US
-	//State* edges[100]; // ULTIMATELLY WE WILL USE ARRAY AFTER PARSING
-	//map<int, State*> edges;
-	////////
-};
-
-*/
-
-
-
 
 template <typename T_key, typename T_value>
-class MapStd { // : public Map<T_key, T_value> {
+class MapStd {
 private:
 	std::map<T_key, T_value> all;
 public:
@@ -56,7 +27,7 @@ public:
 
 
 template <typename T_value>
-class MapVec {//: public Map<unsigned int, T_value> {
+class MapVec {
 private:
 	T_value* all = NULL;
 	unsigned int capacity = 0;
@@ -66,7 +37,6 @@ public:
 	void insert(unsigned int key, T_value value);
 	unsigned int size () const;
 	T_value at (unsigned int key) const;
-	//void operator() (MapVec<T_value> other);
 	std::string toString(std::string (*f_value) (T_value value)) const;
 
 	/*

@@ -293,40 +293,55 @@ void Automaton::weight_reachably_scc_TMP (State* state, lol_t lol, bool* spot, w
 	}
 }
 
-void Automaton::weight_reachably_tree_TMP (SCC_Tree* tree, lol_t lol, bool* spot, weight_t* values) const {
+
+void Automaton::weight_reachably_tree_TMP (SCC_Tree* tree, lol_t lol, bool* spot, weight_t* values, weight_t* top_values) const {
 	weight_reachably_scc_TMP(tree->origin, lol, spot, values);
-	tree->value = values[tree->origin->getId()];
+	top_values[tree->origin->getTag()] = values[tree->origin->getId()];
 
 	for (auto iter = tree->nexts->cbegin(); iter != tree->nexts->cend(); ++iter) {
-		weight_reachably_tree_TMP(*iter, lol, spot, values);
-		tree->value = std::max(tree->value,  (*iter)->value);
+		weight_reachably_tree_TMP(*iter, lol, spot, values, top_values);
+		top_values[tree->origin->getTag()] = std::max(top_values[tree->origin->getTag()],
+				top_values[(*iter)->origin->getTag()]);
 	}
 }
 
+
 weight_t Automaton::weight_reachably_Sup_TMP () const {
+	weight_t top_values[this->SCCs_list->size()];
 	weight_t values[this->states->size()];
 	bool spot[this->states->size()];
 	for (unsigned int state_id = 0; state_id < this->states->size(); ++state_id) spot[state_id] = false;
-	weight_reachably_tree_TMP(this->SCCs_tree, lol_step, spot, values);
-	std::cout << "\t" << this->name << " Sup:" << std::endl;
-	std::cout << this->SCCs_tree->toString("\t\t", true) << std::endl;
-	return this->SCCs_tree->value;
+
+	weight_reachably_tree_TMP(this->SCCs_tree, lol_step, spot, values, top_values);
+
+	printf("TOP SUP ");
+	for (auto iter = this->SCCs_list->cbegin(); iter != this->SCCs_list->cend(); ++iter) {
+		printf(" (%s, %d)", (*iter)->getName().c_str(), top_values[(*iter)->getTag()]);
+	}
+	printf("\n");
+
+	return top_values[0];
 }
 
 weight_t Automaton::weight_reachably_LimSup_TMP () const {
+	weight_t top_values[this->SCCs_list->size()];
 	weight_t values[this->states->size()];
 	bool spot[this->states->size()];
 	for (unsigned int state_id = 0; state_id < this->states->size(); ++state_id) spot[state_id] = false;
-	weight_reachably_tree_TMP(this->SCCs_tree, lol_in, spot, values);
-	std::cout << "\t" << this->name << " LimSup:" << std::endl;
-	std::cout << this->SCCs_tree->toString("\t\t", true) << std::endl;
-	return this->SCCs_tree->value;
+	weight_reachably_tree_TMP(this->SCCs_tree, lol_in, spot, values, top_values);
+
+	printf("TOP LIMSUP ");
+	for (auto iter = this->SCCs_list->cbegin(); iter != this->SCCs_list->cend(); ++iter) {
+		printf(" (%s, %d)", (*iter)->getName().c_str(), top_values[(*iter)->getTag()]);
+	}
+	printf("\n");
+
+	return top_values[0];
 }
 
 
 
-
-void Automaton::weight_safety_recursive_TMP (Edge* edge, int* values, int** counters) {
+void Automaton::weight_safety_recursive_TMP (Edge* edge, int* values, int** counters) const {
 	if (values[edge->getFrom()->getId()] <= this->max_weight) {
 		tmp_verbose("\t\tNO HANDLE OF %s\n", edge->toString().c_str());
 		return;
@@ -355,8 +370,7 @@ void Automaton::weight_safety_recursive_TMP (Edge* edge, int* values, int** coun
 	}
 };
 
-void Automaton::weight_safety_TMP () {
-
+void Automaton::weight_safety_TMP (weight_t* values) const {
 	//O(x)
 	MapVec<SetList<Edge*>*> edges(this->weights->size());
 	for (unsigned int weight_id = 0; weight_id < this->weights->size(); ++weight_id) {
@@ -364,7 +378,6 @@ void Automaton::weight_safety_TMP () {
 	}
 
 	//O(m+n)
-	weight_t values[this->states->size()];
 	int* counters[this->states->size()];
 	for (unsigned int state_id = 0; state_id < this->states->size(); ++state_id) {
 		counters[state_id] = new int[this->alphabet->size()];
@@ -387,18 +400,56 @@ void Automaton::weight_safety_TMP () {
 		}
 	}
 
-
-	printf("TOP INF ");
-	for (unsigned int state_id = 0; state_id < this->states->size(); ++state_id) {
-		printf(" (%s, %d)", this->states->at(state_id)->getName().c_str(), values[state_id]);
-	}
-	printf("\n");
-
 	for (unsigned int state_id = 0; state_id < this->states->size(); ++state_id) {
 		delete[] counters[state_id];
 	}
 }
 
+
+weight_t Automaton::weight_safety_Inf_TMP () const {
+	weight_t values[this->states->size()];
+	weight_safety_TMP(values);
+	return values[this->initial->getId()];
+}
+
+
+
+void Automaton::weight_safety_tree_TMP (SCC_Tree* tree, weight_t* top_values) const {
+	for (auto iter = tree->nexts->cbegin(); iter != tree->nexts->cend(); ++iter) {
+		weight_safety_tree_TMP(*iter, top_values);
+		top_values[tree->origin->getTag()] = std::max(top_values[tree->origin->getTag()],
+				top_values[(*iter)->origin->getTag()]);
+	}
+}
+
+
+weight_t Automaton::weight_safety_LimInf_TMP () const {
+	weight_t top_values[this->SCCs_list->size()];
+	weight_t values[this->states->size()];
+	weight_safety_TMP(values);
+
+	for (unsigned int scc_id = 0; scc_id < this->SCCs_list->size(); ++scc_id) {
+		top_values[scc_id] = this->min_weight - 1;
+	}
+
+	for (unsigned int state_id = 0; state_id < this->states->size(); ++state_id) {
+		if (values[state_id] <= this->max_weight) {
+			top_values[this->states->at(state_id)->getTag()] =
+					std::max(top_values[this->states->at(state_id)->getTag()], values[state_id]);
+		}
+
+	}
+
+	weight_safety_tree_TMP(this->SCCs_tree, top_values);
+
+	printf("TOP LIMINF ");
+	for (auto iter = this->SCCs_list->cbegin(); iter != this->SCCs_list->cend(); ++iter) {
+		printf(" (%s, %d)", (*iter)->getName().c_str(), top_values[(*iter)->getTag()]);
+	}
+	printf("\n");
+
+	return top_values[0];
+}
 
 
 
@@ -443,6 +494,16 @@ weight_t Automaton::weight_persistence_OLD () const {
 
 
 
+
+void Automaton::weight_avg_tree_TMP (SCC_Tree* tree, double* top_values) const {
+	for (auto iter = tree->nexts->cbegin(); iter != tree->nexts->cend(); ++iter) {
+		weight_avg_tree_TMP(*iter, top_values);
+		top_values[tree->origin->getTag()] = std::max(top_values[tree->origin->getTag()],
+				top_values[(*iter)->origin->getTag()]);
+	}
+}
+
+
 double Automaton::weight_avg (void) const {
 	unsigned int size = this->states->size();
 	weight_t distance[size + 1][size];
@@ -481,10 +542,9 @@ double Automaton::weight_avg (void) const {
 	}
 
 	//O(n.m)
-	double max_state_avg = this->min_weight - 1.0;
-	double max_state_avg_scc[this->SCCs_list->size()];
+	double top_values[this->SCCs_list->size()];
 	for (unsigned int i = 0; i < this->SCCs_list->size(); i++) {
-		max_state_avg_scc[i] = this->min_weight - 1.0;
+		top_values[i] = this->min_weight - 1.0;
 	}
 
 	for (unsigned int state_id = 0; state_id < size; ++state_id) {
@@ -499,21 +559,21 @@ double Automaton::weight_avg (void) const {
 				}
 			}
 		}
-		if (len_flag) max_state_avg = std::max(max_state_avg, min_lenght_avg);
 		if (len_flag) {
-			max_state_avg_scc[this->states->at(state_id)->getTag()]
-							  = std::max(max_state_avg_scc[this->states->at(state_id)->getTag()], min_lenght_avg);
+			top_values[this->states->at(state_id)->getTag()]
+				  = std::max(top_values[this->states->at(state_id)->getTag()], min_lenght_avg);
 		}
 	}
 
+	weight_avg_tree_TMP(this->SCCs_tree, top_values);
+
 	printf("TOP AVG ");
 	for (auto iter = this->SCCs_list->cbegin(); iter != this->SCCs_list->cend(); ++iter) {
-		printf(" (%s, %lf)", (*iter)->getName().c_str(),
-				max_state_avg_scc[(*iter)->getTag()]);
+		printf(" (%s, %lf)", (*iter)->getName().c_str(), top_values[(*iter)->getTag()]);
 	}
 	printf("\n");
 
-	return max_state_avg;
+	return top_values[0];
 }
 
 
@@ -542,8 +602,11 @@ std::string Automaton::top_toString() const {
 	std::string s = "\ttop:";
 
 	x = weight_safety_OLD(this->initial, false);
+	z = weight_safety_Inf_TMP();
 	s.append("\n\t\t   Inf -> ");
 	s.append(x>max_weight ? "+infinity" : std::to_string(x));
+	s.append(" = ");
+	s.append(z>max_weight ? "+infinity" : std::to_string(z));
 
 	x = weight_reachably_OLD(this->initial, false);
 	z = weight_reachably_Sup_TMP();
@@ -553,8 +616,11 @@ std::string Automaton::top_toString() const {
 	s.append(z<min_weight ? "-infinity" : std::to_string(z));
 
 	x = weight_persistence_OLD();
+	z = weight_safety_LimInf_TMP();
 	s.append("\n\t\tLimInf -> ");
 	s.append(x<min_weight ? "+infinity" : std::to_string(x));
+	s.append(" = ");
+	s.append(z<min_weight ? "+infinity" : std::to_string(z));
 
 	x = weight_responce_OLD();
 	z = weight_reachably_LimSup_TMP();
