@@ -59,25 +59,25 @@ private:
 	void initialize_SCC_explore (State* state, int* time, int* spot, int* low, SetList<State*>* stack) const;
 	void initialize_SCC (void);
 
-	weight_t weight_reachably_recursive_OLD (State* state, bool scc_restriction, bool* spot) const;
-	weight_t weight_reachably_OLD (State* state, bool scc_restriction) const;
-	weight_t weight_responce_OLD () const;
-	void weight_reachably_scc_TMP (State* state, lol_t lol, bool* spot, weight_t* values) const;
-	void weight_reachably_tree_TMP (SCC_Tree* tree, lol_t lol, bool* spot, weight_t* values, weight_t* top_values) const;
-	weight_t weight_reachably_Sup_TMP () const;
-	weight_t weight_reachably_LimSup_TMP () const;
+	//weight_t weight_reachably_recursive_OLD (State* state, bool scc_restriction, bool* spot) const;
+	//weight_t weight_reachably_OLD (State* state, bool scc_restriction) const;
+	//weight_t weight_responce_OLD () const;
+	void weight_reachably_scc (State* state, lol_t lol, bool* spot, weight_t* values) const;
+	void weight_reachably_tree (SCC_Tree* tree, lol_t lol, bool* spot, weight_t* values, weight_t* top_values) const;
+	weight_t weight_reachably_Sup () const;
+	weight_t weight_reachably_LimSup () const;
 
-	weight_t weight_safety_recursive_OLD (State* state, bool scc_restriction, bool* discovery) const;
-	weight_t weight_safety_OLD (State* state, bool scc_restriction) const;
-	weight_t weight_persistence_OLD () const;
-	void weight_safety_recursive_TMP (Edge* edge, weight_t* values, int** counters) const;
-	void weight_safety_TMP (weight_t* values) const;
-	void weight_safety_tree_TMP (SCC_Tree* tree, weight_t* top_values) const;
-	weight_t weight_safety_Inf_TMP () const;
-	weight_t weight_safety_LimInf_TMP () const;
+	//weight_t weight_safety_recursive_OLD (State* state, bool scc_restriction, bool* discovery) const;
+	//weight_t weight_safety_OLD (State* state, bool scc_restriction) const;
+	//weight_t weight_persistence_OLD () const;
+	void weight_safety_recursive (Edge* edge, bool in_scc, weight_t* values, int** counters) const;
+	void weight_safety (weight_t* values, bool in_scc) const;
+	void weight_safety_tree (SCC_Tree* tree, weight_t* top_values) const;
+	weight_t weight_safety_Inf () const;
+	weight_t weight_safety_LimInf () const;
 
-	void weight_avg_tree_TMP (SCC_Tree* tree, double* top_values) const;
-	double weight_avg (void) const;
+	void top_avg_tree (SCC_Tree* tree, double* top_values) const;
+	double top_LimAvg (void) const;
 	std::string top_toString() const;
 public:
 	Automaton (std::string filename);
