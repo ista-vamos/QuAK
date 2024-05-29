@@ -3,13 +3,18 @@
 
 
 int main(int argc, char **argv) {
+	printf("--------------------------------------------\n");
+
 	Automaton B = Automaton("./samples/B.txt");
-	std::cout << B.toString() << std::endl;
-	//B.toto();
+	B.weight_safety_TMP();
+	std::cout << std::endl << B.toString() << std::endl;
+
+	printf("--------------------------------------------\n");
 
 	Automaton A = Automaton("./samples/A.txt");
-	std::cout << A.toString() << std::endl;
-	//A.toto();
+	A.weight_safety_TMP();
+	std::cout << std::endl << A.toString() << std::endl;
 
+	printf("--------------------------------------------\n");
 	return EXIT_SUCCESS;
 }

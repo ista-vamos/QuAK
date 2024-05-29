@@ -60,8 +60,8 @@ public:
 
 
 
-
 #include "Weight.h"
+class SCC_Tree;
 class Symbol;
 class State;
 class Edge;
@@ -72,6 +72,8 @@ template class SetStd<Symbol*>;
 template class SetStd<State*>;
 template class SetStd<Edge*>;
 
+
+template class SetList<SCC_Tree*>;
 template class SetList<State*>;
 template class SetList<Edge*>;
 

@@ -10,6 +10,14 @@
 #include "Symbol.h"
 
 
+
+typedef enum {
+	lol_in,
+	lol_out,
+	lol_step,
+} lol_t;
+
+
 typedef enum {
 	Inf,
 	Sup,
@@ -19,8 +27,6 @@ typedef enum {
 } value_function_t;
 
 
-struct scc_data_struct;
-typedef scc_data_struct scc_data_t;
 
 
 class Automaton {
@@ -29,7 +35,8 @@ private:
 	MapVec<Symbol*>* alphabet;
 	MapVec<State*>* states;
 	MapVec<Weight<weight_t>*>* weights;
-	SetList<State*>* SCCs;
+	SCC_Tree* SCCs_tree;
+	SetList<State*>* SCCs_list;
 	weight_t min_weight;
 	weight_t max_weight;
 	State* initial;
@@ -40,26 +47,37 @@ private:
 			MapVec<Symbol*>* alphabet,
 			MapVec<State*>* states,
 			MapVec<Weight<weight_t>*>* weights,
-			SetList<State*>* SCCs,
+			SCC_Tree* SCCs_tree,
+			SetList<State*>* SCCs_list,
 			weight_t min_weight,
 			weight_t max_weight,
 			State* initial,
 			unsigned int edges_size
 	);
-	weight_t weight_reachably_recursive (State* state, bool scc_restriction, bool* discovery) const;
-	weight_t weight_reachably (State* state, bool scc_restriction) const;
-	weight_t weight_safety_recursive (State* state, bool scc_restriction, bool* discovery) const;
-	weight_t weight_safety (State* state, bool scc_restriction) const;
-	weight_t weight_responce () const;
-	weight_t weight_persistence () const;
-	void initialize_SCC_flood (State* state, weight_t value) const;
-	void initialize_SCC_explore (State* state, int* time, int* discovery, int* low, SetList<State*>* SCCs) const;
+	void print_tree (SCC_Tree* data, std::string offset) const;
+	void initialize_SCC_flood (State* state, int* tag, int* low, SCC_Tree* ancestor) const;
+	void initialize_SCC_explore (State* state, int* time, int* spot, int* low, SetList<State*>* stack) const;
 	void initialize_SCC (void);
+
+	weight_t weight_reachably_recursive_OLD (State* state, bool scc_restriction, bool* spot) const;
+	weight_t weight_reachably_OLD (State* state, bool scc_restriction) const;
+	weight_t weight_responce_OLD () const;
+	void weight_reachably_scc_TMP (State* state, lol_t lol, bool* spot, weight_t* values) const;
+	void weight_reachably_tree_TMP (SCC_Tree* tree, lol_t lol, bool* spot, weight_t* values) const;
+	weight_t weight_reachably_Sup_TMP () const;
+	weight_t weight_reachably_LimSup_TMP () const;
+
+
+	weight_t weight_reachably (weight_t* values) const;
+
+	weight_t weight_safety_recursive_OLD (State* state, bool scc_restriction, bool* discovery) const;
+	weight_t weight_safety_OLD (State* state, bool scc_restriction) const;
+	weight_t weight_persistence_OLD () const;
 	double weight_avg (void) const;
 	std::string top_toString() const;
 public:
-	void toto ();
-	void toto_handle_edge (Edge* edge, weight_t* values, int** counters);
+	void weight_safety_TMP ();
+	void weight_safety_recursive_TMP (Edge* edge, weight_t* values, int** counters);
 	Automaton (std::string filename);
 	~Automaton ();
 	bool isDeterministic () const;

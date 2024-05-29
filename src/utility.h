@@ -27,10 +27,10 @@
 
 //#define PARSER_VERBOSE
 #ifdef PARSER_VERBOSE
-#define parser_verbose(printf_text, ...)				\
-		fprintf(stdout, printf_text, __VA_ARGS__)
+#define parser_verbose(...)								\
+		fprintf(stdout, __VA_ARGS__)
 #else
-#define parser_verbose(printf_text, ...)
+#define parser_verbose(...)
 #endif
 
 
@@ -41,6 +41,15 @@
 #else
 #define delete_verbose(...)
 #endif
+
+//#define TMP_VERBOSE
+#ifdef TMP_VERBOSE
+#define tmp_verbose(...)								\
+		fprintf(stdout, __VA_ARGS__)
+#else
+#define tmp_verbose(...)
+#endif
+
 
 
 

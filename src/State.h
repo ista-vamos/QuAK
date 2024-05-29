@@ -3,7 +3,6 @@
 #define STATE_H_
 
 #include <string>
-#include "Symbol.h"
 #include "Set.h"
 #include "Map.h"
 #include "Edge.h"
@@ -26,11 +25,11 @@ public:
 	const int getTag() const;
 	void setTag(int tag);
 	SetStd<Edge*>* getEdges() const;
-	void addEdge (Edge *edge);
+	void addEdge (Edge *edge); // fixme : how to make it private except for Automaton constructors?
 	SetStd<Edge*>* getSuccessors(unsigned int symbol_id) const;
-	void addSuccessor (Edge* edge);
+	void addSuccessor (Edge* edge);  // fixme : how to make it private except for Automaton constructors?
 	SetStd<Edge*>* getPredecessors(unsigned int symbol_id) const;
-	void addPredecessor (Edge* edge);
+	void addPredecessor (Edge* edge); // fixme : how to make it private except for Automaton constructors?
 	static std::string toString (State *state);
 	std::string toString() const;
 
@@ -43,8 +42,6 @@ public:
 	bool operator!= (const State* other) const;
 	int cmp (const State* other) const;*/
 };
-
-
 
 
 
