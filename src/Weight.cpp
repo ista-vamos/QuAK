@@ -6,25 +6,18 @@ int ID_of_Weights = 0;
 template <typename T_value>
 void Weight<T_value>::Weight::RESET () { ID_of_Weights = 0; }
 
-/*
-template <typename T_value>
-T_value Weight<T_value>::Weight::max (T_value a, T_value b) { return std::max(a, b); }
-
-template <typename T_value>
-T_value Weight<T_value>::Weight::min (T_value a, T_value b) { return std::min(a, b); }
-
-template <typename T_value>
-std::string Weight<T_value>::Weight::toString (T_value value) { return std::toString(value); }
-*/
-
-template <typename T_value>
-Weight<T_value>::Weight(T_value value) : my_id(ID_of_Weights++), value(value) {}
-
 
 template <typename T_value>
 Weight<T_value>::~Weight() {
 	delete_verbose("@Memory: Weight deleted (%s)\n", this->toString().c_str());
 }
+
+
+template <typename T_value>
+Weight<T_value>::Weight(T_value value) : my_id(ID_of_Weights++), value(value) {}
+
+template <typename T_value>
+Weight<T_value>::Weight(Weight<weight_t>* weight) : my_id(weight->my_id), value(weight->value) {}
 
 
 template <typename T_value>

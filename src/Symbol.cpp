@@ -6,12 +6,14 @@ int ID_of_Symbols = 0;
 void Symbol::Symbol::RESET() { ID_of_Symbols = 0; }
 
 
-Symbol::Symbol(std::string name) : my_id(ID_of_Symbols++), name(name) {}
-
-
 Symbol::~Symbol() {
 	delete_verbose("@Memory: Symbol deleted (%s)\n", this->toString().c_str());
 }
+
+Symbol::Symbol(std::string name) : my_id(ID_of_Symbols++), name(name) {}
+
+
+Symbol::Symbol(Symbol* symbol) : my_id(symbol->my_id), name(symbol->name) {}
 
 
 std::string Symbol::getName() const { return this->name; }

@@ -8,21 +8,7 @@
 #include <list>
 
 
-/*
-template <typename T> class Set {
-protected:
-	Set();
-	~Set();
-public:
-	void insert(T element);
-	void erase(T element);
-	unsigned int size();
-	std::string toString(std::string (*f) (T element)) const;
-};
-*/
-
-
-template <typename T_element> class SetStd {//: public Set<T> {
+template <typename T_element> class SetStd {
 private:
 	std::set<T_element> all;
 public:
@@ -40,7 +26,7 @@ public:
 
 
 
-template <typename T_element> class SetList {//: public Set<T> {
+template <typename T_element> class SetList {
 private:
 	std::list<T_element> all;
 public:

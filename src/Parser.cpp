@@ -63,13 +63,15 @@ std::string Parser::readEdge (std::string line) {
 	std::string fromname;
 	buffer >> fromname;
 	if (fromname.empty()) abort("transition without source state");
-	this->states.insert(fromname);
+	this->states.insert(fromname,0);
+	this->states.update(fromname, this->states.at(fromname)+1);
 	parser_verbose("Parser: From = '%s'\n", fromname.c_str());
 
 	std::string toname;
 	buffer >> toname;
 	if (toname.empty()) abort("transition without destination state");
-	this->states.insert(toname);
+	this->states.insert(toname, 0);
+	this->states.update(toname, this->states.at(toname)+1);
 	parser_verbose("Parser: To = '%s'\n", toname.c_str());
 
 	std::pair<std::pair<std::string, weight_t>,std::pair<std::string, std::string>> edge;
@@ -82,72 +84,6 @@ std::string Parser::readEdge (std::string line) {
 
 	return fromname;
 }
-
-
-// handles lines without the substring "->"
-/*
-static State* readWeight(std::string line, parser_t* parser) {
-	size_t index = line.find(':');
-	for (unsigned int i = 0; i< line.length(); i++) {
-		if (line[i] == ':' || line[i] == '#')  line[i] = ' ';
-	}
-	std::istringstream buffer(line);
-	std::string statename;
-	buffer >> statename;
-	printf("Name = '%s'\n", statename.c_str());
-	//state.add(line);
-
-	int weight;
-	if (index != std::string::npos) {
-		buffer >> weight;
-		printf("Weight = '%d'\n", weight);
-	} else {
-		printf("Weight = '1'\n");
-	}
-
-	State* state = new StateRel(statename, weight);
-	printf("State: %s\n", state->toString().c_str());
-	//state.add
-	return state;
-}
-*/
-
-
-// handles the first line
-/*
-static void readInitial(std::string line, parser_t* parser) {
-	// -- if 'init' unspecified then take the first defined state
-	if (line.find("->") != std::string::npos)
-		parser->initial = readEdge(line, parser);
-	else {
-		parser->initial = readWeight(line, parser);
-	}
-}
-*/
-
-
-
-
-/*
-static std::list<std::string> mytokenizer(std::string line, const std::string tokens) {
-	std::list<std::string> list = {};
-
-	unsigned int i, j;
-	j = 0;
-	for (i = 0; i < line.length(); i++) {
-		if (tokens.find(line[i]) != std::string::npos) {
-			if (j < i) {
-				list.push_front(line.substr(j, i-j));
-			}
-			j = i+1;
-		}
-	}
-	if (j < line.length())
-		list.push_front(line.substr(j, line.length()-j));
-
-	return list;
-}
-*/
 
 
 Parser::Parser(std::string filename) {
@@ -176,24 +112,31 @@ Parser::Parser(std::string filename) {
 	}
 
 	if (this->initial == "") abort("empty file");
-	states.erase(this->initial);
+
+	//for (std::pair<std::string,unsigned int> statepair : this->states) {
+	//	this->successors.insert(statepair.first, new MapStd<std::string,unsigned int>);
+	//	this->predecessors.insert(statepair.first, new MapStd<std::string,unsigned int>);
+	//}
+	//for (auto edgeweird : this->edges) {
+	//	this->successors.at(edgeweird.second.first)->insert(edgeweird.first.first, 0);
+	//	unsigned int x = this->successors.at(edgeweird.second.first)->at(edgeweird.first.first);
+	//	this->successors.at(edgeweird.second.first)->update(edgeweird.first.first, x+1);
+	//
+	//	this->predecessors.at(edgeweird.second.first)->insert(edgeweird.first.first, 0);
+	//	unsigned int y = this->predecessors.at(edgeweird.second.first)->at(edgeweird.first.first);
+	//	this->predecessors.at(edgeweird.second.first)->update(edgeweird.first.first, y+1);
+	//}
 
 	this->file.close();
 }
 
 Parser::~Parser() {
 	delete_verbose("@Detail: 4 SetStd will be deleted (parser)\n");
+	//for (std::pair<std::string, MapStd<std::string,unsigned int>*> iter : predecessors) {
+	//	delete iter.second;
+	//}
+	//for (std::pair<std::string, MapStd<std::string,unsigned int>*> iter : successors) {
+	//	delete iter.second;
+	//}
 }
 
-
-/*
-//-- This is a usefull function
-static void strip(std::string &s) {
-	unsigned int i = 0;
-	while(i<s.length() && s[i]==' ') i++;
-	s.erase(0, i);
-	i = s.length()-1;
-	while(i>=0 && s[i]==' ') i--;
-	s.erase(i+1, s.length());
-}
-*/

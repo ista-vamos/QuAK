@@ -31,7 +31,7 @@ State::~State () {
 State::State (std::string name, unsigned int alphabet_size) :
 		my_id(ID_of_States++),
 		name(name),
-		scc_tag(-1),
+		my_scc(-1),
 		edges(NULL),
 		successors(NULL),
 		predecessors(NULL)
@@ -39,6 +39,23 @@ State::State (std::string name, unsigned int alphabet_size) :
 	this->edges = new SetStd<Edge*>();
 	this->successors = new MapVec<SetStd<Edge*>*>(alphabet_size);
 	this->predecessors = new MapVec<SetStd<Edge*>*>(alphabet_size);
+	for (unsigned int symbol_id = 0; symbol_id < alphabet_size; ++symbol_id) {
+		this->successors->insert(symbol_id, new SetStd<Edge*>());
+		this->predecessors->insert(symbol_id, new SetStd<Edge*>());
+	}
+}
+
+State::State (State* state) :
+		my_id(state->my_id),
+		name(state->name),
+		my_scc(state->my_scc),
+		edges(NULL),
+		successors(NULL),
+		predecessors(NULL)
+{
+	this->edges = new SetStd<Edge*>();
+	this->successors = new MapVec<SetStd<Edge*>*>(state->successors->size());
+	this->predecessors = new MapVec<SetStd<Edge*>*>(state->predecessors->size());
 	for (unsigned int symbol_id = 0; symbol_id < this->successors->size(); ++symbol_id) {
 		this->successors->insert(symbol_id, new SetStd<Edge*>());
 		this->predecessors->insert(symbol_id, new SetStd<Edge*>());
@@ -56,11 +73,11 @@ const int State::getId() const {
 }
 
 const int State::getTag() const {
-	return this->scc_tag;
+	return this->my_scc;
 }
 
 void State::setTag(int tag) {
-	this->scc_tag = tag;
+	this->my_scc = tag;
 }
 
 SetStd<Edge*>* State::getEdges() const {
@@ -100,7 +117,7 @@ std::string State::State::toString(State *state) {
 
 
 std::string State::toString() const {
-	return this->name + ", scc: " + std::to_string(this->scc_tag);
+	return this->name + ", scc: " + std::to_string(this->my_scc);
 }
 
 

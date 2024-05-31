@@ -13,10 +13,12 @@ private:
 	std::ifstream file;
 
 	std::string initial = "";
-	SetStd<std::string> states;
+	MapStd<std::string,unsigned int> states;
 	SetStd<std::string> alphabet;
 	SetStd<weight_t> weights;
 	SetStd<std::pair<std::pair<std::string, weight_t>,std::pair<std::string, std::string>>> edges;
+	//MapStd<std::string, MapStd<std::string, unsigned int>*> successors;
+	//MapStd<std::string, MapStd<std::string, unsigned int>*> predecessors;
 
 	Parser (std::string filename);
 	~Parser();

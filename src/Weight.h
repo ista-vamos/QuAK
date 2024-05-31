@@ -12,8 +12,9 @@ private:
 	const int my_id;
 	T_value value;
 public:
-	Weight(T_value value);
 	~Weight();
+	Weight(T_value value);
+	Weight(Weight<weight_t>* weight);
 	static void RESET();
 	//static T_value max(T_value a, T_value b);
 	//static T_value min(T_value a, T_value b);
@@ -26,6 +27,5 @@ public:
 
 
 template class Weight<weight_t>;
-
 
 #endif /* WEIGHT_H_ */

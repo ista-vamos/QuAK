@@ -11,6 +11,7 @@ class Symbol {
 		std::string name;
 	public:
 		Symbol(std::string name);
+		Symbol(Symbol* symbol);
 		~Symbol();
 		std::string getName() const;
 		const int getId() const;

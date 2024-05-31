@@ -18,6 +18,7 @@ public:
 	void insert(T_key key, T_value value);
 	unsigned int size () const;
 	T_value at (T_key key);
+	void update (T_key key, T_value value);
 	std::string toString(std::string (*f_key) (T_key key), std::string (*f_value) (T_value value)) const;
 	auto begin() {return all.begin();};
 	auto end() {return all.end();};
@@ -81,12 +82,16 @@ template <class T> class SetList;
 template class MapStd<std::string, Symbol*>;
 template class MapStd<weight_t, Weight<weight_t>*>;
 template class MapStd<std::string, State*>;
+template class MapStd<std::pair<std::string, std::string>,int>;
+template class MapStd<std::string, unsigned int>;
+template class MapStd<std::string, MapStd<std::string, unsigned int>*>;
 
 template class MapVec<Weight<weight_t>*>;
 template class MapVec<State*>;
 template class MapVec<SetList<Edge*>*>;
 template class MapVec<Symbol*>;
 template class MapVec<SetStd<Edge*>*>;
+
 
 
 #endif /* MAP_H_ */

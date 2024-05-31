@@ -22,6 +22,16 @@ void MapStd<T_key, T_value>::insert (T_key key, T_value value) {
 	this->all.insert(std::pair<T_key, T_value>(key, value));
 }
 
+template <typename T_key, typename T_value>
+void MapStd<T_key, T_value>::update (T_key key, T_value value) {
+	auto it = this->all.find(key);
+	if (it == this->all.end())
+		this->all.insert(std::pair<T_key, T_value>(key, value));
+	else
+		it->second = value;
+}
+
+
 
 template <typename T_key, typename T_value>
 T_value MapStd<T_key, T_value>::at (T_key key) {
@@ -52,9 +62,11 @@ std::string MapStd<T_key, T_value>::toString (std::string (*f_key) (T_key key), 
 
 template <typename T_value>
 MapVec<T_value>::MapVec(unsigned int capacity) {
-	this->all = new T_value[capacity];
+	if (capacity > 0) {
+		this->all = new T_value[capacity];
+		memset(all, 0, capacity * sizeof(T_value));
+	}
 	this->capacity = capacity;
-	memset(all, 0, capacity * sizeof(T_value));
 }
 
 
