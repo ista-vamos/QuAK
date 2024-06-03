@@ -209,7 +209,8 @@ bool Automaton::isDeterministic () const {
 }
 
 bool Automaton::isEmpty (value_function_t type, weight_t v) const {
-	if (this->computeTop(type) >= v) {
+	weight_t top_values[this->SCCs_list->size()];
+	if (this->computeTop(type, top_values) >= v) {
 		return false;
 	}
 	return true;
