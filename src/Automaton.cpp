@@ -3,7 +3,7 @@
 #include "Parser.h"
 #include "Edge.h"
 #include "utility.h"
-
+#include <map>
 
 class SCC_Tree {
 public:
@@ -194,9 +194,10 @@ Automaton Automaton::safetyClosure(value_function_t value_function) {
 }
 
 
-
-
 State* Automaton::getInitial () const { return initial; }
+
+
+std::string Automaton::getName() const { return this->name; }
 
 
 bool Automaton::isDeterministic () const {
@@ -593,6 +594,117 @@ weight_t Automaton::computeTop (value_function_t value_function, weight_t* top_v
 	}
 }
 
+
+Automaton Automaton::product(value_function_t value_function, Automaton B, product_weight_t product_weight) const {
+	std::string type;
+	switch (product_weight) {
+		case Max:
+			type = "Max";
+			break;
+		case Min:
+			type = "Min";
+			break;
+		case Plus:
+			type = "Plus";
+			break;
+		case Minus:
+			type = "Minus";
+			break;
+		default:
+			fail("automata product weight");
+	}
+	std::string name = type + "(" + this->getName() + "," + B.getName() + ")";
+
+	MapVec<Symbol*>* alphabet = new MapVec<Symbol*>(this->alphabet->size());
+	for (unsigned int symbol_id = 0; symbol_id < this->alphabet->size(); ++symbol_id) {
+		alphabet->insert(symbol_id, new Symbol(this->alphabet->at(symbol_id)));
+	}
+	
+	int n = this->states->size();
+	int m = B.states->size();
+	MapVec<State*>* states = new MapVec<State*>(n * m);
+	for (int i = 0; i < n; i++) {
+		for (int j = 0; j < m; j++) {
+			std::string name = "(" + this->states->at(i)->getName() + "," + B.states->at(j)->getName() + ")";
+			State* pairState = new State(name, alphabet->size());
+			states->insert(i * n + j, pairState);
+		}
+	}
+
+	State* initial = states->at(this->initial->getId() * n + B.initial->getId());
+	
+	std::map<weight_t,int> counts;
+	long unsigned int edge_counter = 0;
+	for (int i = 0; i < n; i++) {
+		for (int j = 0; j < m; j++) {
+			for (Edge* x : *(this->states->at(i)->getEdges())) {
+				for (Edge* y : *(B.states->at(j)->getEdges())) {
+					if (x->getSymbol()->getName() == y->getSymbol()->getName()) {
+						Weight<weight_t>* pairWeight;
+							switch (product_weight) {
+								case Max:
+									pairWeight = new Weight<weight_t>(std::max(x->getWeight()->getValue(), y->getWeight()->getValue()));
+									break;
+								case Min:
+									pairWeight = new Weight<weight_t>(std::min(x->getWeight()->getValue(), y->getWeight()->getValue()));
+									break;
+								case Plus:
+									pairWeight = new Weight<weight_t>(x->getWeight()->getValue() + y->getWeight()->getValue());
+									break;
+								case Minus:
+									pairWeight = new Weight<weight_t>(x->getWeight()->getValue() - y->getWeight()->getValue());
+									break;
+								default:
+									fail("automata product weight");
+							}
+							counts[pairWeight->getValue()]++;
+
+						int ii = x->getTo()->getId();
+						int jj = y->getTo()->getId();
+						Edge* pairEdge = new Edge(x->getSymbol(), pairWeight, states->at(i * n + j), states->at(ii * n + jj));
+
+						states->at(i * n + j)->addEdge(pairEdge);
+						states->at(i * n + j)->addSuccessor(pairEdge);
+						states->at(ii * n + jj)->addPredecessor(pairEdge);
+						edge_counter++;
+					}
+				}
+			}
+		}
+	}
+
+	MapVec<Weight<weight_t>*>* weights = new MapVec<Weight<weight_t>*>(counts.size());
+	weight_t min_weight;
+	weight_t max_weight;
+	edge_counter = 0;
+	for (auto weightCount : counts) {
+		Weight<weight_t>* pairWeight = new Weight<weight_t>(weightCount.first);
+		weights->insert(edge_counter, pairWeight);
+
+		if (edge_counter == 0) {
+			min_weight = weightCount.first;
+		}
+		else if (edge_counter == counts.size() - 1) {
+			max_weight = weightCount.first;
+		}
+
+		edge_counter++;
+	}
+	// edge_counter = 0;
+	// for (int i = 0; i < n; i++) {
+	// 	SetStd<Edge*>* edges = C.states->at(i)->getEdges();
+	// 	for (auto x = edges->begin(); x != edges->end(); x++) {
+	// 		Weight<weight_t>* pairWeight = new Weight<weight_t>((*x)->getWeight());
+	// 		C.weights->insert(edge_counter, pairWeight);
+	// 		edge_counter++;
+	// 	}
+	// }
+
+	Automaton C(name, alphabet, states, weights, NULL, NULL, min_weight, max_weight, initial);
+	C.initialize_SCC();
+	
+	return C;
+}
 
 
 std::string Automaton::top_toString() const {

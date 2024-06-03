@@ -5,7 +5,7 @@
 int main(int argc, char **argv) {
 	printf("--------------------------------------------\n");
 
-	Automaton A = Automaton("./samples/B.txt");
+	Automaton A = Automaton("./samples/A.txt");
 	std::cout << std::endl << A.toString() << std::endl;
 
 	printf("--------------------------------------------\n");
@@ -15,18 +15,14 @@ int main(int argc, char **argv) {
 
 	printf("--------------------------------------------\n");
 
-	Automaton LimInfCloA = A.safetyClosure(LimInf);
-	std::cout << std::endl << LimInfCloA.toString() << std::endl;
+	Automaton B = SupCloA.product(Sup, A, Minus);
+	std::cout << std::endl << B.toString() << std::endl;
 
 	printf("--------------------------------------------\n");
-	Automaton LimSupCloA = A.safetyClosure(LimSup);
-	std::cout << std::endl << LimSupCloA.toString() << std::endl;
 
-	printf("--------------------------------------------\n");
-	Automaton LimAvgCloA = A.safetyClosure(LimAvg);
-	std::cout << std::endl << LimAvgCloA.toString() << std::endl;
-
-	printf("--------------------------------------------\n");
+	// TODO: 
+	// bug in the min/max weights of safety closure
+	// bug in scc
 
 	return EXIT_SUCCESS;
 }

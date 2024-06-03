@@ -79,7 +79,9 @@ private:
 public:
 	Automaton (std::string filename);
 	~Automaton ();
+	
 	Automaton safetyClosure(value_function_t value_function);
+	Automaton product(value_function_t value_function, Automaton B, product_weight_t product_weight) const;
 
 	bool isDeterministic () const;
 	bool isEmpty (value_function_t type, weight_t v) const; // checks if A(w) >= v for some w
@@ -87,6 +89,7 @@ public:
 	bool isIncludedIn (value_function_t type, Automaton B) const; // checks if A(w) <= B(w) for all w
 	bool isEquivalent (value_function_t type, Automaton B) const; // checks if A(w) == B(w) for all w
 	State* getInitial () const;
+	std::string getName() const;
 
 	static std::string toString (Automaton* A);
 	std::string toString () const;
