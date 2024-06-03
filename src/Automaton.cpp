@@ -208,7 +208,27 @@ bool Automaton::isDeterministic () const {
 	return true;
 }
 
+bool Automaton::isEmpty (value_function_t type, weight_t v) const {
+	if (this->computeTop(type) >= v) {
+		return false;
+	}
+	return true;
+}
 
+// TODO
+bool Automaton::isUniversal (value_function_t type, weight_t v) const {
+	return true;
+}
+
+// TODO
+bool Automaton::isIncludedIn (value_function_t type, Automaton B) const {
+	return true;
+}
+
+// TODO
+bool Automaton::isEquivalent (value_function_t type, Automaton B) const {
+	return true;
+}
 
 void Automaton::initialize_SCC_flood (State* state, int* tag, int* low, SCC_Tree* ancestor) const {
 	for (auto edge : *(state->getEdges())) {

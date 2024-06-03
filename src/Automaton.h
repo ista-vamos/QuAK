@@ -26,8 +26,12 @@ typedef enum {
 	LimAvg,
 } value_function_t;
 
-
-
+typedef enum {
+	Max,
+	Min,
+	Plus,
+	Minus,
+} product_weight_t;
 
 class Automaton {
 private:
@@ -78,6 +82,10 @@ public:
 	Automaton safetyClosure(value_function_t value_function);
 
 	bool isDeterministic () const;
+	bool isEmpty (value_function_t type, weight_t v) const; // checks if A(w) >= v for some w
+	bool isUniversal (value_function_t type, weight_t v) const; // checks if A(w) >= v for all w
+	bool isIncludedIn (value_function_t type, Automaton B) const; // checks if A(w) <= B(w) for all w
+	bool isEquivalent (value_function_t type, Automaton B) const; // checks if A(w) == B(w) for all w
 	State* getInitial () const;
 
 	static std::string toString (Automaton* A);
