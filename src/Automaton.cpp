@@ -28,7 +28,7 @@ public:
 
 Automaton::~Automaton () {
 	delete_verbose("@Memory: Automaton deletion started (automaton %s)\n", this->name.c_str());
-	delete_verbose("@Detail: %u Edges will be deleted (automaton %s)\n", this->edges_size, this->name.c_str());
+	// delete_verbose("@Detail: %u Edges will be deleted (automaton %s)\n", this->edges_size, this->name.c_str());
 	for (unsigned int state_id = 0; state_id < states->size(); ++state_id) {
 		for (auto edge : *(states->at(state_id)->getEdges())) {
 			delete edge;
@@ -147,7 +147,11 @@ Automaton::Automaton (std::string filename) :
 }
 
 
-Automaton Automaton::safetyClosure(value_function_t value_function) {
+Automaton* Automaton::safetyClosure(value_function_t value_function) {
+	State::RESET();
+	Symbol::RESET();
+	Weight<weight_t>::RESET();
+
 	std::string name = "SafetyClosure(" + this->name + ")";
 
 	MapVec<Symbol*>* alphabet = new MapVec<Symbol*>(this->alphabet->size());
@@ -169,7 +173,7 @@ Automaton Automaton::safetyClosure(value_function_t value_function) {
 	for (unsigned int weight_id = 0; weight_id < this->SCCs_list->size(); ++weight_id) {
 		weights->insert(weight_id, new Weight<weight_t>(top_values[weight_id]));
 		min_weight = std::min(min_weight, top_values[weight_id]);
-		max_weight = std::min(max_weight, top_values[weight_id]);
+		max_weight = std::max(max_weight, top_values[weight_id]);
 	}
 
 	for (unsigned int state_id = 0; state_id < this->states->size(); ++state_id) {
@@ -177,6 +181,7 @@ Automaton Automaton::safetyClosure(value_function_t value_function) {
 			Symbol* symbol = alphabet->at(edge->getSymbol()->getId());
 			State* from = states->at(edge->getFrom()->getId());
 			State* to = states->at(edge->getTo()->getId());
+			// TODO: tag can be -1 if the state is not reachable from the initial state
 			Weight<weight_t>* weight = weights->at(edge->getFrom()->getTag());
 			//printf("EDGE %s : %d, %s -> %s\n", symbol->getName().c_str(), weight->getValue(), from->getName().c_str(), to->getName().c_str());
 			fflush(stdout);
@@ -188,8 +193,8 @@ Automaton Automaton::safetyClosure(value_function_t value_function) {
 		}
 	}
 
-	Automaton A(name, alphabet, states, weights, NULL, NULL, min_weight, max_weight, initial);
-	A.initialize_SCC();
+	Automaton* A = new Automaton(name, alphabet, states, weights, NULL, NULL, min_weight, max_weight, initial);
+	A->initialize_SCC();
 	return A;
 }
 
@@ -234,7 +239,8 @@ bool Automaton::isEquivalent (value_function_t type, Automaton B) const {
 
 void Automaton::initialize_SCC_flood (State* state, int* tag, int* low, SCC_Tree* ancestor) const {
 	for (auto edge : *(state->getEdges())) {
-		if (edge->getTo()->getTag() == -1){
+		int tagg = edge->getTo()->getTag();
+		if (tagg == -1){
 			if (low[state->getId()] == low[edge->getTo()->getId()]) {
 				edge->getTo()->setTag(state->getTag());
 				initialize_SCC_flood(edge->getTo(), tag, low, ancestor);
@@ -275,8 +281,8 @@ void Automaton::initialize_SCC_explore (State* state, int* time, int* spot, int*
 
 void Automaton::initialize_SCC (void) {
 	unsigned int size = this->states->size();
-	int spot[size];
-	int low[size];
+	int* spot = new int[size];
+	int* low = new int[size];
 	int time = 0;
 	SetList<State*> stack;
 
@@ -286,10 +292,21 @@ void Automaton::initialize_SCC (void) {
 	}
 	initialize_SCC_explore(initial, &time, spot, low, &stack);
 
+	
+
+	for (unsigned int state_id = 0; state_id < size; ++state_id) {
+		if(spot[state_id] == -1) {
+			this->trimmable++;
+		}
+	}
+	
 	int tag = 0;
-	initial->setTag(0);
-	this->SCCs_tree = new SCC_Tree(initial);
-	initialize_SCC_flood(initial, &tag, low, this->SCCs_tree);
+	this->initial->setTag(0);
+	this->SCCs_tree = new SCC_Tree(this->initial);
+	initialize_SCC_flood(this->initial, &tag, low, this->SCCs_tree);
+
+	delete [] spot;
+	delete [] low;
 };
 
 
@@ -594,8 +611,45 @@ weight_t Automaton::computeTop (value_function_t value_function, weight_t* top_v
 	}
 }
 
+Automaton* Automaton::trim() {
+	if (this->trimmable == 0) {
+		return this;
+	}
 
-Automaton Automaton::product(value_function_t value_function, Automaton B, product_weight_t product_weight) const {
+	State::RESET();
+	Symbol::RESET();
+	Weight<weight_t>::RESET();
+
+	std::string name = "Trim(" + this->getName() + ")";
+
+	MapVec<Symbol*>* alphabet = new MapVec<Symbol*>(this->alphabet->size());
+	for (unsigned int symbol_id = 0; symbol_id < this->alphabet->size(); ++symbol_id) {
+		alphabet->insert(symbol_id, new Symbol(this->alphabet->at(symbol_id)));
+	}
+	
+	// int n = this->states->size();
+	// MapVec<State*>* states = new MapVec<State*>(n - this->trimmable);
+	// for (int i = 0; i < n; i++) {
+	// 	for (int j = 0; j < m; j++) {
+	// 		std::string stateName = this->states->at(i)->getName();
+	// 		State* pairState = new State(stateName, alphabet->size());
+	// 		states->insert(i * n + j, pairState);
+	// 	}
+	// }
+
+
+	Automaton* C = new Automaton(name, alphabet, states, weights, NULL, NULL, min_weight, max_weight, initial);
+	C->initialize_SCC();
+	
+	return C;
+}
+
+
+Automaton* Automaton::product(value_function_t value_function, Automaton* B, product_weight_t product_weight) const {
+	State::RESET();
+	Symbol::RESET();
+	Weight<weight_t>::RESET();
+
 	std::string type;
 	switch (product_weight) {
 		case Max:
@@ -613,7 +667,7 @@ Automaton Automaton::product(value_function_t value_function, Automaton B, produ
 		default:
 			fail("automata product weight");
 	}
-	std::string name = type + "(" + this->getName() + "," + B.getName() + ")";
+	std::string name = type + "(" + this->getName() + "," + B->getName() + ")";
 
 	MapVec<Symbol*>* alphabet = new MapVec<Symbol*>(this->alphabet->size());
 	for (unsigned int symbol_id = 0; symbol_id < this->alphabet->size(); ++symbol_id) {
@@ -621,24 +675,24 @@ Automaton Automaton::product(value_function_t value_function, Automaton B, produ
 	}
 	
 	int n = this->states->size();
-	int m = B.states->size();
+	int m = B->states->size();
 	MapVec<State*>* states = new MapVec<State*>(n * m);
 	for (int i = 0; i < n; i++) {
 		for (int j = 0; j < m; j++) {
-			std::string name = "(" + this->states->at(i)->getName() + "," + B.states->at(j)->getName() + ")";
-			State* pairState = new State(name, alphabet->size());
+			std::string stateName = "(" + this->states->at(i)->getName() + "," + B->states->at(j)->getName() + ")";
+			State* pairState = new State(stateName, alphabet->size());
 			states->insert(i * n + j, pairState);
 		}
 	}
 
-	State* initial = states->at(this->initial->getId() * n + B.initial->getId());
+	State* initial = states->at(this->initial->getId() * n + B->initial->getId());
 	
 	std::map<weight_t,int> counts;
-	long unsigned int edge_counter = 0;
+	long unsigned int counter = 0;
 	for (int i = 0; i < n; i++) {
 		for (int j = 0; j < m; j++) {
 			for (Edge* x : *(this->states->at(i)->getEdges())) {
-				for (Edge* y : *(B.states->at(j)->getEdges())) {
+				for (Edge* y : *(B->states->at(j)->getEdges())) {
 					if (x->getSymbol()->getName() == y->getSymbol()->getName()) {
 						Weight<weight_t>* pairWeight;
 							switch (product_weight) {
@@ -666,7 +720,7 @@ Automaton Automaton::product(value_function_t value_function, Automaton B, produ
 						states->at(i * n + j)->addEdge(pairEdge);
 						states->at(i * n + j)->addSuccessor(pairEdge);
 						states->at(ii * n + jj)->addPredecessor(pairEdge);
-						edge_counter++;
+						counter++;
 					}
 				}
 			}
@@ -676,32 +730,23 @@ Automaton Automaton::product(value_function_t value_function, Automaton B, produ
 	MapVec<Weight<weight_t>*>* weights = new MapVec<Weight<weight_t>*>(counts.size());
 	weight_t min_weight;
 	weight_t max_weight;
-	edge_counter = 0;
+	counter = 0;
 	for (auto weightCount : counts) {
 		Weight<weight_t>* pairWeight = new Weight<weight_t>(weightCount.first);
-		weights->insert(edge_counter, pairWeight);
+		weights->insert(counter, pairWeight);
 
-		if (edge_counter == 0) {
+		if (counter == 0) {
 			min_weight = weightCount.first;
 		}
-		else if (edge_counter == counts.size() - 1) {
+		else if (counter == counts.size() - 1) {
 			max_weight = weightCount.first;
 		}
 
-		edge_counter++;
+		counter++;
 	}
-	// edge_counter = 0;
-	// for (int i = 0; i < n; i++) {
-	// 	SetStd<Edge*>* edges = C.states->at(i)->getEdges();
-	// 	for (auto x = edges->begin(); x != edges->end(); x++) {
-	// 		Weight<weight_t>* pairWeight = new Weight<weight_t>((*x)->getWeight());
-	// 		C.weights->insert(edge_counter, pairWeight);
-	// 		edge_counter++;
-	// 	}
-	// }
 
-	Automaton C(name, alphabet, states, weights, NULL, NULL, min_weight, max_weight, initial);
-	C.initialize_SCC();
+	Automaton* C = new Automaton(name, alphabet, states, weights, NULL, NULL, min_weight, max_weight, initial);
+	C->initialize_SCC();
 	
 	return C;
 }

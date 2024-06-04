@@ -1,31 +1,11 @@
 {
-    "makefile.launchConfigurations": [
-        {
-            "cwd": "/home/esarac/repo/CHASM/program/bin",
-            "binaryPath": "/home/esarac/repo/CHASM/program/bin/chasm",
-            "binaryArgs": []
-        },
-        {
-            "cwd": "/home/ege/Desktop/repos/CHASM/bin",
-            "binaryPath": "/home/ege/Desktop/repos/CHASM/bin/chasm.out",
-            "binaryArgs": []
-        }
-    ],
     "files.associations": {
-        "ostream": "cpp",
         "array": "cpp",
-        "string_view": "cpp",
-        "typeinfo": "cpp",
-        "iostream": "cpp",
-        "new": "cpp",
         "atomic": "cpp",
-        "bit": "cpp",
         "*.tcc": "cpp",
         "cctype": "cpp",
         "clocale": "cpp",
         "cmath": "cpp",
-        "compare": "cpp",
-        "concepts": "cpp",
         "cstdarg": "cpp",
         "cstddef": "cpp",
         "cstdint": "cpp",
@@ -36,20 +16,17 @@
         "cwctype": "cpp",
         "deque": "cpp",
         "list": "cpp",
-        "map": "cpp",
-        "set": "cpp",
-        "string": "cpp",
         "unordered_map": "cpp",
         "vector": "cpp",
         "exception": "cpp",
         "algorithm": "cpp",
-        "functional": "cpp",
-        "iterator": "cpp",
+        "map": "cpp",
         "memory": "cpp",
         "memory_resource": "cpp",
-        "numeric": "cpp",
         "optional": "cpp",
-        "random": "cpp",
+        "set": "cpp",
+        "string": "cpp",
+        "string_view": "cpp",
         "system_error": "cpp",
         "tuple": "cpp",
         "type_traits": "cpp",
@@ -57,12 +34,14 @@
         "fstream": "cpp",
         "initializer_list": "cpp",
         "iosfwd": "cpp",
+        "iostream": "cpp",
         "istream": "cpp",
         "limits": "cpp",
-        "numbers": "cpp",
+        "new": "cpp",
+        "ostream": "cpp",
         "sstream": "cpp",
         "stdexcept": "cpp",
-        "streambuf": "cpp"
-    },
-    "makefile.makefilePath": "/home/ege/Desktop/repos/CHASM/program"
+        "streambuf": "cpp",
+        "typeinfo": "cpp"
+    }
 }

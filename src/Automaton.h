@@ -44,6 +44,7 @@ private:
 	weight_t min_weight;
 	weight_t max_weight;
 	State* initial;
+	int trimmable = 0;
 private:
 	Automaton(
 			std::string name,
@@ -80,8 +81,9 @@ public:
 	Automaton (std::string filename);
 	~Automaton ();
 	
-	Automaton safetyClosure(value_function_t value_function);
-	Automaton product(value_function_t value_function, Automaton B, product_weight_t product_weight) const;
+	Automaton* safetyClosure(value_function_t value_function);
+	Automaton* product(value_function_t value_function, Automaton* B, product_weight_t product_weight) const;
+	Automaton* trim();
 
 	bool isDeterministic () const;
 	bool isEmpty (value_function_t type, weight_t v) const; // checks if A(w) >= v for some w
