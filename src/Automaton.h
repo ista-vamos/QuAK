@@ -31,6 +31,7 @@ typedef enum {
 	Min,
 	Plus,
 	Minus,
+	Times
 } product_weight_t;
 
 class Automaton {

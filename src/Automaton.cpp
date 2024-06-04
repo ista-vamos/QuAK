@@ -664,6 +664,9 @@ Automaton* Automaton::product(value_function_t value_function, Automaton* B, pro
 		case Minus:
 			type = "Minus";
 			break;
+		case Times:
+			type = "Times";
+			break;
 		default:
 			fail("automata product weight");
 	}
@@ -708,6 +711,9 @@ Automaton* Automaton::product(value_function_t value_function, Automaton* B, pro
 								case Minus:
 									pairWeight = new Weight<weight_t>(x->getWeight()->getValue() - y->getWeight()->getValue());
 									break;
+								case Times:
+									pairWeight = new Weight<weight_t>(x->getWeight()->getValue() * y->getWeight()->getValue());
+									break;	
 								default:
 									fail("automata product weight");
 							}
