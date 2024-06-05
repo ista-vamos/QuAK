@@ -147,7 +147,7 @@ Automaton::Automaton (std::string filename) :
 }
 
 
-Automaton* Automaton::safetyClosure(value_function_t value_function) {
+Automaton* Automaton::safetyClosure(value_function_t value_function) const {
 	State::RESET();
 	Symbol::RESET();
 	Weight<weight_t>::RESET();
@@ -222,20 +222,73 @@ bool Automaton::isEmpty (value_function_t type, weight_t v) const {
 	return true;
 }
 
-// TODO
-bool Automaton::isUniversal (value_function_t type, weight_t v) const {
-	return true;
+bool Automaton::isUniversal_det (value_function_t type, weight_t v) const {
+	State::RESET();
+	Symbol::RESET();
+	Weight<weight_t>::RESET();
+
+	std::string name = "Minus1";
+	
+	MapVec<Symbol*>* alphabet = new MapVec<Symbol*>(this->alphabet->size());
+	for (unsigned int symbol_id = 0; symbol_id < this->alphabet->size(); ++symbol_id) {
+		alphabet->insert(symbol_id, new Symbol(this->alphabet->at(symbol_id)));
+	}
+
+	MapVec<State*>* states = new MapVec<State*>(1);
+	states->insert(0, new State("init", alphabet->size()));
+
+	State* initial = states->at(0);
+
+	for (unsigned int symbol_id = 0; symbol_id < alphabet->size(); ++symbol_id) {
+		Symbol* symbol = alphabet->at(symbol_id);
+		State* state = states->at(0);
+		Weight<weight_t>* weight = new Weight<weight_t>(-1);
+		fflush(stdout);
+		Edge* edge = new Edge(symbol, weight, state, state);
+		state->addEdge(edge);
+		state->addSuccessor(edge);
+		state->addPredecessor(edge);
+	}
+
+	MapVec<Weight<weight_t>*>* weights = new MapVec<Weight<weight_t>*>(1);
+	weights->insert(0, new Weight<weight_t>(-1));
+
+
+	Automaton* C = new Automaton(name, alphabet, states, weights, NULL, NULL, -1, -1, initial);
+	C->initialize_SCC();
+
+	Automaton* CC = this->product(type, C, Times);
+	
+	weight_t top_values[CC->SCCs_list->size()];
+	if((-1) * CC->computeTop(type, top_values) >= v) {
+		return true;
+	}
+
+	return false;
 }
 
-// TODO
-bool Automaton::isIncludedIn (value_function_t type, Automaton B) const {
-	return true;
+bool Automaton::isIncludedIn_det (value_function_t type, const Automaton* B) const {
+	Automaton* C = B->product(type, this, Minus);
+	return !(C->isEmpty(type, 0));
 }
 
-// TODO
-bool Automaton::isEquivalent (value_function_t type, Automaton B) const {
-	return true;
+bool Automaton::isEquivalent_det (value_function_t type, const Automaton* B) const {
+	return B->isIncludedIn_det(type, this) && this->isIncludedIn_det(type, B);
 }
+
+bool Automaton::isSafe_det (value_function_t type, const Automaton* B) const {
+	return this->isEquivalent_det(type, this->safetyClosure(type));
+}
+
+bool Automaton::isConstant_det (value_function_t type, const Automaton* B) const {
+	weight_t top_values[this->SCCs_list->size()];
+	return this->isUniversal_det(type, this->computeTop(type, top_values));
+}
+
+bool Automaton::isLive_det (value_function_t type, const Automaton* B) const {
+	return this->isConstant_det(type, this->safetyClosure(type));
+}
+
 
 void Automaton::initialize_SCC_flood (State* state, int* tag, int* low, SCC_Tree* ancestor) const {
 	for (auto edge : *(state->getEdges())) {
@@ -645,7 +698,7 @@ Automaton* Automaton::trim() {
 }
 
 
-Automaton* Automaton::product(value_function_t value_function, Automaton* B, product_weight_t product_weight) const {
+Automaton* Automaton::product(value_function_t value_function, const Automaton* B, product_weight_t product_weight) const {
 	State::RESET();
 	Symbol::RESET();
 	Weight<weight_t>::RESET();

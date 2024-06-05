@@ -82,15 +82,18 @@ public:
 	Automaton (std::string filename);
 	~Automaton ();
 	
-	Automaton* safetyClosure(value_function_t value_function);
-	Automaton* product(value_function_t value_function, Automaton* B, product_weight_t product_weight) const;
+	Automaton* safetyClosure(value_function_t value_function) const;
+	Automaton* product(value_function_t value_function, const Automaton* B, product_weight_t product_weight) const;
 	Automaton* trim();
 
 	bool isDeterministic () const;
 	bool isEmpty (value_function_t type, weight_t v) const; // checks if A(w) >= v for some w
-	bool isUniversal (value_function_t type, weight_t v) const; // checks if A(w) >= v for all w
-	bool isIncludedIn (value_function_t type, Automaton B) const; // checks if A(w) <= B(w) for all w
-	bool isEquivalent (value_function_t type, Automaton B) const; // checks if A(w) == B(w) for all w
+	bool isUniversal_det (value_function_t type, const weight_t v) const; // checks if A(w) >= v for all w -- assuming deterministic
+	bool isIncludedIn_det (value_function_t type, const Automaton* B) const; // checks if A(w) <= B(w) for all w -- assuming deterministic (or eventually constant?)
+	bool isEquivalent_det (value_function_t type, const Automaton* B) const; // checks if A(w) == B(w) for all w -- assuming deterministic (or eventually constant?)
+	bool isSafe_det (value_function_t type, const Automaton* B) const; // checks if A = SafetyClosure(A) -- assuming deterministic because equivalence check does so
+	bool isConstant_det (value_function_t type, const Automaton* B) const; // checks if Universal(A, Top_A) -- assuming deterministic because universality check does so
+	bool isLive_det (value_function_t type, const Automaton* B) const; // checks if SafetyClosure(A) = Top_A -- assuming deterministic because constant-function check does so
 	State* getInitial () const;
 	std::string getName() const;
 

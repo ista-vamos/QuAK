@@ -29,6 +29,7 @@ int main(int argc, char **argv) {
 	printf("--------------------------------------------\n");
 	// TODO: 
 	// bug in scc
+	// check the basic algos
 
 	return EXIT_SUCCESS;
 }
