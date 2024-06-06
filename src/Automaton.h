@@ -60,6 +60,7 @@ private:
 	);
 	void initialize_SCC_flood (State* state, int* tag, int* low, SCC_Tree* ancestor) const;
 	void initialize_SCC_explore (State* state, int* time, int* spot, int* low, SetList<State*>* stack) const;
+	void initialize_SCC_explore_v2 (State* state, int* time, int* spot, int* low, SetList<State*>* stack, bool* stackMem) const;
 	void initialize_SCC (void);
 
 	void top_reachably_scc (State* state, lol_t lol, bool* spot, weight_t* values) const;
@@ -89,11 +90,11 @@ public:
 	bool isDeterministic () const;
 	bool isEmpty (value_function_t type, weight_t v) const; // checks if A(w) >= v for some w
 	bool isUniversal_det (value_function_t type, const weight_t v) const; // checks if A(w) >= v for all w -- assuming deterministic
-	bool isIncludedIn_det (value_function_t type, const Automaton* B) const; // checks if A(w) <= B(w) for all w -- assuming deterministic (or eventually constant?)
-	bool isEquivalent_det (value_function_t type, const Automaton* B) const; // checks if A(w) == B(w) for all w -- assuming deterministic (or eventually constant?)
-	bool isSafe_det (value_function_t type, const Automaton* B) const; // checks if A = SafetyClosure(A) -- assuming deterministic because equivalence check does so
-	bool isConstant_det (value_function_t type, const Automaton* B) const; // checks if Universal(A, Top_A) -- assuming deterministic because universality check does so
-	bool isLive_det (value_function_t type, const Automaton* B) const; // checks if SafetyClosure(A) = Top_A -- assuming deterministic because constant-function check does so
+	bool isIncludedIn_det (value_function_t type, const Automaton* rhs) const; // checks if A(w) <= B(w) for all w -- assuming deterministic (or eventually constant?)
+	bool isEquivalent_det (value_function_t type, const Automaton* rhs) const; // checks if A(w) == B(w) for all w -- assuming deterministic (or eventually constant?)
+	bool isSafe_det (value_function_t type) const; // checks if A = SafetyClosure(A) -- assuming deterministic because equivalence check does so
+	bool isConstant_det (value_function_t type) const; // checks if Universal(A, Top_A) -- assuming deterministic because universality check does so
+	bool isLive_det (value_function_t type) const; // checks if SafetyClosure(A) = Top_A -- assuming deterministic because constant-function check does so
 	State* getInitial () const;
 	std::string getName() const;
 

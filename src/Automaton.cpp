@@ -4,6 +4,7 @@
 #include "Edge.h"
 #include "utility.h"
 #include <map>
+#include <unordered_map>
 
 class SCC_Tree {
 public:
@@ -267,26 +268,34 @@ bool Automaton::isUniversal_det (value_function_t type, weight_t v) const {
 	return false;
 }
 
-bool Automaton::isIncludedIn_det (value_function_t type, const Automaton* B) const {
-	Automaton* C = B->product(type, this, Minus);
-	return !(C->isEmpty(type, 0));
+// TODO: fix
+bool Automaton::isIncludedIn_det (value_function_t type, const Automaton* rhs) const {
+	Automaton* C = this->product(type, rhs, Minus)->trim();
+	std::cout << std::endl << C->toString() << std::endl;
+
+	weight_t top_values[C->SCCs_list->size()];
+	weight_t t = C->computeTop(type, top_values);
+	if(t < 0) {
+		return false;
+	}
+	return true;
 }
 
-bool Automaton::isEquivalent_det (value_function_t type, const Automaton* B) const {
-	return B->isIncludedIn_det(type, this) && this->isIncludedIn_det(type, B);
+bool Automaton::isEquivalent_det (value_function_t type, const Automaton* rhs) const {
+	return rhs->isIncludedIn_det(type, this) && this->isIncludedIn_det(type, rhs);
 }
 
-bool Automaton::isSafe_det (value_function_t type, const Automaton* B) const {
+bool Automaton::isSafe_det (value_function_t type) const {
 	return this->isEquivalent_det(type, this->safetyClosure(type));
 }
 
-bool Automaton::isConstant_det (value_function_t type, const Automaton* B) const {
+bool Automaton::isConstant_det (value_function_t type) const {
 	weight_t top_values[this->SCCs_list->size()];
 	return this->isUniversal_det(type, this->computeTop(type, top_values));
 }
 
-bool Automaton::isLive_det (value_function_t type, const Automaton* B) const {
-	return this->isConstant_det(type, this->safetyClosure(type));
+bool Automaton::isLive_det (value_function_t type) const {
+	return this->safetyClosure(type)->isConstant_det(type);
 }
 
 
@@ -331,36 +340,70 @@ void Automaton::initialize_SCC_explore (State* state, int* time, int* spot, int*
 	}
 }
 
+void Automaton::initialize_SCC_explore_v2 (State* state, int* time, int* spot, int* low, SetList<State*>* stack, bool* stackMem) const {
+	(*time) = state->getId();
+	spot[state->getId()] = *time;
+	low[state->getId()] = *time;
+	stack->push(state);
+	stackMem[state->getId()] = true;
+	// (*time)++;
+
+	for (auto edge : *(state->getEdges())) {
+		if (spot[edge->getTo()->getId()] == -1) {
+			initialize_SCC_explore_v2(edge->getTo(), time, spot, low, stack, stackMem);
+			low[state->getId()] = std::min(low[state->getId()], low[edge->getTo()->getId()]);
+		}
+		else if (stackMem[edge->getTo()->getId()] == true) {
+			low[state->getId()] = std::min(low[state->getId()], spot[edge->getTo()-> getId()]);
+		}
+	}
+
+	if (spot[state->getId()] == low[state->getId()]) {
+		this->SCCs_list->push(state);
+		while (stack->head() != state) {
+			// low[stack->head()->getId()] = low[state->getId()];
+			stackMem[stack->head()->getId()] = false;
+			stack->pop();
+		}
+	}
+}
+
 
 void Automaton::initialize_SCC (void) {
 	unsigned int size = this->states->size();
 	int* spot = new int[size];
 	int* low = new int[size];
+	bool* stackMem = new bool[size];
 	int time = 0;
 	SetList<State*> stack;
 
 	this->SCCs_list = new SetList<State*>;
 	for (unsigned int state_id = 0; state_id < size; ++state_id) {
 		spot[state_id] = -1;
+		low[state_id] = -1;
+		stackMem[state_id] = false;
 	}
-	initialize_SCC_explore(initial, &time, spot, low, &stack);
 
-	
-
+	// this->initialize_SCC_explore(initial, &time, spot, low, &stack);
+	this->initialize_SCC_explore_v2(initial, &time, spot, low, &stack, stackMem);
+	// for (unsigned int state_id = 0; state_id < size; ++state_id) {
+	// 	std::cout << low[state_id] << " ";
+	// }
+	// std::cout << std::endl;
 	for (unsigned int state_id = 0; state_id < size; ++state_id) {
-		if(spot[state_id] == -1) {
+		if(low[state_id] == -1) {
 			this->trimmable++;
 		}
 	}
-	
+
 	int tag = 0;
 	this->initial->setTag(0);
 	this->SCCs_tree = new SCC_Tree(this->initial);
-	initialize_SCC_flood(this->initial, &tag, low, this->SCCs_tree);
+	this->initialize_SCC_flood(this->initial, &tag, low, this->SCCs_tree);
 
 	delete [] spot;
 	delete [] low;
-};
+}
 
 
 
@@ -418,11 +461,11 @@ weight_t Automaton::top_Sup (weight_t* top_values) const {
 
 	top_reachably_tree(this->SCCs_tree, lol_step, spot, values, top_values);
 
-	printf("TOP SUP ");
-	for (auto iter = this->SCCs_list->cbegin(); iter != this->SCCs_list->cend(); ++iter) {
-		printf(" (%s, %d)", (*iter)->getName().c_str(), top_values[(*iter)->getTag()]);
-	}
-	printf("\n");
+	// printf("TOP SUP ");
+	// for (auto iter = this->SCCs_list->cbegin(); iter != this->SCCs_list->cend(); ++iter) {
+	// 	printf(" (%s, %d)", (*iter)->getName().c_str(), top_values[(*iter)->getTag()]);
+	// }
+	// printf("\n");
 
 	return top_values[0];
 }
@@ -434,11 +477,11 @@ weight_t Automaton::top_LimSup (weight_t* top_values) const {
 	for (unsigned int state_id = 0; state_id < this->states->size(); ++state_id) spot[state_id] = false;
 	top_reachably_tree(this->SCCs_tree, lol_in, spot, values, top_values);
 
-	printf("TOP LIMSUP ");
-	for (auto iter = this->SCCs_list->cbegin(); iter != this->SCCs_list->cend(); ++iter) {
-		printf(" (%s, %d)", (*iter)->getName().c_str(), top_values[(*iter)->getTag()]);
-	}
-	printf("\n");
+	// printf("TOP LIMSUP ");
+	// for (auto iter = this->SCCs_list->cbegin(); iter != this->SCCs_list->cend(); ++iter) {
+	// 	printf(" (%s, %d)", (*iter)->getName().c_str(), top_values[(*iter)->getTag()]);
+	// }
+	// printf("\n");
 
 	return top_values[0];
 }
@@ -552,11 +595,11 @@ weight_t Automaton::top_LimInf (weight_t* top_values) const {
 
 	top_safety_tree(this->SCCs_tree, top_values);
 
-	printf("TOP LIMINF ");
-	for (auto iter = this->SCCs_list->cbegin(); iter != this->SCCs_list->cend(); ++iter) {
-		printf(" (%s, %d)", (*iter)->getName().c_str(), top_values[(*iter)->getTag()]);
-	}
-	printf("\n");
+	// printf("TOP LIMINF ");
+	// for (auto iter = this->SCCs_list->cbegin(); iter != this->SCCs_list->cend(); ++iter) {
+	// 	printf(" (%s, %d)", (*iter)->getName().c_str(), top_values[(*iter)->getTag()]);
+	// }
+	// printf("\n");
 
 	return top_values[0];
 }
@@ -637,11 +680,11 @@ weight_t Automaton::top_LimAvg (weight_t* top_values) const {
 
 	top_avg_tree(this->SCCs_tree, top_values);
 
-	printf("TOP AVG ");
-	for (auto iter = this->SCCs_list->cbegin(); iter != this->SCCs_list->cend(); ++iter) {
-		printf(" (%s, %d)", (*iter)->getName().c_str(), top_values[(*iter)->getTag()]);
-	}
-	printf("\n");
+	// printf("TOP AVG ");
+	// for (auto iter = this->SCCs_list->cbegin(); iter != this->SCCs_list->cend(); ++iter) {
+	// 	printf(" (%s, %d)", (*iter)->getName().c_str(), top_values[(*iter)->getTag()]);
+	// }
+	// printf("\n");
 
 	return top_values[0];
 }
@@ -680,16 +723,49 @@ Automaton* Automaton::trim() {
 		alphabet->insert(symbol_id, new Symbol(this->alphabet->at(symbol_id)));
 	}
 	
-	// int n = this->states->size();
-	// MapVec<State*>* states = new MapVec<State*>(n - this->trimmable);
-	// for (int i = 0; i < n; i++) {
-	// 	for (int j = 0; j < m; j++) {
-	// 		std::string stateName = this->states->at(i)->getName();
-	// 		State* pairState = new State(stateName, alphabet->size());
-	// 		states->insert(i * n + j, pairState);
-	// 	}
-	// }
+	MapVec<State*>* states = new MapVec<State*>(this->states->size() - this->trimmable);
+	long unsigned int counter = 0;
+	std::unordered_map<unsigned int, unsigned int> stateIdTable;
+	for (unsigned int state_id = 0; state_id < this->states->size(); ++state_id) {
+		if (this->states->at(state_id)->getTag() > -1) {
+			states->insert(counter, new State(this->states->at(state_id)->getName(), this->alphabet->size()));
+			stateIdTable[state_id] = counter;
+			counter++;
+		}
+	}
+	State* initial = states->at(stateIdTable[this->initial->getId()]);
 
+	std::map<weight_t,int> counts;
+	for (unsigned int state_id = 0; state_id < this->states->size(); ++state_id) {
+		if (this->states->at(state_id)->getTag() > -1) {
+			for (Edge* x : *(this->states->at(state_id)->getEdges())) {
+				Weight<weight_t>* w = new Weight<weight_t>(x->getWeight()->getValue());
+				Edge* e = new Edge(x->getSymbol(), w, states->at(stateIdTable[x->getFrom()->getId()]), states->at(stateIdTable[x->getTo()->getId()]));
+				states->at(stateIdTable[state_id])->addEdge(e);
+				states->at(stateIdTable[state_id])->addSuccessor(e);
+				states->at(stateIdTable[x->getTo()->getId()])->addPredecessor(e);
+				counts[w->getValue()]++;
+			}
+		}
+	}
+
+	MapVec<Weight<weight_t>*>* weights = new MapVec<Weight<weight_t>*>(counts.size());
+	weight_t min_weight;
+	weight_t max_weight;
+	counter = 0;
+	for (auto weightCount : counts) {
+		Weight<weight_t>* w = new Weight<weight_t>(weightCount.first);
+		weights->insert(counter, w);
+
+		if (counter == 0) {
+			min_weight = weightCount.first;
+		}
+		else if (counter == counts.size() - 1) {
+			max_weight = weightCount.first;
+		}
+
+		counter++;
+	}
 
 	Automaton* C = new Automaton(name, alphabet, states, weights, NULL, NULL, min_weight, max_weight, initial);
 	C->initialize_SCC();
@@ -744,7 +820,6 @@ Automaton* Automaton::product(value_function_t value_function, const Automaton* 
 	State* initial = states->at(this->initial->getId() * n + B->initial->getId());
 	
 	std::map<weight_t,int> counts;
-	long unsigned int counter = 0;
 	for (int i = 0; i < n; i++) {
 		for (int j = 0; j < m; j++) {
 			for (Edge* x : *(this->states->at(i)->getEdges())) {
@@ -779,7 +854,6 @@ Automaton* Automaton::product(value_function_t value_function, const Automaton* 
 						states->at(i * n + j)->addEdge(pairEdge);
 						states->at(i * n + j)->addSuccessor(pairEdge);
 						states->at(ii * n + jj)->addPredecessor(pairEdge);
-						counter++;
 					}
 				}
 			}
@@ -789,7 +863,7 @@ Automaton* Automaton::product(value_function_t value_function, const Automaton* 
 	MapVec<Weight<weight_t>*>* weights = new MapVec<Weight<weight_t>*>(counts.size());
 	weight_t min_weight;
 	weight_t max_weight;
-	counter = 0;
+	long unsigned int counter = 0;
 	for (auto weightCount : counts) {
 		Weight<weight_t>* pairWeight = new Weight<weight_t>(weightCount.first);
 		weights->insert(counter, pairWeight);
@@ -873,6 +947,20 @@ std::string Automaton::toString () const {
 	for (unsigned int state_id = 0; state_id < states->size(); ++state_id) {
 		s.append(states->at(state_id)->getEdges()->toString(Edge::toString));
 	}
+	// s.append("\n\t");
+	// s.append("successors:");
+	// for (unsigned int state_id = 0; state_id < states->size(); ++state_id) {
+	// 	for (unsigned int symbol_id = 0; symbol_id < alphabet->size(); ++symbol_id) {
+	// 		s.append(states->at(state_id)->getSuccessors(symbol_id)->toString(Edge::toString));
+	// 	}
+	// }
+	// s.append("\n\t");
+	// s.append("predecessors:");
+	// for (unsigned int state_id = 0; state_id < states->size(); ++state_id) {
+	// 	for (unsigned int symbol_id = 0; symbol_id < alphabet->size(); ++symbol_id) {
+	// 		s.append(states->at(state_id)->getPredecessors(symbol_id)->toString(Edge::toString));
+	// 	}
+	// }
 	s.append("\n");
 	//s.append(top_toString());
 	return s;
