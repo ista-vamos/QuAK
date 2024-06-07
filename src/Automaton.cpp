@@ -182,7 +182,7 @@ Automaton* Automaton::safetyClosure(value_function_t value_function) const {
 			Symbol* symbol = alphabet->at(edge->getSymbol()->getId());
 			State* from = states->at(edge->getFrom()->getId());
 			State* to = states->at(edge->getTo()->getId());
-			// TODO: tag can be -1 if the state is not reachable from the initial state
+			// TODO? tag can be -1 if the state is not reachable from the initial state
 			Weight<weight_t>* weight = weights->at(edge->getFrom()->getTag());
 			//printf("EDGE %s : %d, %s -> %s\n", symbol->getName().c_str(), weight->getValue(), from->getName().c_str(), to->getName().c_str());
 			fflush(stdout);
@@ -206,6 +206,9 @@ State* Automaton::getInitial () const { return initial; }
 std::string Automaton::getName() const { return this->name; }
 
 
+MapVec<Weight<weight_t>*>* Automaton::getWeights() const { return this->weights; }
+
+
 bool Automaton::isDeterministic () const {
 	for (unsigned int state_id = 0; state_id < this->states->size(); ++state_id) {
 		for (unsigned int symbol_id = 0; symbol_id < this->alphabet->size(); ++symbol_id) {
@@ -215,20 +218,21 @@ bool Automaton::isDeterministic () const {
 	return true;
 }
 
-bool Automaton::isEmpty (value_function_t type, weight_t v) const {
+
+bool Automaton::isEmpty (value_function_t type, Weight<weight_t> v) const {
 	weight_t top_values[this->SCCs_list->size()];
-	if (this->computeTop(type, top_values) >= v) {
+	if (this->computeTop(type, top_values) >= v.getValue()) {
 		return false;
 	}
 	return true;
 }
 
-bool Automaton::isUniversal_det (value_function_t type, weight_t v) const {
+Automaton* Automaton::constantAutomaton (value_function_t type, Weight<weight_t> v) const {
 	State::RESET();
 	Symbol::RESET();
 	Weight<weight_t>::RESET();
 
-	std::string name = "Minus1";
+	std::string name = "Constant(" + v.toString() + ")";
 	
 	MapVec<Symbol*>* alphabet = new MapVec<Symbol*>(this->alphabet->size());
 	for (unsigned int symbol_id = 0; symbol_id < this->alphabet->size(); ++symbol_id) {
@@ -243,7 +247,7 @@ bool Automaton::isUniversal_det (value_function_t type, weight_t v) const {
 	for (unsigned int symbol_id = 0; symbol_id < alphabet->size(); ++symbol_id) {
 		Symbol* symbol = alphabet->at(symbol_id);
 		State* state = states->at(0);
-		Weight<weight_t>* weight = new Weight<weight_t>(-1);
+		Weight<weight_t>* weight = new Weight<weight_t>(v.getValue());
 		fflush(stdout);
 		Edge* edge = new Edge(symbol, weight, state, state);
 		state->addEdge(edge);
@@ -252,23 +256,44 @@ bool Automaton::isUniversal_det (value_function_t type, weight_t v) const {
 	}
 
 	MapVec<Weight<weight_t>*>* weights = new MapVec<Weight<weight_t>*>(1);
-	weights->insert(0, new Weight<weight_t>(-1));
+	weights->insert(0, new Weight<weight_t>(v.getValue()));
 
-
-	Automaton* C = new Automaton(name, alphabet, states, weights, NULL, NULL, -1, -1, initial);
+	Automaton* C = new Automaton(name, alphabet, states, weights, NULL, NULL, v.getValue(), v.getValue(), initial);
 	C->initialize_SCC();
 
-	Automaton* CC = this->product(type, C, Times);
-	
-	weight_t top_values[CC->SCCs_list->size()];
-	if((-1) * CC->computeTop(type, top_values) >= v) {
+	return C;
+}
+
+
+// can update this for DSum (same idea works but not exactly like this)
+bool Automaton::isUniversal (value_function_t type, Weight<weight_t> v) const {
+	Automaton* C = this->constantAutomaton(type, v);
+
+	if (C->isIncludedIn(type, this)) {
 		return true;
 	}
 
 	return false;
 }
 
-// TODO: fix
+
+// TODO: need to prove Bottom(A) = -Top(-A) for limavg (and dsum -- maybe also others)
+bool Automaton::isUniversal_det (value_function_t type, Weight<weight_t> v) const {
+	Weight<weight_t>* minusOne = new Weight<weight_t>(-1);
+	Automaton* C = this->constantAutomaton(type, minusOne);
+
+	Automaton* CC = this->product(type, C, Times);
+	
+	weight_t top_values[CC->SCCs_list->size()];
+	if((-1) * CC->computeTop(type, top_values) >= v.getValue()) {
+		return true;
+	}
+
+	return false;
+}
+
+
+// this works only for limavg and dsum
 bool Automaton::isIncludedIn_det (value_function_t type, const Automaton* rhs) const {
 	Automaton* C = this->product(type, rhs, Minus)->trim();
 	std::cout << std::endl << C->toString() << std::endl;
@@ -281,21 +306,88 @@ bool Automaton::isIncludedIn_det (value_function_t type, const Automaton* rhs) c
 	return true;
 }
 
-bool Automaton::isEquivalent_det (value_function_t type, const Automaton* rhs) const {
-	return rhs->isIncludedIn_det(type, this) && this->isIncludedIn_det(type, rhs);
+
+bool Automaton::isIncludedIn_bool(value_function_t type, const Automaton* rhs) const {
+	switch (type) {
+		case Inf:
+			// TODO: safety automata inclusion check (adapt from some tool?)
+		case Sup:
+			// TODO: reachability automata inclusion check (adapt from some tool?)
+		case LimInf:
+			// TODO: cobuchi automata inclusion check (adapt from some tool?)
+		case LimSup:
+			// TODO: buchi automata inclusion check (adapt from some tool?)
+		default:
+			fail("automata inclusion bool type");
+	}
 }
 
-bool Automaton::isSafe_det (value_function_t type) const {
-	return this->isEquivalent_det(type, this->safetyClosure(type));
+bool Automaton::isIncludedIn(value_function_t type, const Automaton* rhs) const {
+	
+	if (type == LimAvg) { 
+		if (rhs->isDeterministic()) {
+			return this->isIncludedIn_det(type, rhs); // this also works for dsum
+		}
+		else {
+			fail("automata inclusion undecidable for nondeterministic limavg");
+		}
+	}
+	else if (type == Inf || type == Sup || type == LimInf || type == LimSup) {
+		for(auto weight : *(this->getWeights())) {
+			Automaton* A_bool = this->booleanize(weight);
+			Automaton* B_bool = rhs->booleanize(weight);
+
+			if (!A_bool->isIncludedIn_bool(type, B_bool)) {
+				return false;
+			}
+		}
+		return true;
+	}
+
+	fail("automata inclusion type");
 }
 
-bool Automaton::isConstant_det (value_function_t type) const {
-	weight_t top_values[this->SCCs_list->size()];
-	return this->isUniversal_det(type, this->computeTop(type, top_values));
+
+bool Automaton::isEquivalent (value_function_t type, const Automaton* rhs) const {
+	return rhs->isIncludedIn(type, this) && this->isIncludedIn(type, rhs);
 }
 
-bool Automaton::isLive_det (value_function_t type) const {
-	return this->safetyClosure(type)->isConstant_det(type);
+
+bool Automaton::isSafe (value_function_t type) const {
+	if (this->isDeterministic() || type != LimAvg) {
+		return this->isEquivalent(type, this->safetyClosure(type));
+	}
+
+	// TODO: call constant check for nondet limavg
+	// A -> safe(A) -> det(safe(A)) = B -- is determinization necessary?
+	// C = Minus(B,A)
+	// check if top(C) == 0 and constant(C)
+	fail("safety check for nondeterministic limit average is not implemented");
+}
+
+
+bool Automaton::isConstant (value_function_t type) const {
+	if (type == LimAvg) { 
+		if (this->isDeterministic()) {
+			weight_t top_values[this->SCCs_list->size()];
+			return this->isUniversal_det(type, this->computeTop(type, top_values));
+		}
+		else {
+			// TODO: implement distance automata boundedness check for nondet limavg
+			// https://www.mimuw.edu.pl/~bojan/20152016-2/jezyki-automaty-i-obliczenia-2/distance-automata
+			fail("constant check for nondeterministic limit average is not implemented");
+		}
+	}
+	else {
+		weight_t top_values[this->SCCs_list->size()];
+		Automaton* Top = this->constantAutomaton(type, this->computeTop(type, top_values));
+		return this->isEquivalent(type, Top);
+	}
+}
+
+
+bool Automaton::isLive (value_function_t type) const {
+	return this->safetyClosure(type)->isConstant(type);
 }
 
 
@@ -707,10 +799,64 @@ weight_t Automaton::computeTop (value_function_t value_function, weight_t* top_v
 	}
 }
 
-Automaton* Automaton::trim() {
-	if (this->trimmable == 0) {
-		return this;
+// easy for inf sup liminf limsup. only change the weights to 1 if >= thr, 0 otherwise
+// may be nonregular for limavg and dsum
+Automaton* Automaton::booleanize(Weight<weight_t> threshold) const {
+	State::RESET();
+	Symbol::RESET();
+	Weight<weight_t>::RESET();
+
+	std::string name = "Bool(" + this->getName() + ", " + threshold.toString() + ")";
+
+	MapVec<Symbol*>* alphabet = new MapVec<Symbol*>(this->alphabet->size());
+	for (unsigned int symbol_id = 0; symbol_id < this->alphabet->size(); ++symbol_id) {
+		alphabet->insert(symbol_id, new Symbol(this->alphabet->at(symbol_id)));
 	}
+	MapVec<State*>* states = new MapVec<State*>(this->states->size());
+	for (unsigned int state_id = 0; state_id < this->states->size(); ++state_id) {
+		states->insert(state_id, new State(this->states->at(state_id)));
+	}
+	State* initial = states->at(this->initial->getId());
+
+	weight_t min_weight = 1;
+	weight_t max_weight = 0;
+	for (unsigned int state_id = 0; state_id < this->states->size(); ++state_id) {
+		for (Edge* x : *(this->states->at(state_id)->getEdges())) {
+			Weight<weight_t>* w;
+			if (x->getWeight()->getValue() >= threshold.getValue()) {
+				w = new Weight<weight_t>(1);
+				max_weight = 1;
+			}
+			else {
+				w = new Weight<weight_t>(0);
+				min_weight = 0;
+			}
+			Edge* e = new Edge(x->getSymbol(), w, states->at(x->getFrom()->getId()), states->at(x->getTo()->getId()));
+			states->at(state_id)->addEdge(e);
+			states->at(state_id)->addSuccessor(e);
+			states->at(x->getTo()->getId())->addPredecessor(e);
+		}
+	}
+
+	MapVec<Weight<weight_t>*>* weights = new MapVec<Weight<weight_t>*>(max_weight - min_weight + 1);
+
+	for (int i = min_weight; i <= max_weight; i++) {
+		Weight<weight_t>* w = new Weight<weight_t>(i);
+		weights->insert(i - min_weight, w);
+	}
+
+	Automaton* C = new Automaton(name, alphabet, states, weights, NULL, NULL, min_weight, max_weight, initial);
+	C->initialize_SCC();
+	
+	return C;
+}
+
+
+Automaton* Automaton::trim() const {
+	// TODO? implement this if-check through a copy constructor for Automaton
+	// if (this->trimmable == 0) {
+	// 	return this;
+	// }
 
 	State::RESET();
 	Symbol::RESET();
@@ -760,7 +906,7 @@ Automaton* Automaton::trim() {
 		if (counter == 0) {
 			min_weight = weightCount.first;
 		}
-		else if (counter == counts.size() - 1) {
+		if (counter == counts.size() - 1) {
 			max_weight = weightCount.first;
 		}
 
@@ -871,7 +1017,7 @@ Automaton* Automaton::product(value_function_t value_function, const Automaton* 
 		if (counter == 0) {
 			min_weight = weightCount.first;
 		}
-		else if (counter == counts.size() - 1) {
+		if (counter == counts.size() - 1) {
 			max_weight = weightCount.first;
 		}
 

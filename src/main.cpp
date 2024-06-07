@@ -7,13 +7,15 @@ int main(int argc, char **argv) {
 	Automaton* A = new Automaton("./samples/test2.txt");
 	std::cout << std::endl << A->toString() << std::endl;
 	printf("--------------------------------------------\n");
-	Automaton* B= new Automaton("./samples/test3.txt");
+	Automaton* B = new Automaton("./samples/test3.txt");
 	std::cout << std::endl << B->toString() << std::endl;
 	printf("--------------------------------------------\n");
-
-	// TODO: how to compote inclusion for deterministic automata through the product?
-	// just implement the nondeterministic ones? (reduction to boolean language inclusion for each weight)
-	
+	Automaton* Ab = A->booleanize(1);
+	std::cout << std::endl << Ab->toString() << std::endl;
+	printf("--------------------------------------------\n");
+	Automaton* Bb = B->booleanize(1);
+	std::cout << std::endl << Bb->toString() << std::endl;
+	printf("--------------------------------------------\n");
 
 	// std::cout << "Deterministic(A): " << A->isDeterministic() << std::endl;
 	// std::cout << "Deterministic(B): " << B->isDeterministic() << std::endl;
