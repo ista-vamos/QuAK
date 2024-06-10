@@ -2,3 +2,7 @@
 .project
 .cproject
 .settings
+.vscode
+*.o
+*.exe
+*.out
