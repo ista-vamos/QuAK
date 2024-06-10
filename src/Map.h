@@ -40,6 +40,7 @@ public:
 	T_value at (unsigned int key) const;
 	std::string toString(std::string (*f_value) (T_value value)) const;
 
+
 	/*
 	class Iterator {
 	public:

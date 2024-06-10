@@ -1,8 +1,8 @@
 GCC = gcc
-CFLAG = -Wall
+CFLAG = -g -Wall
 
 GPP = g++
-CPPFLAG = -Wall
+CPPFLAG = -g -Wall
 
 SRCDIR = src
 SRC = $(wildcard $(SRCDIR)/*.c) $(wildcard $(SRCDIR)/*.cpp)
@@ -25,7 +25,7 @@ all: $(BINDIR)/$(BIN)
 
 
 $(BINDIR)/$(BIN): $(OBJ)
-	$(GPP) $(CPPFLAG) $^ -o $@
+	$(GPP) $(CPPFLAG) $^ -o $@.out
 
 
 $(OBJDIR)/%.c.o: $(SRCDIR)/%.c

@@ -26,8 +26,13 @@ typedef enum {
 	LimAvg,
 } value_function_t;
 
-
-
+typedef enum {
+	Max,
+	Min,
+	Plus,
+	Minus,
+	Times
+} product_weight_t;
 
 class Automaton {
 private:
@@ -40,6 +45,7 @@ private:
 	weight_t min_weight;
 	weight_t max_weight;
 	State* initial;
+	int trimmable = 0;
 private:
 	Automaton(
 			std::string name,
@@ -54,6 +60,7 @@ private:
 	);
 	void initialize_SCC_flood (State* state, int* tag, int* low, SCC_Tree* ancestor) const;
 	void initialize_SCC_explore (State* state, int* time, int* spot, int* low, SetList<State*>* stack) const;
+	void initialize_SCC_explore_v2 (State* state, int* time, int* spot, int* low, SetList<State*>* stack, bool* stackMem) const;
 	void initialize_SCC (void);
 
 	void top_reachably_scc (State* state, lol_t lol, bool* spot, weight_t* values) const;
@@ -75,10 +82,36 @@ private:
 public:
 	Automaton (std::string filename);
 	~Automaton ();
-	Automaton safetyClosure(value_function_t value_function);
+	
+	Automaton* safetyClosure(value_function_t value_function) const;
+	Automaton* product(value_function_t value_function, const Automaton* B, product_weight_t product_weight) const;
+	Automaton* trim() const;
+	Automaton* booleanize(Weight<weight_t>  v) const;
+	Automaton* constantAutomaton (value_function_t type, Weight<weight_t>  v) const;
 
 	bool isDeterministic () const;
+
+	bool isEmpty (value_function_t type, Weight<weight_t>  v) const; // checks if A(w) >= v for some w
+
+	bool isUniversal (value_function_t type, Weight<weight_t>  v) const; // checks if A(w) >= v for all w
+	bool isUniversal_det (value_function_t type, Weight<weight_t>  v) const; // checks if A(w) >= v for all w -- assuming deterministic (NEEDS TO BE PROVED)
+	
+	bool isIncludedIn (value_function_t type, const Automaton* rhs) const; // checks if A(w) <= B(w) for all w
+	bool isIncludedIn_det (value_function_t type, const Automaton* rhs) const; // checks if A(w) <= B(w) for all w -- assuming deterministic (this only works for limavg and dsum)
+	bool isIncludedIn_bool (value_function_t type, const Automaton* rhs) const;
+	
+	bool isEquivalent (value_function_t type, const Automaton* rhs) const; // checks if A(w) == B(w) for all w
+	
+	bool isSafe (value_function_t type) const; // checks if A = SafetyClosure(A)
+	
+	bool isConstant (value_function_t type) const; // checks if Universal(A, Top_A)
+	
+	bool isLive (value_function_t type) const; // checks if SafetyClosure(A) = Top_A
+	
 	State* getInitial () const;
+	std::string getName() const;
+	MapVec<Weight<weight_t>*>* getWeights() const;
+
 
 	static std::string toString (Automaton* A);
 	std::string toString () const;

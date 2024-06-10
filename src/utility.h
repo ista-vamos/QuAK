@@ -34,7 +34,7 @@
 #endif
 
 
-//#define DELETE_VERBOSE
+// #define DELETE_VERBOSE
 #ifdef DELETE_VERBOSE
 #define delete_verbose(...)								\
 		fprintf(stdout, __VA_ARGS__)
