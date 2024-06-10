@@ -81,20 +81,26 @@ private:
 	std::string top_toString() const;
 public:
 	Automaton (std::string filename);
+	Automaton (const Automaton& to_copy);
 	~Automaton ();
 	
 	Automaton* safetyClosure(value_function_t value_function) const;
 	Automaton* product(value_function_t value_function, const Automaton* B, product_weight_t product_weight) const;
 	Automaton* trim() const;
-	Automaton* booleanize(Weight<weight_t>  v) const;
-	Automaton* constantAutomaton (value_function_t type, Weight<weight_t>  v) const;
+	Automaton* complete(value_function_t value_function) const;
+	Automaton* monotonize(value_function_t value_function) const;
+	Automaton* booleanize(Weight<weight_t> v) const;
+	Automaton* constantAutomaton (value_function_t type, Weight<weight_t> v) const;
+	Automaton* livenessComponent (value_function_t type) const;
+
 
 	bool isDeterministic () const;
+	bool isComplete () const;
 
-	bool isEmpty (value_function_t type, Weight<weight_t>  v) const; // checks if A(w) >= v for some w
+	bool isEmpty (value_function_t type, Weight<weight_t> v) const; // checks if A(w) >= v for some w
 
-	bool isUniversal (value_function_t type, Weight<weight_t>  v) const; // checks if A(w) >= v for all w
-	bool isUniversal_det (value_function_t type, Weight<weight_t>  v) const; // checks if A(w) >= v for all w -- assuming deterministic (NEEDS TO BE PROVED)
+	bool isUniversal (value_function_t type, Weight<weight_t> v) const; // checks if A(w) >= v for all w
+	bool isUniversal_det (value_function_t type, Weight<weight_t> v) const; // checks if A(w) >= v for all w -- assuming deterministic (NEEDS TO BE PROVED)
 	
 	bool isIncludedIn (value_function_t type, const Automaton* rhs) const; // checks if A(w) <= B(w) for all w
 	bool isIncludedIn_det (value_function_t type, const Automaton* rhs) const; // checks if A(w) <= B(w) for all w -- assuming deterministic (this only works for limavg and dsum)
@@ -110,6 +116,8 @@ public:
 	
 	State* getInitial () const;
 	std::string getName() const;
+	unsigned int getMinWeightId() const;
+	unsigned int getMaxWeightId() const;
 	// MapVec<Weight<weight_t>*>* getWeights() const;
 
 

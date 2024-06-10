@@ -1,8 +1,4 @@
 a : 1, s0 -> s1
 b: 0, s0 -> s2
 a : 1, s1 -> s0
-b : -1, s1 -> sink
 a : 0, s2 -> s2
-b : -1, s2 -> sink
-a : -1, sink -> sink
-b : -1, sink -> sink

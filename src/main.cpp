@@ -7,17 +7,22 @@ int main(int argc, char **argv) {
 	Automaton* A = new Automaton("./samples/test2.txt");
 	std::cout << std::endl << A->toString() << std::endl;
 	printf("--------------------------------------------\n");
-	Automaton* B = new Automaton("./samples/test3.txt");
+
+	std::cout << "Deterministic(A): " << A->isDeterministic() << std::endl;
+	std::cout << "Complete(A): " << A->isComplete() << std::endl;
+
+	printf("--------------------------------------------\n");
+	Automaton* B = A->complete(Sup); // TODO: problem with sccs
 	std::cout << std::endl << B->toString() << std::endl;
 	printf("--------------------------------------------\n");
-	Automaton* Ab = A->booleanize(1);
-	std::cout << std::endl << Ab->toString() << std::endl;
-	printf("--------------------------------------------\n");
-	Automaton* Bb = B->booleanize(1);
-	std::cout << std::endl << Bb->toString() << std::endl;
-	printf("--------------------------------------------\n");
 
-	// std::cout << "Deterministic(A): " << A->isDeterministic() << std::endl;
+	std::cout << "Deterministic(B): " << B->isDeterministic() << std::endl;
+	std::cout << "Complete(B): " << B->isComplete() << std::endl;
+
+	printf("--------------------------------------------\n");
+	Automaton* C = B->complete(Sup); // TODO: problem with "complete"
+	std::cout << std::endl << C->toString() << std::endl;
+	printf("--------------------------------------------\n");
 	// std::cout << "Deterministic(B): " << B->isDeterministic() << std::endl;
 	// std::cout << "Empty(A,0): " << A->isEmpty(Sup, 0) << std::endl;
 	// std::cout << "Empty(A,1000): " << A->isEmpty(Sup, 1000) << std::endl;
