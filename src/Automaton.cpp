@@ -183,9 +183,9 @@ Automaton* Automaton::safetyClosure(value_function_t value_function) const {
 			State* from = states->at(edge->getFrom()->getId());
 			State* to = states->at(edge->getTo()->getId());
 			// TODO? tag can be -1 if the state is not reachable from the initial state
+			// yes, that's why tags are signed
+			// we can assume the input to not be too stupid
 			Weight<weight_t>* weight = weights->at(edge->getFrom()->getTag());
-			//printf("EDGE %s : %d, %s -> %s\n", symbol->getName().c_str(), weight->getValue(), from->getName().c_str(), to->getName().c_str());
-			fflush(stdout);
 			Edge* top_edge = new Edge(symbol, weight, from, to);
 			from->addEdge(top_edge);
 			from->addSuccessor(top_edge);
@@ -248,7 +248,6 @@ Automaton* Automaton::constantAutomaton (value_function_t type, Weight<weight_t>
 		Symbol* symbol = alphabet->at(symbol_id);
 		State* state = states->at(0);
 		Weight<weight_t>* weight = new Weight<weight_t>(v.getValue());
-		fflush(stdout);
 		Edge* edge = new Edge(symbol, weight, state, state);
 		state->addEdge(edge);
 		state->addSuccessor(edge);
@@ -283,6 +282,7 @@ bool Automaton::isUniversal_det (value_function_t type, Weight<weight_t> v) cons
 	Automaton* C = this->constantAutomaton(type, minusOne);
 
 	Automaton* CC = this->product(type, C, Times);
+	// Fixme: we could simply multiply weight by -1 without a product
 	
 	weight_t top_values[CC->SCCs_list->size()];
 	if((-1) * CC->computeTop(type, top_values) >= v.getValue()) {
@@ -294,6 +294,7 @@ bool Automaton::isUniversal_det (value_function_t type, Weight<weight_t> v) cons
 
 
 // this works only for limavg and dsum
+// fixme: I think this also work for the other type, but it is not said in Quantitative Languages
 bool Automaton::isIncludedIn_det (value_function_t type, const Automaton* rhs) const {
 	Automaton* C = this->product(type, rhs, Minus)->trim();
 	std::cout << std::endl << C->toString() << std::endl;
@@ -333,9 +334,9 @@ bool Automaton::isIncludedIn(value_function_t type, const Automaton* rhs) const 
 		}
 	}
 	else if (type == Inf || type == Sup || type == LimInf || type == LimSup) {
-		for(auto weight : *(this->getWeights())) {
-			Automaton* A_bool = this->booleanize(weight);
-			Automaton* B_bool = rhs->booleanize(weight);
+		for (unsigned int weight_id = 0; weight_id < this->weights->size(); ++weight_id) {
+			Automaton* A_bool = this->booleanize(this->weights->at(weight_id));
+			Automaton* B_bool = rhs->booleanize(this->weights->at(weight_id));
 
 			if (!A_bool->isIncludedIn_bool(type, B_bool)) {
 				return false;
@@ -437,7 +438,7 @@ void Automaton::initialize_SCC_explore_v2 (State* state, int* time, int* spot, i
 	spot[state->getId()] = *time;
 	low[state->getId()] = *time;
 	stack->push(state);
-	stackMem[state->getId()] = true;
+	stackMem[state->getId()] = true;   // Fixme: stackMem is useless with a single initial state
 	// (*time)++;
 
 	for (auto edge : *(state->getEdges())) {
