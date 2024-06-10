@@ -39,10 +39,10 @@ public:
 	unsigned int size () const;
 	T_value at (unsigned int key) const;
 	std::string toString(std::string (*f_value) (T_value value)) const;
-	auto begin() {return all.begin();};
-	auto end() {return all.end();};
-	auto cbegin() {return all.cbegin();};
-	auto cend() {return all.cend();};
+	// auto begin() {return all.begin();};
+	// auto end() {return all.end();};
+	// auto cbegin() {return all.cbegin();};
+	// auto cend() {return all.cend();};
 
 	/*
 	class Iterator {

@@ -206,7 +206,7 @@ State* Automaton::getInitial () const { return initial; }
 std::string Automaton::getName() const { return this->name; }
 
 
-MapVec<Weight<weight_t>*>* Automaton::getWeights() const { return this->weights; }
+// MapVec<Weight<weight_t>*>* Automaton::getWeights() const { return this->weights; }
 
 
 bool Automaton::isDeterministic () const {
@@ -333,7 +333,9 @@ bool Automaton::isIncludedIn(value_function_t type, const Automaton* rhs) const 
 		}
 	}
 	else if (type == Inf || type == Sup || type == LimInf || type == LimSup) {
-		for(auto weight : *(this->getWeights())) {
+		int k = this->weights->size();
+		for(int i = 0; i < k; i++) {
+			Weight<weight_t> weight = *(this->weights->at(i));
 			Automaton* A_bool = this->booleanize(weight);
 			Automaton* B_bool = rhs->booleanize(weight);
 
@@ -359,8 +361,9 @@ bool Automaton::isSafe (value_function_t type) const {
 	}
 
 	// TODO: call constant check for nondet limavg
-	// A -> safe(A) -> det(safe(A)) = B -- is determinization necessary?
-	// C = Minus(B,A)
+	// A = this
+	// B = det(safe(A))
+	// C = Minus(A,B)
 	// check if top(C) == 0 and constant(C)
 	fail("safety check for nondeterministic limit average is not implemented");
 }
@@ -476,8 +479,8 @@ void Automaton::initialize_SCC (void) {
 		stackMem[state_id] = false;
 	}
 
-	// this->initialize_SCC_explore(initial, &time, spot, low, &stack);
-	this->initialize_SCC_explore_v2(initial, &time, spot, low, &stack, stackMem);
+	this->initialize_SCC_explore(initial, &time, spot, low, &stack);
+	// this->initialize_SCC_explore_v2(initial, &time, spot, low, &stack, stackMem);
 	// for (unsigned int state_id = 0; state_id < size; ++state_id) {
 	// 	std::cout << low[state_id] << " ";
 	// }

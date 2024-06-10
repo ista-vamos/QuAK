@@ -110,7 +110,7 @@ public:
 	
 	State* getInitial () const;
 	std::string getName() const;
-	MapVec<Weight<weight_t>*>* getWeights() const;
+	// MapVec<Weight<weight_t>*>* getWeights() const;
 
 
 	static std::string toString (Automaton* A);

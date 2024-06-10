@@ -1,13 +1,13 @@
-Is Top value of Inf automata done?
-Check the SCC algorithm
-Decide how to handle sink states -- this is needed for product
-Decide if we want to distinguish LimInfAvg and LimSupAvg
-Implement boolean inclusion checks (this concludes the basic decision problems for all basic value functions and deterministic limit average)
+Check the SCC algorithm N
+Decide how to handle sink states -- this is needed for product E
+Decide if we want to distinguish LimInfAvg and LimSupAvg -- relevant for membership
+Implement inclusion checks N
+    (this concludes the basic decision problems for all basic value functions and deterministic limit average)
 
 Plan next steps
-    Safety check for nondeterministic limit average
-    Constant check for nondeterministic limit average
+    Constant check for nondeterministic limit average -- boundedness stuff N
+    Safety check for nondeterministic limit average -- implement determinization of safety closure E
+    Decompositions? Deterministic ones may be simple enough E
+    Membership? Monitoring?
     DSum?
-    Membership?
-    Monitoring?
-    Decompositions? Deterministic ones may be simple enough
+    
