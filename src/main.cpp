@@ -4,9 +4,11 @@
 
 int main(int argc, char **argv) {
 	printf("--------------------------------------------\n");
-	Automaton* A = new Automaton("./samples/test2.txt");
+	Automaton* A = new Automaton("./samples/test3.txt");
 	std::cout << std::endl << A->toString() << std::endl;
 	printf("--------------------------------------------\n");
+
+	/*
 	Automaton* B = new Automaton("./samples/test3.txt");
 	std::cout << std::endl << B->toString() << std::endl;
 	printf("--------------------------------------------\n");
@@ -16,6 +18,7 @@ int main(int argc, char **argv) {
 	Automaton* Bb = B->booleanize(1);
 	std::cout << std::endl << Bb->toString() << std::endl;
 	printf("--------------------------------------------\n");
+	*/
 
 	// std::cout << "Deterministic(A): " << A->isDeterministic() << std::endl;
 	// std::cout << "Deterministic(B): " << B->isDeterministic() << std::endl;

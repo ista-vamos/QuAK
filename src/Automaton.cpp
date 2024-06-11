@@ -31,7 +31,7 @@ Automaton::~Automaton () {
 	delete_verbose("@Memory: Automaton deletion started (automaton %s)\n", this->name.c_str());
 	// delete_verbose("@Detail: %u Edges will be deleted (automaton %s)\n", this->edges_size, this->name.c_str());
 	for (unsigned int state_id = 0; state_id < states->size(); ++state_id) {
-		for (auto edge : *(states->at(state_id)->getEdges())) {
+		for (Edge* edge : *(states->at(state_id)->getEdges())) {
 			delete edge;
 		}
 	}
@@ -185,7 +185,7 @@ Automaton* Automaton::safetyClosure(value_function_t value_function) const {
 			// TODO? tag can be -1 if the state is not reachable from the initial state
 			// yes, that's why tags are signed
 			// we can assume the input to not be too stupid
-			Weight<weight_t>* weight = weights->at(edge->getFrom()->getTag());
+			Weight<weight_t>* weight = weights->at(edge->getFrom()->getId()); // cannot be -1 as it is a SCC origin
 			Edge* top_edge = new Edge(symbol, weight, from, to);
 			from->addEdge(top_edge);
 			from->addSuccessor(top_edge);
@@ -393,7 +393,7 @@ bool Automaton::isLive (value_function_t type) const {
 
 
 void Automaton::initialize_SCC_flood (State* state, int* tag, int* low, SCC_Tree* ancestor) const {
-	for (auto edge : *(state->getEdges())) {
+	for (Edge* edge : *(state->getEdges())) {
 		int tagg = edge->getTo()->getTag();
 		if (tagg == -1){
 			if (low[state->getId()] == low[edge->getTo()->getId()]) {
@@ -411,39 +411,16 @@ void Automaton::initialize_SCC_flood (State* state, int* tag, int* low, SCC_Tree
 	}
 }
 
-void Automaton::initialize_SCC_explore (State* state, int* time, int* spot, int* low, SetList<State*>* stack) const {
+void Automaton::initialize_SCC_explore (State* state, int* time, int* spot, int* low, SetList<State*>* stack, bool* stackMem) const {
 	spot[state->getId()] = *time;
 	low[state->getId()] = *time;
-	stack->push(state);
 	(*time)++;
-	for (auto edge : *(state->getEdges())) {
-		if (spot[edge->getTo()->getId()] == -1) {
-			initialize_SCC_explore(edge->getTo(), time, spot, low, stack);
-		}
-		low[state->getId()] = std::min(low[state->getId()], low[edge->getTo()->getId()]);
-	}
-
-	if (spot[state->getId()] == low[state->getId()]) {
-		this->SCCs_list->push(state);
-		while (stack->head() != state) {
-			low[stack->head()->getId()] = low[state->getId()];
-			stack->pop();
-		}
-		stack->pop();
-	}
-}
-
-void Automaton::initialize_SCC_explore_v2 (State* state, int* time, int* spot, int* low, SetList<State*>* stack, bool* stackMem) const {
-	(*time) = state->getId();
-	spot[state->getId()] = *time;
-	low[state->getId()] = *time;
 	stack->push(state);
-	stackMem[state->getId()] = true;   // Fixme: stackMem is useless with a single initial state
-	// (*time)++;
+	stackMem[state->getId()] = true;
 
-	for (auto edge : *(state->getEdges())) {
+	for (Edge* edge : *(state->getEdges())) {
 		if (spot[edge->getTo()->getId()] == -1) {
-			initialize_SCC_explore_v2(edge->getTo(), time, spot, low, stack, stackMem);
+			initialize_SCC_explore(edge->getTo(), time, spot, low, stack, stackMem);
 			low[state->getId()] = std::min(low[state->getId()], low[edge->getTo()->getId()]);
 		}
 		else if (stackMem[edge->getTo()->getId()] == true) {
@@ -454,7 +431,6 @@ void Automaton::initialize_SCC_explore_v2 (State* state, int* time, int* spot, i
 	if (spot[state->getId()] == low[state->getId()]) {
 		this->SCCs_list->push(state);
 		while (stack->head() != state) {
-			// low[stack->head()->getId()] = low[state->getId()];
 			stackMem[stack->head()->getId()] = false;
 			stack->pop();
 		}
@@ -477,12 +453,8 @@ void Automaton::initialize_SCC (void) {
 		stackMem[state_id] = false;
 	}
 
-	// this->initialize_SCC_explore(initial, &time, spot, low, &stack);
-	this->initialize_SCC_explore_v2(initial, &time, spot, low, &stack, stackMem);
-	// for (unsigned int state_id = 0; state_id < size; ++state_id) {
-	// 	std::cout << low[state_id] << " ";
-	// }
-	// std::cout << std::endl;
+	initialize_SCC_explore(initial, &time, spot, low, &stack, stackMem);
+
 	for (unsigned int state_id = 0; state_id < size; ++state_id) {
 		if(low[state_id] == -1) {
 			this->trimmable++;
@@ -505,7 +477,7 @@ void Automaton::top_reachably_scc (State* state, lol_t lol, bool* spot, weight_t
 	if (spot[state->getId()] == true) return;// min_weight - 1;
 	spot[state->getId()] = true;
 	values[state->getId()] = this->min_weight - 1;
-	for (auto edge : *(state->getEdges())) {
+	for (Edge* edge : *(state->getEdges())) {
 		switch (lol) {
 			case lol_in:
 				if (edge->getTo()->getTag() == state->getTag()) {
@@ -730,7 +702,7 @@ weight_t Automaton::top_LimAvg (weight_t* top_values) const {
 	// O(n.m)
 	for (unsigned int len = 1; len <= size; ++len) {
 		for (unsigned int state_id = 0; state_id < size; ++state_id)	{
-			for (auto edge : *(states->at(state_id)->getEdges())) {
+			for (Edge* edge : *(states->at(state_id)->getEdges())) {
 				if (edge->getFrom()->getTag() == edge->getTo()->getTag()) {
 					if (distance[len-1][edge->getFrom()->getId()] != infinity) {
 						weight_t value = distance[len-1][edge->getFrom()->getId()] - edge->getWeight()->getValue();

@@ -59,8 +59,7 @@ private:
 			State* initial
 	);
 	void initialize_SCC_flood (State* state, int* tag, int* low, SCC_Tree* ancestor) const;
-	void initialize_SCC_explore (State* state, int* time, int* spot, int* low, SetList<State*>* stack) const;
-	void initialize_SCC_explore_v2 (State* state, int* time, int* spot, int* low, SetList<State*>* stack, bool* stackMem) const;
+	void initialize_SCC_explore (State* state, int *time, int* spot, int* low, SetList<State*>* stack, bool* stackMem) const;
 	void initialize_SCC (void);
 
 	void top_reachably_scc (State* state, lol_t lol, bool* spot, weight_t* values) const;

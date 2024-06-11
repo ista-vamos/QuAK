@@ -11,7 +11,7 @@ OBJDIR = obj
 OBJ = $(SRC:$(SRCDIR)/%=$(OBJDIR)/%.o)
 
 BINDIR = bin
-BIN = chasm
+BIN = chasm.out
 
 
 default: all
@@ -25,7 +25,7 @@ all: $(BINDIR)/$(BIN)
 
 
 $(BINDIR)/$(BIN): $(OBJ)
-	$(GPP) $(CPPFLAG) $^ -o $@.out
+	$(GPP) $(CPPFLAG) $^ -o $@
 
 
 $(OBJDIR)/%.c.o: $(SRCDIR)/%.c
