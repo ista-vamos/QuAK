@@ -1,21 +1,18 @@
-Is Top value of Inf automata done?
---> yes
-
-Check the SCC algorithm
+Check the SCC algorithm [N]
 --> SCC v1 only care about the reachable states
 --> SCC v2 could care about the unreachable states but does not
 
-Decide how to handle sink states -- this is needed for product
-Decide if we want to distinguish LimInfAvg and LimSupAvg
-Implement boolean inclusion checks (this concludes the basic decision problems for all basic value functions and deterministic limit average)
---> This is very hard/longand not a contribution
---> focussing on safety and liveness check is better time investment 
+Decide how to handle sink states -- this is needed for product [E]
+
+Implement FORQ inclusion checks [N]
+(this concludes the basic decision problems for all basic value functions and deterministic limit average)
 
 
 Plan next steps:
-    Safety check for nondeterministic limit average
-    Constant check for nondeterministic limit average
+    Constant check for nondeterministic limit average -- boundedness stuff [N]
+    Safety check for nondeterministic limit average -- implement determinization of safety closure [E]
+    Deterministic decompositions [E]
+    Decide if we want to distinguish LimInfAvg and LimSupAvg -- relevant for membership
+    Membership and monitoring
     DSum?
-    Membership?
-    Monitoring?
-    Decompositions? Deterministic ones may be simple enough
+    
