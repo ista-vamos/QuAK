@@ -784,17 +784,7 @@ void Automaton::initialize_SCC (void) {
 		stackMem[state_id] = false;
 	}
 
-<<<<<<< HEAD
 	initialize_SCC_explore(initial, &time, spot, low, &stack, stackMem);
-
-=======
-	// this->initialize_SCC_explore(initial, &time, spot, low, &stack);
-	this->initialize_SCC_explore_v2(initial, &time, spot, low, &stack, stackMem);
-	for (unsigned int state_id = 0; state_id < size; ++state_id) {
-		std::cout << low[state_id] << " ";
-	}
-	std::cout << std::endl;
->>>>>>> 73f009a2c235686f9c35f6e8244b1eda67a8be94
 	for (unsigned int state_id = 0; state_id < size; ++state_id) {
 		if(low[state_id] == -1) {
 			this->trimmable++;
