@@ -195,9 +195,9 @@ Automaton* Automaton::complete(value_function_t value_function) const {
 		return new Automaton(*this);
 	}
 
-	State::RESET();
-	Symbol::RESET();
-	Weight<weight_t>::RESET();
+	// State::RESET();
+	// Symbol::RESET();
+	// Weight<weight_t>::RESET();
 
 	unsigned int n = this->states->size();
 	unsigned int m = this->alphabet->size();
@@ -1261,7 +1261,7 @@ Automaton* Automaton::product(value_function_t value_function, const Automaton* 
 		for (int j = 0; j < m; j++) {
 			std::string stateName = "(" + this->states->at(i)->getName() + "," + B->states->at(j)->getName() + ")";
 			State* pairState = new State(stateName, alphabet->size());
-			states->insert(i * n + j, pairState);
+			states->insert(i * m + j, pairState);
 		}
 	}
 
@@ -1297,11 +1297,11 @@ Automaton* Automaton::product(value_function_t value_function, const Automaton* 
 
 						int ii = x->getTo()->getId();
 						int jj = y->getTo()->getId();
-						Edge* pairEdge = new Edge(x->getSymbol(), pairWeight, states->at(i * n + j), states->at(ii * n + jj));
+						Edge* pairEdge = new Edge(x->getSymbol(), pairWeight, states->at(i * m + j), states->at(ii * m + jj));
 
-						states->at(i * n + j)->addEdge(pairEdge);
-						states->at(i * n + j)->addSuccessor(pairEdge);
-						states->at(ii * n + jj)->addPredecessor(pairEdge);
+						states->at(i * m + j)->addEdge(pairEdge);
+						states->at(i * m + j)->addSuccessor(pairEdge);
+						states->at(ii * m + jj)->addPredecessor(pairEdge);
 					}
 				}
 			}
