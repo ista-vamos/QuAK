@@ -41,25 +41,27 @@ private:
 	MapVec<State*>* states;
 	MapVec<Weight<weight_t>*>* weights;
 	SCC_Tree* SCCs_tree;
-	SetList<State*>* SCCs_list;
+	//SetList<State*>* SCCs_list; -- NOT NECESSARY
 	weight_t min_weight;
 	weight_t max_weight;
 	State* initial;
-	int trimmable = 0;
+	unsigned int nb_reachable_states;
+	unsigned int nb_SCCs;
+	//int trimmable = 0; -- DO NOT USE THIS
+	// -- trimmable cost a loop over all states
+	// -- nb_reachable_states cost a single assignment
 private:
 	Automaton(
 			std::string name,
 			MapVec<Symbol*>* alphabet,
 			MapVec<State*>* states,
 			MapVec<Weight<weight_t>*>* weights,
-			SCC_Tree* SCCs_tree,
-			SetList<State*>* SCCs_list,
 			weight_t min_weight,
 			weight_t max_weight,
 			State* initial
 	);
-	void initialize_SCC_flood (State* state, int* tag, int* low, SCC_Tree* ancestor) const;
-	void initialize_SCC_explore (State* state, int *time, int* spot, int* low, SetList<State*>* stack, bool* stackMem) const;
+	void initialize_SCC_flood (State* state, int* tag, int* low, SCC_Tree* ancestor);
+	void initialize_SCC_explore (State* state, int *time, int* spot, int* low, SetList<State*>* stack, bool* stackMem);
 	void initialize_SCC (void);
 
 	void top_reachably_scc (State* state, lol_t lol, bool* spot, weight_t* values) const;

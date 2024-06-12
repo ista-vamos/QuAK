@@ -13,6 +13,7 @@ private:
 	const int my_id;
 	std::string name;
 	int my_scc;
+	SetStd<Symbol*>* alphabet;
 	SetStd<Edge*>* edges;
 	MapVec<SetStd<Edge*>*>* successors;
 	MapVec<SetStd<Edge*>*>* predecessors;
@@ -25,6 +26,7 @@ public:
 	const int getId() const;
 	const int getTag() const;
 	void setTag(int tag);
+	SetStd<Symbol*>* getAlphabet () const;
 	SetStd<Edge*>* getEdges() const;
 	void addEdge (Edge *edge);
 	SetStd<Edge*>* getSuccessors(unsigned int symbol_id) const;

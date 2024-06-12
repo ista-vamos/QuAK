@@ -24,11 +24,11 @@ void MapStd<T_key, T_value>::insert (T_key key, T_value value) {
 
 template <typename T_key, typename T_value>
 void MapStd<T_key, T_value>::update (T_key key, T_value value) {
-	auto it = this->all.find(key);
-	if (it == this->all.end())
+	auto iter = this->all.find(key);
+	if (iter == this->all.end())
 		this->all.insert(std::pair<T_key, T_value>(key, value));
 	else
-		it->second = value;
+		iter->second = value;
 }
 
 
@@ -54,6 +54,7 @@ std::string MapStd<T_key, T_value>::toString (std::string (*f_key) (T_key key), 
 	}
 	return s;
 }
+
 
 
 

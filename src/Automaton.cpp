@@ -55,8 +55,8 @@ Automaton::~Automaton () {
 	delete weights;
 	delete_verbose("@Detail: %u SetList (SCC_tree) will be deleted (automaton %s)\n", this->SCCs_list->size(), this->name.c_str());
 	delete this->SCCs_tree;
-	delete_verbose("@Detail: 1 SetList (SCCs_list) will be deleted (automaton %s)\n", this->name.c_str());
-	delete this->SCCs_list;
+	//delete_verbose("@Detail: 1 SetList (SCCs_list) will be deleted (automaton %s)\n", this->name.c_str());
+	//delete this->SCCs_list;
 	delete_verbose("@Memory: Automaton deletion finished (%s)\n", this->name.c_str());
 }
 
@@ -66,8 +66,6 @@ Automaton::Automaton (
 		MapVec<Symbol*>* alphabet,
 		MapVec<State*>* states,
 		MapVec<Weight<weight_t>*>* weights,
-		SCC_Tree* SCCs_tree,
-		SetList<State*>* SCCs_list,
 		weight_t min_weight,
 		weight_t max_weight,
 		State* initial
@@ -76,12 +74,12 @@ Automaton::Automaton (
 		alphabet(alphabet),
 		states(states),
 		weights(weights),
-		SCCs_tree(SCCs_tree),
-		SCCs_list(SCCs_list),
 		min_weight(min_weight),
 		max_weight(max_weight),
 		initial(initial)
-{}
+{
+	initialize_SCC();
+}
 
 
 Automaton::Automaton (std::string filename) :
@@ -90,7 +88,7 @@ Automaton::Automaton (std::string filename) :
 		states(NULL),
 		weights(NULL),
 		SCCs_tree(NULL),
-		SCCs_list(NULL),
+		//SCCs_list(NULL),
 		initial(NULL)
 {
 	Parser parser(filename);
@@ -285,9 +283,7 @@ Automaton* Automaton::complete(value_function_t value_function) const {
 
 	delete[] outgoing;
 
-	Automaton* A = new Automaton(name, alphabet, states, weights, NULL, NULL, min_weight, max_weight, initial);
-	A->initialize_SCC();
-	return A;
+	return new Automaton(name, alphabet, states, weights, min_weight, max_weight, initial);
 }
 
 
@@ -309,12 +305,12 @@ Automaton* Automaton::safetyClosure(value_function_t value_function) const {
 	State* initial = states->at(this->initial->getId());
 
 
-	weight_t top_values[this->SCCs_list->size()];
+	weight_t top_values[this->nb_SCCs];
 	computeTop(value_function, top_values);
-	MapVec<Weight<weight_t>*>* weights = new MapVec<Weight<weight_t>*>(this->SCCs_list->size());
+	MapVec<Weight<weight_t>*>* weights = new MapVec<Weight<weight_t>*>(this->nb_SCCs);
 	weight_t min_weight = this->max_weight;
 	weight_t max_weight = this->min_weight;
-	for (unsigned int weight_id = 0; weight_id < this->SCCs_list->size(); ++weight_id) {
+	for (unsigned int weight_id = 0; weight_id < this->nb_SCCs; ++weight_id) {
 		weights->insert(weight_id, new Weight<weight_t>(top_values[weight_id]));
 		min_weight = std::min(min_weight, top_values[weight_id]);
 		max_weight = std::max(max_weight, top_values[weight_id]);
@@ -334,9 +330,7 @@ Automaton* Automaton::safetyClosure(value_function_t value_function) const {
 		}
 	}
 
-	Automaton* A = new Automaton(name, alphabet, states, weights, NULL, NULL, min_weight, max_weight, initial);
-	A->initialize_SCC();
-	return A;
+	return new Automaton(name, alphabet, states, weights, min_weight, max_weight, initial);
 }
 
 
@@ -389,7 +383,7 @@ bool Automaton::isComplete () const {
 
 
 bool Automaton::isEmpty (value_function_t type, Weight<weight_t> v) const {
-	weight_t top_values[this->SCCs_list->size()];
+	weight_t top_values[this->nb_SCCs];
 	if (this->computeTop(type, top_values) >= v.getValue()) {
 		return false;
 	}
@@ -497,9 +491,7 @@ Automaton* Automaton::monotonize (value_function_t type) const {
 		counter++;
 	}
 
-	Automaton* A = new Automaton(name, alphabet, states, weights, NULL, NULL, min_weight, max_weight, initial);
-	A->initialize_SCC();
-	return A;
+	return new Automaton(name, alphabet, states, weights, min_weight, max_weight, initial);
 }
 
 
@@ -522,7 +514,7 @@ Automaton* Automaton::livenessComponent (value_function_t type) const {
 	}
 	State* initial = states->at(this->initial->getId());
 
-	weight_t top_values[this->SCCs_list->size()];
+	weight_t top_values[this->nb_SCCs];
 	computeTop(type, top_values);
 	MapVec<Weight<weight_t>*>* weights = new MapVec<Weight<weight_t>*>(this->weights->size());
 	weight_t min_weight = this->max_weight;
@@ -551,9 +543,7 @@ Automaton* Automaton::livenessComponent (value_function_t type) const {
 		}
 	}
 
-	Automaton* A = new Automaton(name, alphabet, states, weights, NULL, NULL, min_weight, max_weight, initial);
-	A->initialize_SCC();
-	return A;
+	return new Automaton(name, alphabet, states, weights, min_weight, max_weight, initial);
 }
 
 
@@ -587,10 +577,7 @@ Automaton* Automaton::constantAutomaton (value_function_t type, Weight<weight_t>
 	MapVec<Weight<weight_t>*>* weights = new MapVec<Weight<weight_t>*>(1);
 	weights->insert(0, new Weight<weight_t>(v.getValue()));
 
-	Automaton* C = new Automaton(name, alphabet, states, weights, NULL, NULL, v.getValue(), v.getValue(), initial);
-	C->initialize_SCC();
-
-	return C;
+	return new Automaton(name, alphabet, states, weights, v.getValue(), v.getValue(), initial);
 }
 
 
@@ -612,9 +599,12 @@ bool Automaton::isUniversal_det (value_function_t type, Weight<weight_t> v) cons
 	Automaton* C = this->constantAutomaton(type, minusOne);
 
 	Automaton* CC = this->product(type, C, Times);
-	// Fixme: we could simply multiply weight by -1 without a product
+	// TODO:
+	// (1) multiply weight by -1 without a product
+	// (2) compute top
+	// (3) multiply weight by -1 to leave the automaton unchanged
 	
-	weight_t top_values[CC->SCCs_list->size()];
+	weight_t top_values[CC->nb_SCCs];
 	if((-1) * CC->computeTop(type, top_values) >= v.getValue()) {
 		return true;
 	}
@@ -629,7 +619,7 @@ bool Automaton::isIncludedIn_det (value_function_t type, const Automaton* rhs) c
 	Automaton* C = this->product(type, rhs, Minus)->trim();
 	std::cout << std::endl << C->toString() << std::endl;
 
-	weight_t top_values[C->SCCs_list->size()];
+	weight_t top_values[C->nb_SCCs];
 	weight_t t = C->computeTop(type, top_values);
 	if(t < 0) {
 		return false;
@@ -701,7 +691,7 @@ bool Automaton::isSafe (value_function_t type) const {
 bool Automaton::isConstant (value_function_t type) const {
 	if (type == LimAvg) { 
 		if (this->isDeterministic()) {
-			weight_t top_values[this->SCCs_list->size()];
+			weight_t top_values[this->nb_SCCs];
 			return this->isUniversal_det(type, this->computeTop(type, top_values));
 		}
 		else {
@@ -711,7 +701,7 @@ bool Automaton::isConstant (value_function_t type) const {
 		}
 	}
 	else {
-		weight_t top_values[this->SCCs_list->size()];
+		weight_t top_values[this->nb_SCCs];
 		Automaton* Top = this->constantAutomaton(type, this->computeTop(type, top_values));
 		return this->isEquivalent(type, Top);
 	}
@@ -723,7 +713,7 @@ bool Automaton::isLive (value_function_t type) const {
 }
 
 
-void Automaton::initialize_SCC_flood (State* state, int* tag, int* low, SCC_Tree* ancestor) const {
+void Automaton::initialize_SCC_flood (State* state, int* tag, int* low, SCC_Tree* ancestor) {
 	for (Edge* edge : *(state->getEdges())) {
 		int tagg = edge->getTo()->getTag();
 		if (tagg == -1){
@@ -742,7 +732,7 @@ void Automaton::initialize_SCC_flood (State* state, int* tag, int* low, SCC_Tree
 	}
 }
 
-void Automaton::initialize_SCC_explore (State* state, int* time, int* spot, int* low, SetList<State*>* stack, bool* stackMem) const {
+void Automaton::initialize_SCC_explore (State* state, int* time, int* spot, int* low, SetList<State*>* stack, bool* stackMem) {
 	spot[state->getId()] = *time;
 	low[state->getId()] = *time;
 	(*time)++;
@@ -760,7 +750,8 @@ void Automaton::initialize_SCC_explore (State* state, int* time, int* spot, int*
 	}
 
 	if (spot[state->getId()] == low[state->getId()]) {
-		this->SCCs_list->push(state);
+		//this->SCCs_list->push(state);
+		(this->nb_SCCs)++;
 		while (stack->head() != state) {
 			stackMem[stack->head()->getId()] = false;
 			stack->pop();
@@ -777,7 +768,7 @@ void Automaton::initialize_SCC (void) {
 	int time = 0;
 	SetList<State*> stack;
 
-	this->SCCs_list = new SetList<State*>;
+	//this->SCCs_list = new SetList<State*>;
 	for (unsigned int state_id = 0; state_id < size; ++state_id) {
 		spot[state_id] = -1;
 		low[state_id] = -1;
@@ -785,11 +776,7 @@ void Automaton::initialize_SCC (void) {
 	}
 
 	initialize_SCC_explore(initial, &time, spot, low, &stack, stackMem);
-	for (unsigned int state_id = 0; state_id < size; ++state_id) {
-		if(low[state_id] == -1) {
-			this->trimmable++;
-		}
-	}
+	this->nb_reachable_states = time;
 
 	int tag = 0;
 	this->initial->setTag(0);
@@ -976,7 +963,7 @@ weight_t Automaton::top_LimInf (weight_t* top_values) const {
 	weight_t values[this->states->size()];
 	top_safety_scc(values, true);
 
-	for (unsigned int scc_id = 0; scc_id < this->SCCs_list->size(); ++scc_id) {
+	for (unsigned int scc_id = 0; scc_id < this->nb_SCCs; ++scc_id) {
 		top_values[scc_id] = this->min_weight - 1;
 	}
 
@@ -1009,6 +996,9 @@ void Automaton::top_avg_tree (SCC_Tree* tree, weight_t* top_values) const {
 }
 
 
+
+
+
 weight_t Automaton::top_LimAvg (weight_t* top_values) const {
 	unsigned int size = this->states->size();
 	weight_t distance[size + 1][size];
@@ -1021,13 +1011,20 @@ weight_t Automaton::top_LimAvg (weight_t* top_values) const {
 		}
 	}
 
-	//void (*f)(int) = [] (SCC_Tree* tree, weight_t*lol) -> void {printf("toto\n");};
-	//f(this->SCCs_tree, distance[0]);
 
-	// O(n)
-	for (auto iter = this->SCCs_list->cbegin(); iter != this->SCCs_list->cend(); ++iter) {
-		distance[0][(*iter)->getId()] = 0;
-	}
+	//O(n)
+	auto initialize_distances = [] (SCC_Tree* tree, weight_t* t, auto &rec) -> void {
+		t[tree->origin->getId()] = 0;
+		for (auto iter = tree->nexts->cbegin(); iter != tree->nexts->cend(); ++iter) {
+			rec(*iter, t, rec);
+		}
+	};
+	initialize_distances(this->SCCs_tree, distance[0], initialize_distances);
+
+	// -- OLD INITIALIZATION CODE
+	//for (auto iter = this->SCCs_list->cbegin(); iter != this->SCCs_list->cend(); ++iter) {
+	//	distance[0][(*iter)->getId()] = 0;
+	//}
 
 	// O(n.m)
 	for (unsigned int len = 1; len <= size; ++len) {
@@ -1051,7 +1048,7 @@ weight_t Automaton::top_LimAvg (weight_t* top_values) const {
 
 	//O(n.m)
 	//weight_t top_values[this->SCCs_list->size()];
-	for (unsigned int scc_id = 0; scc_id < this->SCCs_list->size(); ++scc_id) {
+	for (unsigned int scc_id = 0; scc_id < this->nb_SCCs; ++scc_id) {
 		top_values[scc_id] = this->min_weight - 1;
 	}
 
@@ -1148,16 +1145,14 @@ Automaton* Automaton::booleanize(Weight<weight_t> threshold) const {
 		weights->insert(i - min_weight, w);
 	}
 
-	Automaton* C = new Automaton(name, alphabet, states, weights, NULL, NULL, min_weight, max_weight, initial);
-	C->initialize_SCC();
-	
-	return C;
+	return new Automaton(name, alphabet, states, weights, min_weight, max_weight, initial);
 }
 
 
 Automaton* Automaton::trim() const {
-	if (this->trimmable == 0) {
+	if (this->nb_reachable_states == this->states->size()) {
 		return new Automaton(*this);
+		// fixme this is terrible, we should really try to keep lost costs
 	}
 
 	State::RESET();
@@ -1171,7 +1166,7 @@ Automaton* Automaton::trim() const {
 		alphabet->insert(symbol_id, new Symbol(this->alphabet->at(symbol_id)));
 	}
 	
-	MapVec<State*>* states = new MapVec<State*>(this->states->size() - this->trimmable);
+	MapVec<State*>* states = new MapVec<State*>(this->nb_reachable_states);
 	long unsigned int counter = 0;
 	std::unordered_map<unsigned int, unsigned int> stateIdTable;
 	for (unsigned int state_id = 0; state_id < this->states->size(); ++state_id) {
@@ -1215,10 +1210,7 @@ Automaton* Automaton::trim() const {
 		counter++;
 	}
 
-	Automaton* C = new Automaton(name, alphabet, states, weights, NULL, NULL, min_weight, max_weight, initial);
-	C->initialize_SCC();
-	
-	return C;
+	return new Automaton(name, alphabet, states, weights, min_weight, max_weight, initial);
 }
 
 
@@ -1256,7 +1248,11 @@ Automaton* Automaton::product(value_function_t value_function, const Automaton* 
 	
 	int n = this->states->size();
 	int m = B->states->size();
+	// TODO: avoid constructing useless states
+	//		n = this->nb_reachable_states
+	//		m = B->nb_reachable_states
 	MapVec<State*>* states = new MapVec<State*>(n * m);
+
 	for (int i = 0; i < n; i++) {
 		for (int j = 0; j < m; j++) {
 			std::string stateName = "(" + this->states->at(i)->getName() + "," + B->states->at(j)->getName() + ")";
@@ -1326,15 +1322,12 @@ Automaton* Automaton::product(value_function_t value_function, const Automaton* 
 		counter++;
 	}
 
-	Automaton* C = new Automaton(name, alphabet, states, weights, NULL, NULL, min_weight, max_weight, initial);
-	C->initialize_SCC();
-	
-	return C;
+	return new Automaton(name, alphabet, states, weights, min_weight, max_weight, initial);
 }
 
 
 std::string Automaton::top_toString() const {
-	weight_t top_values[this->SCCs_list->size()];
+	weight_t top_values[this->nb_SCCs];
 	weight_t x;
 	double y;
 	std::string s = "\ttop:";
@@ -1410,7 +1403,7 @@ std::string Automaton::toString () const {
 	// 	}
 	// }
 	s.append("\n");
-	//s.append(top_toString());
+	s.append(top_toString());
 	return s;
 }
 

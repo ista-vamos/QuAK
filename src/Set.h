@@ -3,19 +3,22 @@
 #define SET_H_
 
 #include <iostream>
+#include <vector>
 #include <string>
 #include <set>
 #include <list>
 
 
 template <typename T_element> class SetStd {
-private:
+protected:
 	std::set<T_element> all;
 public:
+	//static SetStd<T_element> EmptySet = SetStd();
 	SetStd();
 	~SetStd();
 	void insert(T_element element);
 	void erase(T_element element);
+	bool contains (T_element element) { return all.find(element) != all.end();};
 	unsigned int size() const;
 	std::string toString (std::string (*f) (T_element element)) const;
 	auto begin() {return all.begin();};
@@ -49,15 +52,21 @@ public:
 #include "Weight.h"
 class SCC_Tree;
 class Symbol;
+class Word;
+class ContextOf;
+class StateRelation;
+class TargetOf;
 class State;
 class Edge;
+
 template class SetStd<std::pair<std::pair<std::string, weight_t>,std::pair<std::string, std::string>>>;
 template class SetStd<std::string>;
 template class SetStd<weight_t>;
 template class SetStd<Symbol*>;
 template class SetStd<State*>;
 template class SetStd<Edge*>;
-
+template class SetStd<std::pair<TargetOf*,Word*>>;
+template class SetStd<std::pair<ContextOf*,Word*>>;
 
 template class SetList<SCC_Tree*>;
 template class SetList<State*>;
