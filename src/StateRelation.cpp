@@ -1,6 +1,12 @@
 
 #include "StateRelation.h"
 
+StateRelation::~StateRelation() {
+	for (std::pair<State*, TargetOf*> pair : *this) {
+		delete pair.second;
+	}
+}
+
 
 StateRelation::StateRelation () : MapStd<State*,TargetOf*>() {}
 

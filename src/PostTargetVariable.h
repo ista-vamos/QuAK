@@ -10,10 +10,11 @@
 
 class PostTargetVariable : protected MapStd<State*,SetStd<std::pair<TargetOf*,Word*>>*> {
 public:
+	~PostTargetVariable();
 	PostTargetVariable();
-	void add (State* q, TargetOf* new_target, Word* w);
-	bool addIfMin (State* q, TargetOf* new_target, Word* w);
-	bool addIfMax (State* q, TargetOf* new_target, Word* w);
+	void add (State* stateA, TargetOf* setB, Word* w);
+	bool addIfMin (State* stateA, TargetOf* setB, Word* w);
+	bool addIfMax (State* stateA, TargetOf* setB, Word* w);
 	unsigned int size () { return MapStd<State*,SetStd<std::pair<TargetOf*,Word*>>*>::size(); };
 	auto begin () { return MapStd<State*,SetStd<std::pair<TargetOf*,Word*>>*>::begin(); };
 	auto end () { return MapStd<State*,SetStd<std::pair<TargetOf*,Word*>>*>::end(); };

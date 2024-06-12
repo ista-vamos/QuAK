@@ -2,7 +2,7 @@
 #include "Weight.h"
 #include "utility.h"
 
-int ID_of_Weights = 0;
+unsigned int ID_of_Weights = 0;
 template <typename T_value>
 void Weight<T_value>::Weight::RESET () { ID_of_Weights = 0; }
 
@@ -25,7 +25,7 @@ T_value Weight<T_value>::getValue() const { return this->value; }
 
 
 template <typename T_value>
-const int Weight<T_value>::getId() const { return this->my_id; }
+const unsigned int Weight<T_value>::getId() const { return this->my_id; }
 
 
 template <typename T_value>

@@ -23,8 +23,6 @@ public:
 	std::string toString (std::string (*f) (T_element element)) const;
 	auto begin() {return all.begin();};
 	auto end() {return all.end();};
-	auto cbegin() {return all.cbegin();};
-	auto cend() {return all.cend();};
 };
 
 
@@ -43,8 +41,6 @@ public:
 	std::string toString (std::string (*f) (T_element element)) const;
 	auto begin() {return all.begin();};
 	auto end() {return all.end();};
-	auto cbegin() {return all.cbegin();};
-	auto cend() {return all.cend();};
 };
 
 

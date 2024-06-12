@@ -1,6 +1,13 @@
 
 #include "ContextOf.h"
 
+ContextOf::~ContextOf() {
+	for (unsigned int weight_id = 0; weight_id < this->size(); ++weight_id) {
+		delete this->at(weight_id);
+	}
+}
+
+
 ContextOf::ContextOf(unsigned int capacity) : MapVec<StateRelation*>(capacity) {
 	for (unsigned int weight_id = 0; weight_id < this->size(); ++weight_id) {
 		this->insert(weight_id, new StateRelation());
@@ -8,11 +15,15 @@ ContextOf::ContextOf(unsigned int capacity) : MapVec<StateRelation*>(capacity) {
 }
 
 
-void ContextOf::add (State* fromB, State* toB, Weight<weight_t>* weight) {
+void ContextOf::add (State* fromB, State* toB, unsigned int weight_id) {
 	// fixme: redundancy
-	for (unsigned int weight_id = weight->getId(); weight_id >= 0; --weight_id) {
-		this->at(weight_id)->add(fromB, toB);
+	for (unsigned int id = weight_id; weight_id >= 0; --id) {
+		this->at(id)->add(fromB, toB);
 	}
+}
+
+StateRelation* ContextOf::at (unsigned int weight_id) const {
+	return this->at(weight_id);
 }
 
 

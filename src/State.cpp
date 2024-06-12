@@ -95,9 +95,11 @@ SetStd<Symbol*>* State::getAlphabet () const {
 	return this->alphabet;
 }
 
+
 SetStd<Edge*>* State::getEdges () const {
 	return this->edges;
 }
+
 
 SetStd<Edge*>* State::getSuccessors(unsigned int symbol_id) const {
 	return this->successors->at(symbol_id);

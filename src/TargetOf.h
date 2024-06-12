@@ -7,6 +7,7 @@
 
 class TargetOf : protected SetStd<State*> {
 public:
+	~TargetOf();
 	TargetOf();
 	void add (State* state);
 	bool smaller_than (TargetOf* other);

@@ -9,18 +9,15 @@ typedef int weight_t;
 
 template <typename T_value> class Weight {
 private:
-	const int my_id;
+	const unsigned int my_id;
 	T_value value;
 public:
 	~Weight();
 	Weight(T_value value);
 	Weight(Weight<weight_t>* weight);
 	static void RESET();
-	//static T_value max(T_value a, T_value b);
-	//static T_value min(T_value a, T_value b);
-	//static std::string toString(T_value value);
 	T_value getValue() const;
-	const int getId() const;
+	const unsigned int getId() const;
 	static std::string toString(Weight* weight);
 	std::string toString() const;
 };

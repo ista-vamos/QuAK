@@ -1,6 +1,14 @@
 
 #include "PostTargetVariable.h"
 
+PostTargetVariable::~PostTargetVariable () {
+	for (std::pair<State*,SetStd<std::pair<TargetOf*,Word*>>*> pairmap : *this) {
+		for (std::pair<TargetOf*,Word*> pairset : *(pairmap.second)) {
+			delete pairset.first;
+			delete pairset.second;
+		}
+	}
+}
 
 
 PostTargetVariable::PostTargetVariable () :
@@ -9,45 +17,53 @@ PostTargetVariable::PostTargetVariable () :
 
 
 
-void PostTargetVariable::add (State* stateB, TargetOf* new_target, Word* w) {
-	if (this->contains(stateB) == false)
-		this->insert(stateB, new SetStd<std::pair<TargetOf*, Word*>>());
-	this->at(stateB)->insert(std::pair<TargetOf*, Word*>(new_target, w));
+void PostTargetVariable::add (State* stateA, TargetOf* setB, Word* w) {
+	if (this->contains(stateA) == false)
+		this->insert(stateA, new SetStd<std::pair<TargetOf*, Word*>>());
+	this->at(stateA)->insert(std::pair<TargetOf*, Word*>(setB, w));
 }
 
 
-bool PostTargetVariable::addIfMin (State* stateB, TargetOf* new_target, Word* w) {
-	if (this->contains(stateB) == false) {
-		this->at(stateB)->insert(std::pair<TargetOf*, Word*>(new_target, w));
+bool PostTargetVariable::addIfMin (State* stateA, TargetOf* setB, Word* w) {
+	if (this->contains(stateA) == false) {
+		this->at(stateA)->insert(std::pair<TargetOf*, Word*>(setB, w));
 		return true;
 	}
 
-	for (std::pair<TargetOf*, Word*> pair : *(this->at(stateB))) {
+	for (std::pair<TargetOf*, Word*> pair : *(this->at(stateA))) {
 		TargetOf* target = pair.first;
-		if (target->smaller_than(new_target) == true) return false;
-		if (new_target->smaller_than(target) == true) this->at(stateB)->erase(pair);
+		if (target->smaller_than(setB) == true) return false;
+		if (setB->smaller_than(target) == true) {
+			this->at(stateA)->erase(pair);
+			delete pair.first;
+			delete pair.second;
+		}
 	}
 
-	this->add(stateB, new_target, w);
+	this->add(stateA, setB, w);
 	return true;
 }
 
 
 
 
-bool PostTargetVariable::addIfMax (State* stateB, TargetOf* new_target, Word* w) {
-	if (this->contains(stateB) == false) {
-		this->at(stateB)->insert(std::pair<TargetOf*, Word*>(new_target, w));
+bool PostTargetVariable::addIfMax (State* stateA, TargetOf* setB, Word* w) {
+	if (this->contains(stateA) == false) {
+		this->at(stateA)->insert(std::pair<TargetOf*, Word*>(setB, w));
 		return true;
 	}
 
-	for (std::pair<TargetOf*, Word*> pair : *(this->at(stateB))) {
+	for (std::pair<TargetOf*, Word*> pair : *(this->at(stateA))) {
 		TargetOf* target = pair.first;
-		if (new_target->smaller_than(target) == true) return false;
-		if (target->smaller_than(new_target) == true) this->at(stateB)->erase(pair);
+		if (setB->smaller_than(target) == true) return false;
+		if (target->smaller_than(setB) == true) {
+			this->at(stateA)->erase(pair);
+			delete pair.first;
+			delete pair.second;
+		}
 	}
 
-	this->add(stateB, new_target, w);
+	this->add(stateA, setB, w);
 	return true;
 }
 

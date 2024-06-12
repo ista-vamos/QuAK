@@ -4,15 +4,16 @@
 
 #include "StateRelation.h"
 #include "Map.h"
-#include "Weight.h"
 #include "State.h"
 
 
 class ContextOf : protected MapVec<StateRelation*> {
 public:
+	~ContextOf();
 	ContextOf(unsigned int capacity);
-	void add (State* fromB, State* toB, Weight<weight_t>* weight);
+	void add (State* fromB, State* toB, unsigned int weight_id);
 	bool smaller_than (ContextOf* other);
+	StateRelation* at (unsigned int weight_id) const;
 };
 
 #endif /* CONTEXTOF_H_ */

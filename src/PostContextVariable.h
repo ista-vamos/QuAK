@@ -17,10 +17,12 @@
 
 
 class PostContextVariable : protected MapStd<State*, SetStd<std::pair<ContextOf*,Word*>>*> {
+public:
+	~PostContextVariable ();
 	PostContextVariable();
-	void add (State* q, ContextOf* new_context, Word* w);
-	bool addIfMin (State* q, ContextOf* new_context, Word* w);
-	bool addIfMax (State* q, ContextOf* new_context, Word* w);
+	void add (State* stateA, ContextOf* setB, Word* w);
+	bool addIfMin (State* stateA, ContextOf* setB, Word* w);
+	bool addIfMax (State* stateA, ContextOf* setB, Word* w);
 	unsigned int size () { return MapStd<State*,SetStd<std::pair<ContextOf*,Word*>>*>::size(); };
 	auto begin () { return MapStd<State*,SetStd<std::pair<ContextOf*,Word*>>*>::begin(); };
 	auto end () { return MapStd<State*,SetStd<std::pair<ContextOf*,Word*>>*>::end(); };
