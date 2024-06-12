@@ -14,5 +14,9 @@ Plan next steps:
     Deterministic decompositions [E]
     Decide if we want to distinguish LimInfAvg and LimSupAvg -- relevant for membership
     Membership and monitoring
-    DSum?
+    DSum?'
+    change automata product to build only relevant states
+    check all automata methods for optimization (e.g. building a constant automata is not always necessary)
+    remove getEdges from class State
+    
     

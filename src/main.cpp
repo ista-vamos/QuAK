@@ -46,6 +46,8 @@ int main(int argc, char **argv) {
 	printf("--------------------------------------------\n");
 
 	// TODO: these are sensitive to the sink state's weight. how should we handle these? maybe it's not necessary after all
+	// Fixme: I think complete should be dropped
+	// Fixme: and, the product should be modified to construct only what is useful
 	std::cout << "Empty(A,2): " << A->isEmpty(Inf, 2) << std::endl;
 	// std::cout << "Empty(A,2): " << A->complete(Inf)->isEmpty(Inf, 2) << std::endl; // this crashes because the sink weight causes problems to top value computation
 	std::cout << "Universal(A,0): " << A->isUniversal_det(Sup,0) << std::endl;
