@@ -833,6 +833,9 @@ Automaton* Automaton::monotonize (value_function_t type) const {
 
 // TODO: CHECK
 // "this" needs to be monotone and deterministic
+// fixme: I don't understand, the liveness component is the copy of the original automaton where
+// --> all transitions with the local-top value takes the original min_weight_value
+// --> all transitions with NOT the local-top value takes the original max_weight_value
 Automaton* Automaton::livenessComponent (value_function_t type) const {
 	State::RESET();
 	Symbol::RESET();
