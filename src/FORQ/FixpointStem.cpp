@@ -1,7 +1,6 @@
 
 #include "FixpointStem.h"
 
-#include "Word.h"
 
 FixpointStem::~FixpointStem () {
 	delete this->buffer;

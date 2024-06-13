@@ -2,8 +2,8 @@
 #ifndef TARGETOF_H_
 #define TARGETOF_H_
 
-#include "State.h"
-#include "Set.h"
+#include "../State.h"
+#include "../Set.h"
 
 class TargetOf : protected SetStd<State*> {
 public:

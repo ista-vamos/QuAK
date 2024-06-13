@@ -9,11 +9,11 @@
 #define POSTCONTEXTVARIABLE_H_
 
 
-#include "Word.h"
-#include "State.h"
-#include "Set.h"
-#include "Map.h"
-#include "ContextOf.h"
+#include "../FORQ/ContextOf.h"
+#include "../Word.h"
+#include "../State.h"
+#include "../Set.h"
+#include "../Map.h"
 
 
 class PostContextVariable : protected MapStd<State*, SetStd<std::pair<ContextOf*,Word*>>*> {

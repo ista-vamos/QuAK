@@ -5,7 +5,9 @@ GPP = g++
 CPPFLAG = -g -Wall
 
 SRCDIR = src
-SRC = $(wildcard $(SRCDIR)/*.c) $(wildcard $(SRCDIR)/*.cpp)
+SRC0 = $(wildcard $(SRCDIR)/*.c) $(wildcard $(SRCDIR)/*.cpp)
+SRC1 = $(wildcard $(SRCDIR)/*/*.c) $(wildcard $(SRCDIR)/*/*.cpp)
+SRC = $(SRC0) $(SRC1)
 
 OBJDIR = obj
 OBJ = $(SRC:$(SRCDIR)/%=$(OBJDIR)/%.o)
@@ -29,7 +31,7 @@ $(BINDIR)/$(BIN): $(OBJ)
 
 
 $(OBJDIR)/%.c.o: $(SRCDIR)/%.c
-	$(GCC) $(CFLAG) -c ./$< -o $@
+	$(GCC) $(CFLAG) -c $< -o $@
 
 
 $(OBJDIR)/%.cpp.o: $(SRCDIR)/%.cpp
@@ -40,6 +42,6 @@ $(OBJDIR)/%.cpp.o: $(SRCDIR)/%.cpp
 
 
 clean:
-	rm -f $(wildcard $(OBJDIR)/*)
+	rm -f $(wildcard $(OBJDIR)/*.o) $(wildcard $(OBJDIR)/*/*.o)
 
 

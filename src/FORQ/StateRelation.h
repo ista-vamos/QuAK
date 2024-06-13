@@ -3,7 +3,7 @@
 #define STATERELATION_H_
 
 #include "TargetOf.h"
-#include "Map.h"
+#include "../Map.h"
 
 class StateRelation : protected MapStd<State*,TargetOf*> {
 public:

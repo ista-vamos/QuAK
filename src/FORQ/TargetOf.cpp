@@ -1,6 +1,5 @@
 
 #include "TargetOf.h"
-
 #include <algorithm>
 
 
