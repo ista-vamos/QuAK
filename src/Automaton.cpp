@@ -63,6 +63,15 @@ Automaton::~Automaton () {
 }
 
 
+
+
+
+
+
+
+// -------------------------------- Constructors -------------------------------- //
+
+
 Automaton::Automaton (
 		std::string name,
 		MapVec<Symbol*>* alphabet,
@@ -148,6 +157,8 @@ Automaton::Automaton (std::string filename) :
 }
 
 // TODO: CHECK
+// fixme: check if it is necessary, remove otherwise
+// so far used in trim and complete
 Automaton::Automaton (const Automaton& to_copy) {
 	State::RESET();
 	Symbol::RESET();
@@ -189,10 +200,388 @@ Automaton::Automaton (const Automaton& to_copy) {
 	this->initialize_SCC();
 }
 
-// TODO: CHECK
+
+// TODO: fixme: update to construct only relevant states
+Automaton* Automaton::product(value_function_t value_function, const Automaton* B, product_weight_t product_weight) const {
+	State::RESET();
+	Symbol::RESET();
+	Weight<weight_t>::RESET();
+
+	std::string type;
+	switch (product_weight) {
+		case Max:
+			type = "Max";
+			break;
+		case Min:
+			type = "Min";
+			break;
+		case Plus:
+			type = "Plus";
+			break;
+		case Minus:
+			type = "Minus";
+			break;
+		case Times:
+			type = "Times";
+			break;
+		default:
+			fail("automata product weight");
+	}
+	std::string name = type + "(" + this->getName() + "," + B->getName() + ")";
+
+	MapVec<Symbol*>* alphabet = new MapVec<Symbol*>(this->alphabet->size());
+	for (unsigned int symbol_id = 0; symbol_id < this->alphabet->size(); ++symbol_id) {
+		alphabet->insert(symbol_id, new Symbol(this->alphabet->at(symbol_id)));
+	}
+
+	int n = this->states->size();
+	int m = B->states->size();
+	// TODO: avoid constructing useless states
+	//		n = this->nb_reachable_states
+	//		m = B->nb_reachable_states
+	MapVec<State*>* states = new MapVec<State*>(n * m);
+
+	for (int i = 0; i < n; i++) {
+		for (int j = 0; j < m; j++) {
+			std::string stateName = "(" + this->states->at(i)->getName() + "," + B->states->at(j)->getName() + ")";
+			State* pairState = new State(stateName, alphabet->size());
+			states->insert(i * m + j, pairState);
+		}
+	}
+
+	State* initial = states->at(this->initial->getId() * n + B->initial->getId());
+
+	std::map<weight_t,int> counts;
+	for (int i = 0; i < n; i++) {
+		for (int j = 0; j < m; j++) {
+			for (Edge* x : *(this->states->at(i)->getEdges())) {
+				for (Edge* y : *(B->states->at(j)->getEdges())) {
+					if (x->getSymbol()->getName() == y->getSymbol()->getName()) {
+						Weight<weight_t>* pairWeight;
+							switch (product_weight) {
+								case Max:
+									pairWeight = new Weight<weight_t>(std::max(x->getWeight()->getValue(), y->getWeight()->getValue()));
+									break;
+								case Min:
+									pairWeight = new Weight<weight_t>(std::min(x->getWeight()->getValue(), y->getWeight()->getValue()));
+									break;
+								case Plus:
+									pairWeight = new Weight<weight_t>(x->getWeight()->getValue() + y->getWeight()->getValue());
+									break;
+								case Minus:
+									pairWeight = new Weight<weight_t>(x->getWeight()->getValue() - y->getWeight()->getValue());
+									break;
+								case Times:
+									pairWeight = new Weight<weight_t>(x->getWeight()->getValue() * y->getWeight()->getValue());
+									break;
+								default:
+									fail("automata product weight");
+							}
+							counts[pairWeight->getValue()]++;
+
+						int ii = x->getTo()->getId();
+						int jj = y->getTo()->getId();
+						Edge* pairEdge = new Edge(x->getSymbol(), pairWeight, states->at(i * m + j), states->at(ii * m + jj));
+
+						states->at(i * m + j)->addEdge(pairEdge);
+						states->at(i * m + j)->addSuccessor(pairEdge);
+						states->at(ii * m + jj)->addPredecessor(pairEdge);
+					}
+				}
+			}
+		}
+	}
+
+	MapVec<Weight<weight_t>*>* weights = new MapVec<Weight<weight_t>*>(counts.size());
+	weight_t min_weight;
+	weight_t max_weight;
+	long unsigned int counter = 0;
+	for (auto weightCount : counts) {
+		Weight<weight_t>* pairWeight = new Weight<weight_t>(weightCount.first);
+		weights->insert(counter, pairWeight);
+
+		if (counter == 0) {
+			min_weight = weightCount.first;
+		}
+		if (counter == counts.size() - 1) {
+			max_weight = weightCount.first;
+		}
+
+		counter++;
+	}
+
+	return new Automaton(name, alphabet, states, weights, min_weight, max_weight, initial);
+}
+
+
+
+
+
+
+
+
+
+
+// -------------------------------- SCCs -------------------------------- //
+
+
+void Automaton::initialize_SCC_flood (State* state, int* tag, int* low, SCC_Tree* ancestor) {
+	for (Symbol* symbol : *(state->getAlphabet())) {
+		for (Edge* edge : *(state->getSuccessors(symbol->getId()))) {
+			if (edge->getTo()->getTag() == -1){
+				if (low[state->getId()] == low[edge->getTo()->getId()]) {
+					edge->getTo()->setTag(state->getTag());
+					initialize_SCC_flood(edge->getTo(), tag, low, ancestor);
+				}
+				else {
+					(*tag)++;
+					SCC_Tree* data = new SCC_Tree(edge->getTo());
+					edge->getTo()->setTag(*tag);
+					initialize_SCC_flood(edge->getTo(), tag, low, data);
+					ancestor->addNext(data);
+				}
+			}
+		}
+	}
+}
+
+
+void Automaton::initialize_SCC_explore (State* state, int* time, int* spot, int* low, SetList<State*>* stack, bool* stackMem) {
+	spot[state->getId()] = *time;
+	low[state->getId()] = *time;
+	(*time)++;
+	stack->push(state);
+	stackMem[state->getId()] = true;
+
+	for (Symbol* symbol : *(state->getAlphabet())) {
+		for (Edge* edge : *(state->getSuccessors(symbol->getId()))) {
+			if (spot[edge->getTo()->getId()] == -1) {
+				initialize_SCC_explore(edge->getTo(), time, spot, low, stack, stackMem);
+				low[state->getId()] = std::min(low[state->getId()], low[edge->getTo()->getId()]);
+			}
+			else if (stackMem[edge->getTo()->getId()] == true) {
+				low[state->getId()] = std::min(low[state->getId()], spot[edge->getTo()-> getId()]);
+			}
+		}
+	}
+
+	if (spot[state->getId()] == low[state->getId()]) {
+		//this->SCCs_list->push(state);
+		(this->nb_SCCs)++;
+		while (stack->head() != state) {
+			stackMem[stack->head()->getId()] = false;
+			stack->pop();
+		}
+	}
+}
+
+
+void Automaton::initialize_SCC (void) {
+	unsigned int size = this->states->size();
+	int* spot = new int[size];
+	int* low = new int[size];
+	bool* stackMem = new bool[size];
+	int time = 0;
+	SetList<State*> stack;
+
+	//this->SCCs_list = new SetList<State*>;
+	for (unsigned int state_id = 0; state_id < size; ++state_id) {
+		spot[state_id] = -1;
+		low[state_id] = -1;
+		stackMem[state_id] = false;
+	}
+
+	initialize_SCC_explore(initial, &time, spot, low, &stack, stackMem);
+	this->nb_reachable_states = time;
+
+	int tag = 0;
+	this->initial->setTag(0);
+	this->SCCs_tree = new SCC_Tree(this->initial);
+	this->initialize_SCC_flood(this->initial, &tag, low, this->SCCs_tree);
+
+	delete [] spot;
+	delete [] low;
+}
+
+
+
+
+
+
+
+
+// -------------------------------- Getters -------------------------------- //
+
+
+State* Automaton::getInitial () const { return initial; }
+
+
+std::string Automaton::getName() const { return this->name; }
+
+
+// TODO:
+// 		check if it is useful
+//		if useful then modify the main constructor to maintain Min/Max Weights instead of values
+unsigned int Automaton::getMinWeightId() const {
+	for (unsigned int i = 0; i < this->weights->size(); i++) {
+		if (this->weights->at(i)->getValue() == min_weight) {
+			return i;
+		}
+	}
+
+	return __INT_MAX__;
+}
+
+
+// TODO:
+// 		check if it is useful
+//		if useful then modify the main constructor to maintain Min/Max Weights instead of values
+unsigned int Automaton::getMaxWeightId() const {
+	for (unsigned int i = 0; i < this->weights->size(); i++) {
+		if (this->weights->at(i)->getValue() == max_weight) {
+			return i;
+		}
+	}
+
+	return __INT_MAX__;
+}
+
+
+
+
+
+
+
+
+// -------------------------------- Tranformations -------------------------------- //
+
+
+// TODO: Keep until limsup inclusion not implemented, then remove
+// --> Inclusion for inf, sup, liminf, limsup done though limsup inclusion
+// easy for inf sup liminf limsup. only change the weights to 1 if >= thr, 0 otherwise
+// may be nonregular for limavg and dsum
+Automaton* Automaton::booleanize(Weight<weight_t> threshold) const {
+	State::RESET();
+	Symbol::RESET();
+	Weight<weight_t>::RESET();
+
+	std::string name = "Bool(" + this->getName() + ", " + threshold.toString() + ")";
+
+	MapVec<Symbol*>* alphabet = new MapVec<Symbol*>(this->alphabet->size());
+	for (unsigned int symbol_id = 0; symbol_id < this->alphabet->size(); ++symbol_id) {
+		alphabet->insert(symbol_id, new Symbol(this->alphabet->at(symbol_id)));
+	}
+	MapVec<State*>* states = new MapVec<State*>(this->states->size());
+	for (unsigned int state_id = 0; state_id < this->states->size(); ++state_id) {
+		states->insert(state_id, new State(this->states->at(state_id)));
+	}
+	State* initial = states->at(this->initial->getId());
+
+	weight_t min_weight = 1;
+	weight_t max_weight = 0;
+	for (unsigned int state_id = 0; state_id < this->states->size(); ++state_id) {
+		for (Edge* x : *(this->states->at(state_id)->getEdges())) {
+			Weight<weight_t>* w;
+			if (x->getWeight()->getValue() >= threshold.getValue()) {
+				w = new Weight<weight_t>(1);
+				max_weight = 1;
+			}
+			else {
+				w = new Weight<weight_t>(0);
+				min_weight = 0;
+			}
+			Edge* e = new Edge(x->getSymbol(), w, states->at(x->getFrom()->getId()), states->at(x->getTo()->getId()));
+			states->at(state_id)->addEdge(e);
+			states->at(state_id)->addSuccessor(e);
+			states->at(x->getTo()->getId())->addPredecessor(e);
+		}
+	}
+
+	MapVec<Weight<weight_t>*>* weights = new MapVec<Weight<weight_t>*>(max_weight - min_weight + 1);
+
+	for (int i = min_weight; i <= max_weight; i++) {
+		Weight<weight_t>* w = new Weight<weight_t>(i);
+		weights->insert(i - min_weight, w);
+	}
+
+	return new Automaton(name, alphabet, states, weights, min_weight, max_weight, initial);
+}
+
+
+// TODO: remove
+Automaton* Automaton::trim() const {
+	if (this->nb_reachable_states == this->states->size()) {
+		return new Automaton(*this);
+		// fixme this is terrible, we should really try to keep lost costs
+	}
+
+	State::RESET();
+	Symbol::RESET();
+	Weight<weight_t>::RESET();
+
+	std::string name = "Trim(" + this->getName() + ")";
+
+	MapVec<Symbol*>* alphabet = new MapVec<Symbol*>(this->alphabet->size());
+	for (unsigned int symbol_id = 0; symbol_id < this->alphabet->size(); ++symbol_id) {
+		alphabet->insert(symbol_id, new Symbol(this->alphabet->at(symbol_id)));
+	}
+
+	MapVec<State*>* states = new MapVec<State*>(this->nb_reachable_states);
+	long unsigned int counter = 0;
+	std::unordered_map<unsigned int, unsigned int> stateIdTable;
+	for (unsigned int state_id = 0; state_id < this->states->size(); ++state_id) {
+		if (this->states->at(state_id)->getTag() > -1) {
+			states->insert(counter, new State(this->states->at(state_id)->getName(), this->alphabet->size()));
+			stateIdTable[state_id] = counter;
+			counter++;
+		}
+	}
+	State* initial = states->at(stateIdTable[this->initial->getId()]);
+
+	std::map<weight_t,int> counts;
+	for (unsigned int state_id = 0; state_id < this->states->size(); ++state_id) {
+		if (this->states->at(state_id)->getTag() > -1) {
+			for (Edge* x : *(this->states->at(state_id)->getEdges())) {
+				Weight<weight_t>* w = new Weight<weight_t>(x->getWeight()->getValue());
+				Edge* e = new Edge(x->getSymbol(), w, states->at(stateIdTable[x->getFrom()->getId()]), states->at(stateIdTable[x->getTo()->getId()]));
+				states->at(stateIdTable[state_id])->addEdge(e);
+				states->at(stateIdTable[state_id])->addSuccessor(e);
+				states->at(stateIdTable[x->getTo()->getId()])->addPredecessor(e);
+				counts[w->getValue()]++;
+			}
+		}
+	}
+
+	MapVec<Weight<weight_t>*>* weights = new MapVec<Weight<weight_t>*>(counts.size());
+	weight_t min_weight;
+	weight_t max_weight;
+	counter = 0;
+	for (auto weightCount : counts) {
+		Weight<weight_t>* w = new Weight<weight_t>(weightCount.first);
+		weights->insert(counter, w);
+
+		if (counter == 0) {
+			min_weight = weightCount.first;
+		}
+		if (counter == counts.size() - 1) {
+			max_weight = weightCount.first;
+		}
+
+		counter++;
+	}
+
+	return new Automaton(name, alphabet, states, weights, min_weight, max_weight, initial);
+}
+
+
+// TODO:
+// CHECK if useful
+// CHECK if correct
+// fixme:
+// if useful, change it to change the automaton, not rebuild one
 Automaton* Automaton::complete(value_function_t value_function) const {
 	if (this->isComplete()) {
-		return new Automaton(*this);
+		return new Automaton(*this);// fixme: complete should complete the automaton not crating one
 	}
 
 	// State::RESET();
@@ -328,7 +717,6 @@ Automaton* Automaton::safetyClosure(value_function_t value_function) const {
 			from->addEdge(top_edge);
 			from->addSuccessor(top_edge);
 			to->addPredecessor(top_edge);
-
 		}
 	}
 
@@ -336,63 +724,9 @@ Automaton* Automaton::safetyClosure(value_function_t value_function) const {
 }
 
 
-State* Automaton::getInitial () const { return initial; }
-
-
-std::string Automaton::getName() const { return this->name; }
-
-unsigned int Automaton::getMinWeightId() const {
-	for (unsigned int i = 0; i < this->weights->size(); i++) {
-		if (this->weights->at(i)->getValue() == min_weight) {
-			return i;
-		}
-	}
-
-	return __INT_MAX__;
-}
-
-
-unsigned int Automaton::getMaxWeightId() const {
-	for (unsigned int i = 0; i < this->weights->size(); i++) {
-		if (this->weights->at(i)->getValue() == max_weight) {
-			return i;
-		}
-	}
-
-	return __INT_MAX__;
-}
-
-// MapVec<Weight<weight_t>*>* Automaton::getWeights() const { return this->weights; }
-
-
-bool Automaton::isDeterministic () const {
-	for (unsigned int state_id = 0; state_id < this->states->size(); ++state_id) {
-		for (unsigned int symbol_id = 0; symbol_id < this->alphabet->size(); ++symbol_id) {
-			if (1 < this->states->at(state_id)->getSuccessors(symbol_id)->size()) return false;
-		}
-	}
-	return true;
-}
-
-bool Automaton::isComplete () const {
-	for (unsigned int state_id = 0; state_id < this->states->size(); ++state_id) {
-		for (unsigned int symbol_id = 0; symbol_id < this->alphabet->size(); ++symbol_id) {
-			if (1 > this->states->at(state_id)->getSuccessors(symbol_id)->size()) return false;
-		}
-	}
-	return true;
-}
-
-
-bool Automaton::isEmpty (value_function_t type, Weight<weight_t> v) const {
-	weight_t top_values[this->nb_SCCs];
-	if (this->computeTop(type, top_values) >= v.getValue()) {
-		return false;
-	}
-	return true;
-}
-
 // TODO: CHECK
+// Useful for Liveness component of the decomposition
+// fixme: make it in place, overall liveness component should build a single automaton
 Automaton* Automaton::monotonize (value_function_t type) const {
 	if (type != Inf || type != Sup) {
 		fail("monotonize only possible for inf or sup automata");
@@ -528,6 +862,7 @@ Automaton* Automaton::livenessComponent (value_function_t type) const {
 		else {
 			weights->insert(weight_id, new Weight<weight_t>(this->weights->at(weight_id)->getValue()));
 		}
+		// fixme: min & max are computed with weights that may never occur
 		min_weight = std::min(min_weight, weights->at(weight_id)->getValue());
 		max_weight = std::max(max_weight, weights->at(weight_id)->getValue());
 	}
@@ -549,6 +884,11 @@ Automaton* Automaton::livenessComponent (value_function_t type) const {
 }
 
 
+
+// TODO: CHECK
+// fixme:
+//		argument type is useless
+//		check memory leaks
 Automaton* Automaton::constantAutomaton (value_function_t type, Weight<weight_t> v) const {
 	State::RESET();
 	Symbol::RESET();
@@ -583,7 +923,50 @@ Automaton* Automaton::constantAutomaton (value_function_t type, Weight<weight_t>
 }
 
 
+
+
+
+
+
+
+
+// -------------------------------- Decisions -------------------------------- //
+
+
+
+bool Automaton::isDeterministic () const {
+	for (unsigned int state_id = 0; state_id < this->states->size(); ++state_id) {
+		for (unsigned int symbol_id = 0; symbol_id < this->alphabet->size(); ++symbol_id) {
+			if (1 < this->states->at(state_id)->getSuccessors(symbol_id)->size()) return false;
+		}
+	}
+	return true;
+}
+
+
+// TODO: remove
+bool Automaton::isComplete () const {
+	for (unsigned int state_id = 0; state_id < this->states->size(); ++state_id) {
+		for (unsigned int symbol_id = 0; symbol_id < this->alphabet->size(); ++symbol_id) {
+			if (1 > this->states->at(state_id)->getSuccessors(symbol_id)->size()) return false;
+		}
+	}
+	return true;
+}
+
+
+bool Automaton::isEmpty (value_function_t type, Weight<weight_t> v) const {
+	weight_t top_values[this->nb_SCCs];
+	if (this->computeTop(type, top_values) >= v.getValue()) {
+		return false;
+	}
+	return true;
+}
+
+
+
 // can update this for DSum (same idea works but not exactly like this)
+// fixme: memory leak
 bool Automaton::isUniversal (value_function_t type, Weight<weight_t> v) const {
 	Automaton* C = this->constantAutomaton(type, v);
 
@@ -596,15 +979,16 @@ bool Automaton::isUniversal (value_function_t type, Weight<weight_t> v) const {
 
 
 // TODO: need to prove Bottom(A) = -Top(-A) for limavg (and dsum -- maybe also others)
+// fixme: memory leaks
 bool Automaton::isUniversal_det (value_function_t type, Weight<weight_t> v) const {
 	Weight<weight_t>* minusOne = new Weight<weight_t>(-1);
 	Automaton* C = this->constantAutomaton(type, minusOne);
 
 	Automaton* CC = this->product(type, C, Times);
 	// TODO:
-	// (1) multiply weight by -1 without a product
+	// (1) multiply weights by -1 without a product
 	// (2) compute top
-	// (3) multiply weight by -1 to leave the automaton unchanged
+	// (3) multiply weights by -1 to leave the automaton unchanged
 	
 	weight_t top_values[CC->nb_SCCs];
 	if((-1) * CC->computeTop(type, top_values) >= v.getValue()) {
@@ -616,7 +1000,8 @@ bool Automaton::isUniversal_det (value_function_t type, Weight<weight_t> v) cons
 
 
 // this works only for limavg and dsum
-// fixme: I think this also work for the other type, but it is not said in Quantitative Languages
+// fixme: update product, do not use trim, inline in isIncludedIn case Avg
+// fixme: memory leak
 bool Automaton::isIncludedIn_det (value_function_t type, const Automaton* rhs) const {
 	Automaton* C = this->product(type, rhs, Minus)->trim();
 	std::cout << std::endl << C->toString() << std::endl;
@@ -630,6 +1015,9 @@ bool Automaton::isIncludedIn_det (value_function_t type, const Automaton* rhs) c
 }
 
 
+// TODO
+//		(1) implement translation from inf, sup, liminf to limsup
+//		(2) remove
 bool Automaton::isIncludedIn_bool(value_function_t type, const Automaton* rhs) const {
 	switch (type) {
 		case Inf:
@@ -645,6 +1033,9 @@ bool Automaton::isIncludedIn_bool(value_function_t type, const Automaton* rhs) c
 	}
 }
 
+
+// TODO: once limsup inclusion implemented, update to handle all inclusion decisions
+// fixme: memory leaks
 bool Automaton::isIncludedIn(value_function_t type, const Automaton* rhs) const {
 	
 	if (type == LimAvg) { 
@@ -671,14 +1062,19 @@ bool Automaton::isIncludedIn(value_function_t type, const Automaton* rhs) const 
 }
 
 
+
+// TODO: remove? we only need inclusion test since equivalence are against safety closures
 bool Automaton::isEquivalent (value_function_t type, const Automaton* rhs) const {
 	return rhs->isIncludedIn(type, this) && this->isIncludedIn(type, rhs);
 }
 
 
+// fixme: memory leak
 bool Automaton::isSafe (value_function_t type) const {
 	if (this->isDeterministic() || type != LimAvg) {
 		return this->isEquivalent(type, this->safetyClosure(type));
+		// the safety closure ensure A <= clo(A)
+		// fixme: use only inclusion
 	}
 
 	// TODO: call constant check for nondet limavg
@@ -690,6 +1086,7 @@ bool Automaton::isSafe (value_function_t type) const {
 }
 
 
+// TODO
 bool Automaton::isConstant (value_function_t type) const {
 	if (type == LimAvg) { 
 		if (this->isDeterministic()) {
@@ -705,94 +1102,28 @@ bool Automaton::isConstant (value_function_t type) const {
 	else {
 		weight_t top_values[this->nb_SCCs];
 		Automaton* Top = this->constantAutomaton(type, this->computeTop(type, top_values));
-		return this->isEquivalent(type, Top); // fixme: do only what is necessary i.e. universality A <= Top
+		return this->isEquivalent(type, Top);
+		// fixme: do only what is necessary i.e. universality A <= Top
+		// the construction of a constant automaton is the design of isUniversal not isConstant
 	}
 }
 
 
+// fixme: memory leaks
 bool Automaton::isLive (value_function_t type) const {
 	return this->safetyClosure(type)->isConstant(type);
 }
 
 
-void Automaton::initialize_SCC_flood (State* state, int* tag, int* low, SCC_Tree* ancestor) {
-	for (Symbol* symbol : *(state->getAlphabet())) {
-		for (Edge* edge : *(state->getSuccessors(symbol->getId()))) {
-			if (edge->getTo()->getTag() == -1){
-				if (low[state->getId()] == low[edge->getTo()->getId()]) {
-					edge->getTo()->setTag(state->getTag());
-					initialize_SCC_flood(edge->getTo(), tag, low, ancestor);
-				}
-				else {
-					(*tag)++;
-					SCC_Tree* data = new SCC_Tree(edge->getTo());
-					edge->getTo()->setTag(*tag);
-					initialize_SCC_flood(edge->getTo(), tag, low, data);
-					ancestor->addNext(data);
-				}
-			}
-		}
-	}
-}
-
-void Automaton::initialize_SCC_explore (State* state, int* time, int* spot, int* low, SetList<State*>* stack, bool* stackMem) {
-	spot[state->getId()] = *time;
-	low[state->getId()] = *time;
-	(*time)++;
-	stack->push(state);
-	stackMem[state->getId()] = true;
-
-	for (Symbol* symbol : *(state->getAlphabet())) {
-		for (Edge* edge : *(state->getSuccessors(symbol->getId()))) {
-			if (spot[edge->getTo()->getId()] == -1) {
-				initialize_SCC_explore(edge->getTo(), time, spot, low, stack, stackMem);
-				low[state->getId()] = std::min(low[state->getId()], low[edge->getTo()->getId()]);
-			}
-			else if (stackMem[edge->getTo()->getId()] == true) {
-				low[state->getId()] = std::min(low[state->getId()], spot[edge->getTo()-> getId()]);
-			}
-		}
-	}
-
-	if (spot[state->getId()] == low[state->getId()]) {
-		//this->SCCs_list->push(state);
-		(this->nb_SCCs)++;
-		while (stack->head() != state) {
-			stackMem[stack->head()->getId()] = false;
-			stack->pop();
-		}
-	}
-}
 
 
-void Automaton::initialize_SCC (void) {
-	unsigned int size = this->states->size();
-	int* spot = new int[size];
-	int* low = new int[size];
-	bool* stackMem = new bool[size];
-	int time = 0;
-	SetList<State*> stack;
-
-	//this->SCCs_list = new SetList<State*>;
-	for (unsigned int state_id = 0; state_id < size; ++state_id) {
-		spot[state_id] = -1;
-		low[state_id] = -1;
-		stackMem[state_id] = false;
-	}
-
-	initialize_SCC_explore(initial, &time, spot, low, &stack, stackMem);
-	this->nb_reachable_states = time;
-
-	int tag = 0;
-	this->initial->setTag(0);
-	this->SCCs_tree = new SCC_Tree(this->initial);
-	this->initialize_SCC_flood(this->initial, &tag, low, this->SCCs_tree);
-
-	delete [] spot;
-	delete [] low;
-}
 
 
+
+
+
+
+// -------------------------------- Tops -------------------------------- //
 
 
 void Automaton::top_reachably_scc (State* state, lol_t lol, bool* spot, weight_t* values) const {
@@ -860,7 +1191,6 @@ weight_t Automaton::top_LimSup (weight_t* top_values) const {
 }
 
 
-
 void Automaton::top_safety_scc_recursive (Edge* edge, bool in_scc, int* values, int** counters) const {
 	if (values[edge->getFrom()->getId()] <= this->max_weight) return;
 
@@ -885,6 +1215,7 @@ void Automaton::top_safety_scc_recursive (Edge* edge, bool in_scc, int* values, 
 		}
 	}
 };
+
 
 void Automaton::top_safety_scc (weight_t* values, bool in_scc) const {
 	//O(x)
@@ -931,7 +1262,6 @@ weight_t Automaton::top_Inf () const {
 }
 
 
-
 void Automaton::top_safety_tree (SCC_Tree* tree, weight_t* top_values) const {
 	for (auto iter = tree->nexts->begin(); iter != tree->nexts->end(); ++iter) {
 		top_safety_tree(*iter, top_values);
@@ -962,7 +1292,6 @@ weight_t Automaton::top_LimInf (weight_t* top_values) const {
 }
 
 
-
 void Automaton::top_avg_tree (SCC_Tree* tree, weight_t* top_values) const {
 	for (auto iter = tree->nexts->begin(); iter != tree->nexts->end(); ++iter) {
 		top_avg_tree(*iter, top_values);
@@ -970,7 +1299,6 @@ void Automaton::top_avg_tree (SCC_Tree* tree, weight_t* top_values) const {
 				top_values[(*iter)->origin->getTag()]);
 	}
 }
-
 
 
 weight_t Automaton::top_LimAvg (weight_t* top_values) const {
@@ -1067,231 +1395,14 @@ weight_t Automaton::computeTop (value_function_t value_function, weight_t* top_v
 	}
 }
 
-// easy for inf sup liminf limsup. only change the weights to 1 if >= thr, 0 otherwise
-// may be nonregular for limavg and dsum
-Automaton* Automaton::booleanize(Weight<weight_t> threshold) const {
-	State::RESET();
-	Symbol::RESET();
-	Weight<weight_t>::RESET();
-
-	std::string name = "Bool(" + this->getName() + ", " + threshold.toString() + ")";
-
-	MapVec<Symbol*>* alphabet = new MapVec<Symbol*>(this->alphabet->size());
-	for (unsigned int symbol_id = 0; symbol_id < this->alphabet->size(); ++symbol_id) {
-		alphabet->insert(symbol_id, new Symbol(this->alphabet->at(symbol_id)));
-	}
-	MapVec<State*>* states = new MapVec<State*>(this->states->size());
-	for (unsigned int state_id = 0; state_id < this->states->size(); ++state_id) {
-		states->insert(state_id, new State(this->states->at(state_id)));
-	}
-	State* initial = states->at(this->initial->getId());
-
-	weight_t min_weight = 1;
-	weight_t max_weight = 0;
-	for (unsigned int state_id = 0; state_id < this->states->size(); ++state_id) {
-		for (Edge* x : *(this->states->at(state_id)->getEdges())) {
-			Weight<weight_t>* w;
-			if (x->getWeight()->getValue() >= threshold.getValue()) {
-				w = new Weight<weight_t>(1);
-				max_weight = 1;
-			}
-			else {
-				w = new Weight<weight_t>(0);
-				min_weight = 0;
-			}
-			Edge* e = new Edge(x->getSymbol(), w, states->at(x->getFrom()->getId()), states->at(x->getTo()->getId()));
-			states->at(state_id)->addEdge(e);
-			states->at(state_id)->addSuccessor(e);
-			states->at(x->getTo()->getId())->addPredecessor(e);
-		}
-	}
-
-	MapVec<Weight<weight_t>*>* weights = new MapVec<Weight<weight_t>*>(max_weight - min_weight + 1);
-
-	for (int i = min_weight; i <= max_weight; i++) {
-		Weight<weight_t>* w = new Weight<weight_t>(i);
-		weights->insert(i - min_weight, w);
-	}
-
-	return new Automaton(name, alphabet, states, weights, min_weight, max_weight, initial);
-}
 
 
-Automaton* Automaton::trim() const {
-	if (this->nb_reachable_states == this->states->size()) {
-		return new Automaton(*this);
-		// fixme this is terrible, we should really try to keep lost costs
-	}
-
-	State::RESET();
-	Symbol::RESET();
-	Weight<weight_t>::RESET();
-
-	std::string name = "Trim(" + this->getName() + ")";
-
-	MapVec<Symbol*>* alphabet = new MapVec<Symbol*>(this->alphabet->size());
-	for (unsigned int symbol_id = 0; symbol_id < this->alphabet->size(); ++symbol_id) {
-		alphabet->insert(symbol_id, new Symbol(this->alphabet->at(symbol_id)));
-	}
-	
-	MapVec<State*>* states = new MapVec<State*>(this->nb_reachable_states);
-	long unsigned int counter = 0;
-	std::unordered_map<unsigned int, unsigned int> stateIdTable;
-	for (unsigned int state_id = 0; state_id < this->states->size(); ++state_id) {
-		if (this->states->at(state_id)->getTag() > -1) {
-			states->insert(counter, new State(this->states->at(state_id)->getName(), this->alphabet->size()));
-			stateIdTable[state_id] = counter;
-			counter++;
-		}
-	}
-	State* initial = states->at(stateIdTable[this->initial->getId()]);
-
-	std::map<weight_t,int> counts;
-	for (unsigned int state_id = 0; state_id < this->states->size(); ++state_id) {
-		if (this->states->at(state_id)->getTag() > -1) {
-			for (Edge* x : *(this->states->at(state_id)->getEdges())) {
-				Weight<weight_t>* w = new Weight<weight_t>(x->getWeight()->getValue());
-				Edge* e = new Edge(x->getSymbol(), w, states->at(stateIdTable[x->getFrom()->getId()]), states->at(stateIdTable[x->getTo()->getId()]));
-				states->at(stateIdTable[state_id])->addEdge(e);
-				states->at(stateIdTable[state_id])->addSuccessor(e);
-				states->at(stateIdTable[x->getTo()->getId()])->addPredecessor(e);
-				counts[w->getValue()]++;
-			}
-		}
-	}
-
-	MapVec<Weight<weight_t>*>* weights = new MapVec<Weight<weight_t>*>(counts.size());
-	weight_t min_weight;
-	weight_t max_weight;
-	counter = 0;
-	for (auto weightCount : counts) {
-		Weight<weight_t>* w = new Weight<weight_t>(weightCount.first);
-		weights->insert(counter, w);
-
-		if (counter == 0) {
-			min_weight = weightCount.first;
-		}
-		if (counter == counts.size() - 1) {
-			max_weight = weightCount.first;
-		}
-
-		counter++;
-	}
-
-	return new Automaton(name, alphabet, states, weights, min_weight, max_weight, initial);
-}
 
 
-Automaton* Automaton::product(value_function_t value_function, const Automaton* B, product_weight_t product_weight) const {
-	State::RESET();
-	Symbol::RESET();
-	Weight<weight_t>::RESET();
 
-	std::string type;
-	switch (product_weight) {
-		case Max:
-			type = "Max";
-			break;
-		case Min:
-			type = "Min";
-			break;
-		case Plus:
-			type = "Plus";
-			break;
-		case Minus:
-			type = "Minus";
-			break;
-		case Times:
-			type = "Times";
-			break;
-		default:
-			fail("automata product weight");
-	}
-	std::string name = type + "(" + this->getName() + "," + B->getName() + ")";
 
-	MapVec<Symbol*>* alphabet = new MapVec<Symbol*>(this->alphabet->size());
-	for (unsigned int symbol_id = 0; symbol_id < this->alphabet->size(); ++symbol_id) {
-		alphabet->insert(symbol_id, new Symbol(this->alphabet->at(symbol_id)));
-	}
-	
-	int n = this->states->size();
-	int m = B->states->size();
-	// TODO: avoid constructing useless states
-	//		n = this->nb_reachable_states
-	//		m = B->nb_reachable_states
-	MapVec<State*>* states = new MapVec<State*>(n * m);
 
-	for (int i = 0; i < n; i++) {
-		for (int j = 0; j < m; j++) {
-			std::string stateName = "(" + this->states->at(i)->getName() + "," + B->states->at(j)->getName() + ")";
-			State* pairState = new State(stateName, alphabet->size());
-			states->insert(i * m + j, pairState);
-		}
-	}
-
-	State* initial = states->at(this->initial->getId() * n + B->initial->getId());
-	
-	std::map<weight_t,int> counts;
-	for (int i = 0; i < n; i++) {
-		for (int j = 0; j < m; j++) {
-			for (Edge* x : *(this->states->at(i)->getEdges())) {
-				for (Edge* y : *(B->states->at(j)->getEdges())) {
-					if (x->getSymbol()->getName() == y->getSymbol()->getName()) {
-						Weight<weight_t>* pairWeight;
-							switch (product_weight) {
-								case Max:
-									pairWeight = new Weight<weight_t>(std::max(x->getWeight()->getValue(), y->getWeight()->getValue()));
-									break;
-								case Min:
-									pairWeight = new Weight<weight_t>(std::min(x->getWeight()->getValue(), y->getWeight()->getValue()));
-									break;
-								case Plus:
-									pairWeight = new Weight<weight_t>(x->getWeight()->getValue() + y->getWeight()->getValue());
-									break;
-								case Minus:
-									pairWeight = new Weight<weight_t>(x->getWeight()->getValue() - y->getWeight()->getValue());
-									break;
-								case Times:
-									pairWeight = new Weight<weight_t>(x->getWeight()->getValue() * y->getWeight()->getValue());
-									break;	
-								default:
-									fail("automata product weight");
-							}
-							counts[pairWeight->getValue()]++;
-
-						int ii = x->getTo()->getId();
-						int jj = y->getTo()->getId();
-						Edge* pairEdge = new Edge(x->getSymbol(), pairWeight, states->at(i * m + j), states->at(ii * m + jj));
-
-						states->at(i * m + j)->addEdge(pairEdge);
-						states->at(i * m + j)->addSuccessor(pairEdge);
-						states->at(ii * m + jj)->addPredecessor(pairEdge);
-					}
-				}
-			}
-		}
-	}
-
-	MapVec<Weight<weight_t>*>* weights = new MapVec<Weight<weight_t>*>(counts.size());
-	weight_t min_weight;
-	weight_t max_weight;
-	long unsigned int counter = 0;
-	for (auto weightCount : counts) {
-		Weight<weight_t>* pairWeight = new Weight<weight_t>(weightCount.first);
-		weights->insert(counter, pairWeight);
-
-		if (counter == 0) {
-			min_weight = weightCount.first;
-		}
-		if (counter == counts.size() - 1) {
-			max_weight = weightCount.first;
-		}
-
-		counter++;
-	}
-
-	return new Automaton(name, alphabet, states, weights, min_weight, max_weight, initial);
-}
+// -------------------------------- toStrings -------------------------------- //
 
 
 std::string Automaton::top_toString() const {
@@ -1325,11 +1436,6 @@ std::string Automaton::top_toString() const {
 }
 
 
-std::string Automaton::Automaton::toString (Automaton* A) {
-	return A->toString();
-}
-
-
 std::string Automaton::toString () const {
 	std::string s = "Automaton \"";
 	s.append(this->name);
@@ -1354,7 +1460,6 @@ std::string Automaton::toString () const {
 	s.append("\n\t");
 	s.append("edges:");
 	for (unsigned int state_id = 0; state_id < states->size(); ++state_id) {
-		//s.append(states->at(state_id)->getEdges()->toString(Edge::toString));
 		for (Symbol* symbol : *(states->at(state_id)->getAlphabet())) {
 			s.append(states->at(state_id)->getSuccessors(symbol->getId())->toString(Edge::toString));
 		}
@@ -1376,6 +1481,11 @@ std::string Automaton::toString () const {
 	s.append("\n");
 	s.append(top_toString());
 	return s;
+}
+
+
+std::string Automaton::Automaton::toString (Automaton* A) {
+	return A->toString();
 }
 
 
