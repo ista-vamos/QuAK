@@ -157,7 +157,7 @@ Automaton::Automaton (std::string filename) :
 }
 
 // TODO: CHECK
-// fixme: check if it is necessary, remove otherwise
+// fixme: check if it is necessary, remove otherwise -- i would keep it because copy constructors are useful in general
 // so far used in trim and complete
 Automaton::Automaton (const Automaton& to_copy) {
 	State::RESET();
