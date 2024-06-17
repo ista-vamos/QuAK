@@ -90,6 +90,7 @@ public:
 	Automaton* trim() const;
 	Automaton* complete(value_function_t value_function) const;
 	Automaton* monotonize(value_function_t value_function) const;
+	void monotonizeInPlace(value_function_t value_function);
 	Automaton* booleanize(Weight<weight_t> v) const;
 	Automaton* constantAutomaton (value_function_t type, Weight<weight_t> v) const;
 	Automaton* livenessComponent (value_function_t type) const;
@@ -117,10 +118,6 @@ public:
 	
 	State* getInitial () const;
 	std::string getName() const;
-	unsigned int getMinWeightId() const;
-	unsigned int getMaxWeightId() const;
-	// MapVec<Weight<weight_t>*>* getWeights() const;
-
 
 	static std::string toString (Automaton* A);
 	std::string toString () const;
