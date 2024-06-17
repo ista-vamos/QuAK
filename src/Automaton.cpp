@@ -401,6 +401,7 @@ void Automaton::initialize_SCC (void) {
 
 	delete [] spot;
 	delete [] low;
+	delete [] stackMem;
 }
 
 
@@ -478,12 +479,10 @@ Automaton* Automaton::booleanize(Weight<weight_t> threshold) const {
 
 
 // TODO: remove -- why? we can modify our constructions to not need this, but this is a useful function in general
-Automaton* Automaton::trim() const {
+Automaton* Automaton::trim() {
 	if (this->nb_reachable_states == this->states->size()) {
-		return new Automaton(*this);
-		// fixme this is terrible, we should really try to keep lost costs
-		// i agree but i would do this kind of optimizations at the very end -- we still have other features to add
-		// also, making new object could be useful when you want to debug or play around by changing the initial state
+		// return new Automaton(*this);
+		return this;
 	}
 
 	State::RESET();
@@ -509,35 +508,44 @@ Automaton* Automaton::trim() const {
 	}
 	State* initial = states->at(stateIdTable[this->initial->getId()]);
 
-	std::map<weight_t,int> counts;
+	std::map<weight_t,Weight<weight_t>*> tracker;
+	for (unsigned int weight_id = 0; weight_id < this->weights->size(); ++weight_id) {
+		tracker[this->weights->at(weight_id)->getValue()] = nullptr;
+	}
+	weight_t min_weight = this->max_weight;
+	weight_t max_weight = this->min_weight;
 	for (unsigned int state_id = 0; state_id < this->states->size(); ++state_id) {
 		if (this->states->at(state_id)->getTag() > -1) {
 			for (Edge* x : *(this->states->at(state_id)->getEdges())) {
-				Weight<weight_t>* w = new Weight<weight_t>(x->getWeight()->getValue());
-				Edge* e = new Edge(x->getSymbol(), w, states->at(stateIdTable[x->getFrom()->getId()]), states->at(stateIdTable[x->getTo()->getId()]));
+				Weight<weight_t>* w;
+				if (tracker[x->getWeight()->getValue()] != nullptr) {
+					w = tracker[x->getWeight()->getValue()];
+				}
+				else {
+					w = new Weight<weight_t>(x->getWeight());
+					tracker[w->getValue()] = w;
+				}
+				
+				Edge* e = new Edge(alphabet->at(x->getSymbol()->getId()), w, states->at(stateIdTable[x->getFrom()->getId()]), states->at(stateIdTable[x->getTo()->getId()]));
 				states->at(stateIdTable[state_id])->addEdge(e);
 				states->at(stateIdTable[state_id])->addSuccessor(e);
 				states->at(stateIdTable[x->getTo()->getId()])->addPredecessor(e);
-				counts[w->getValue()]++;
+				
+				if (w->getValue() < min_weight) {
+					min_weight = w->getValue();
+				}
+				if (w->getValue() > max_weight) {
+					max_weight = w->getValue();
+				}
 			}
 		}
 	}
 
-	MapVec<Weight<weight_t>*>* weights = new MapVec<Weight<weight_t>*>(counts.size());
-	weight_t min_weight;
-	weight_t max_weight;
+	// Weight<weight_t>::RESET();
 	counter = 0;
-	for (auto weightCount : counts) {
-		Weight<weight_t>* w = new Weight<weight_t>(weightCount.first);
-		weights->insert(counter, w);
-
-		if (counter == 0) {
-			min_weight = weightCount.first;
-		}
-		if (counter == counts.size() - 1) {
-			max_weight = weightCount.first;
-		}
-
+	MapVec<Weight<weight_t>*>* weights = new MapVec<Weight<weight_t>*>(tracker.size());
+	for (auto w : tracker) {
+		weights->insert(counter, w.second);
 		counter++;
 	}
 
@@ -700,7 +708,7 @@ Automaton* Automaton::safetyClosure(value_function_t value_function) const {
 // Useful for Liveness component of the decomposition
 // fixme: make it in place, overall liveness component should build a single automaton
 Automaton* Automaton::monotonize (value_function_t type) const {
-	if (type != Inf || type != Sup) {
+	if (type != Inf && type != Sup) {
 		fail("monotonize only possible for inf or sup automata");
 	}
 
@@ -721,62 +729,40 @@ Automaton* Automaton::monotonize (value_function_t type) const {
 	MapVec<State*>* states = new MapVec<State*>(n * m);
 	for (unsigned int state_id = 0; state_id < n; ++state_id) {
 		for (unsigned int weight_id = 0; weight_id < m; ++weight_id) {
-			std::string state_name = "(" + this->states->at(state_id)->toString() + ", " + this->weights->at(weight_id)->toString() + ")";
+			std::string state_name = "(" + this->states->at(state_id)->toStringOnlyName() + ", " + this->weights->at(weight_id)->toString() + ")";
 			State* new_state = new State(state_name, this->alphabet->size());
 			states->insert(state_id * n + weight_id, new_state);
 		}
 	}
 
 	State* initial;
-	std::map<weight_t,int> counts;
-
 	if (type == Inf) {
-		initial = states->at(this->initial->getId() * m + this->weights->size() - 1);
-
-		for (unsigned int state_id = 0; state_id < n; ++state_id) {
-			for (Edge* edge : *(this->states->at(state_id)->getEdges())) {
-				Weight<weight_t>* transition_weight = weights->at(edge->getWeight()->getId());
-				for (unsigned int weight_id = 0; weight_id < m; ++weight_id) {
-					Weight<weight_t>* state_weight = weights->at(weight_id);
-					Weight<weight_t>* new_weight = state_weight;
-					if (transition_weight->getValue() < state_weight->getValue()) {
-						new_weight = transition_weight;
-					}
-
-					Symbol* symbol = alphabet->at(edge->getSymbol()->getId());
-					State* from = states->at(edge->getFrom()->getId() * m + state_weight->getId());
-					State* to = states->at(edge->getTo()->getId() * m + new_weight->getId());
-					Edge* new_edge = new Edge(symbol, transition_weight, from, to);
-					from->addEdge(new_edge);
-					from->addSuccessor(new_edge);
-					to->addPredecessor(new_edge);
-					counts[transition_weight->getValue()]++;
-				}
-			}
-		}
+		initial = states->at(this->initial->getId() * m + this->weights->size() - 1); // weights are ordered
 	}
 	else if (type == Sup) {
 		initial = states->at(this->initial->getId() * m);
+	}
 
-		for (unsigned int state_id = 0; state_id < n; ++state_id) {
-			for (Edge* edge : *(this->states->at(state_id)->getEdges())) {
-				Weight<weight_t>* transition_weight = weights->at(edge->getWeight()->getId());
-				for (unsigned int weight_id = 0; weight_id < m; ++weight_id) {
-					Weight<weight_t>* state_weight = weights->at(weight_id);
-					Weight<weight_t>* new_weight = state_weight;
-					if (transition_weight->getValue() > state_weight->getValue()) {
-						new_weight = transition_weight;
-					}
-
-					Symbol* symbol = alphabet->at(edge->getSymbol()->getId());
-					State* from = states->at(edge->getFrom()->getId() * m + state_weight->getId());
-					State* to = states->at(edge->getTo()->getId() * m + new_weight->getId());
-					Edge* new_edge = new Edge(symbol, transition_weight, from, to);
-					from->addEdge(new_edge);
-					from->addSuccessor(new_edge);
-					to->addPredecessor(new_edge);
-					counts[transition_weight->getValue()]++;
+	// TO BE FIXED
+	std::map<weight_t,int> counts;
+	for (unsigned int state_id = 0; state_id < n; ++state_id) {
+		for (Edge* edge : *(this->states->at(state_id)->getEdges())) {
+			Weight<weight_t>* transition_weight = this->weights->at(edge->getWeight()->getId());
+			for (unsigned int weight_id = 0; weight_id < m; ++weight_id) {
+				Weight<weight_t>* state_weight = this->weights->at(weight_id);
+				Weight<weight_t>* new_weight = state_weight;
+				if ((type == Inf && transition_weight->getValue() < state_weight->getValue()) || (type == Sup && transition_weight->getValue() > state_weight->getValue())) {
+					new_weight = transition_weight;
 				}
+				Symbol* symbol = alphabet->at(edge->getSymbol()->getId());
+				State* from = states->at(edge->getFrom()->getId() * m + state_weight->getId());
+				State* to = states->at(edge->getTo()->getId() * m + new_weight->getId());
+				Edge* new_edge = new Edge(symbol, transition_weight, from, to);
+				from->addEdge(new_edge);
+				from->addSuccessor(new_edge);
+				to->addPredecessor(new_edge);
+				counts[transition_weight->getValue()]++;
+
 			}
 		}
 	}
@@ -802,89 +788,84 @@ Automaton* Automaton::monotonize (value_function_t type) const {
 	return new Automaton(name, alphabet, states, weights, min_weight, max_weight, initial);
 }
 
-// IN PROGRESS
+// it is not possible to implement this truly in-place because dynamic arrays cannot be truly resized -- need to copy them into a new, larger array
+// i think the same also goes for trim() -- need to copy the reachable stuff into a new, smaller array
 void Automaton::monotonizeInPlace (value_function_t type) {
-	if (type != Inf || type != Sup) {
-		fail("monotonize only possible for inf or sup automata");
-	}
+	// if (type != Inf && type != Sup) {
+	// 	fail("monotonize only possible for inf or sup automata");
+	// }
 
 	// State::RESET();
-	// Symbol::RESET();
-	// Weight<weight_t>::RESET();
+	// // Symbol::RESET();
+	// // Weight<weight_t>::RESET();
 
-	std::string name = "Monotone(" + this->getName() + ")";
+	// std::string name = "Monotone(" + this->getName() + ")";
 
-	MapVec<Symbol*>* alphabet = new MapVec<Symbol*>(this->alphabet->size());
-	for (unsigned int symbol_id = 0; symbol_id < this->alphabet->size(); ++symbol_id) {
-		alphabet->insert(symbol_id, new Symbol(this->alphabet->at(symbol_id)));
-	}
+	// // MapVec<Symbol*>* alphabet = new MapVec<Symbol*>(this->alphabet->size());
+	// // for (unsigned int symbol_id = 0; symbol_id < this->alphabet->size(); ++symbol_id) {
+	// // 	alphabet->insert(symbol_id, new Symbol(this->alphabet->at(symbol_id)));
+	// // }
 
-	unsigned int n = this->states->size();
-	unsigned int m = this->weights->size();
+	// unsigned int n = this->states->size();
+	// unsigned int m = this->weights->size();
 
-	MapVec<State*>* states = new MapVec<State*>(n * m);
-	for (unsigned int state_id = 0; state_id < n; ++state_id) {
-		for (unsigned int weight_id = 0; weight_id < m; ++weight_id) {
-			std::string state_name = "(" + this->states->at(state_id)->toString() + ", " + this->weights->at(weight_id)->toString() + ")";
-			State* new_state = new State(state_name, this->alphabet->size());
-			states->insert(state_id * n + weight_id, new_state);
-		}
-	}
+	// MapVec<State*>* states = new MapVec<State*>(n * m);
+	// for (unsigned int state_id = 0; state_id < n; ++state_id) {
+	// 	for (unsigned int weight_id = 0; weight_id < m; ++weight_id) {
+	// 		std::string state_name = "(" + this->states->at(state_id)->toStringOnlyName() + ", " + this->weights->at(weight_id)->toString() + ")";
+	// 		State* new_state = new State(state_name, this->alphabet->size());
+	// 		states->insert(state_id * n + weight_id, new_state);
+	// 	}
+	// }
 
-	for (unsigned int id = 0; id < this->states->size(); ++id) {
-		delete this->states->at(id);
-	}
-	delete this->states;
-	this->states = states;
+	// for (unsigned int state_id = 0; state_id < n; ++state_id) {
+	// 	for (Edge* edge : *(this->states->at(state_id)->getEdges())) {
+	// 		Weight<weight_t>* transition_weight = weights->at(edge->getWeight()->getId());
+	// 		for (unsigned int weight_id = 0; weight_id < m; ++weight_id) {
+	// 			Weight<weight_t>* state_weight = weights->at(weight_id);
+	// 			Weight<weight_t>* new_weight = state_weight;
+	// 			if ((type == Inf && transition_weight->getValue() < state_weight->getValue()) || (type == Sup && transition_weight->getValue() > state_weight->getValue())) {
+	// 				new_weight = transition_weight;
+	// 			}
+	// 			Symbol* symbol = alphabet->at(edge->getSymbol()->getId());
+	// 			State* from = states->at(edge->getFrom()->getId() * m + state_weight->getId());
+	// 			State* to = states->at(edge->getTo()->getId() * m + new_weight->getId());
+	// 			Edge* new_edge = new Edge(symbol, transition_weight, from, to);
+	// 			from->addEdge(new_edge);
+	// 			from->addSuccessor(new_edge);
+	// 			to->addPredecessor(new_edge);
+	// 		}
+	// 	}
+	// }
 
-	State* initial;
-	std::map<weight_t,int> counts;
+	// State* initial;
 
-	if (type == Inf) {
-		initial = states->at(this->initial->getId() * m + this->weights->size() - 1); // weights are ordered
-	}
-	else if (type == Sup) {
-		initial = states->at(this->initial->getId() * m);
-	}
+	// if (type == Inf) {
+	// 	initial = states->at(this->initial->getId() * m + this->weights->size() - 1); // weights are ordered
+	// }
+	// else if (type == Sup) {
+	// 	initial = states->at(this->initial->getId() * m);
+	// }
 
-	for (unsigned int state_id = 0; state_id < n; ++state_id) {
-		for (Edge* edge : *(this->states->at(state_id)->getEdges())) {
-			Weight<weight_t>* transition_weight = weights->at(edge->getWeight()->getId());
-			for (unsigned int weight_id = 0; weight_id < m; ++weight_id) {
-				Weight<weight_t>* state_weight = weights->at(weight_id);
-				Weight<weight_t>* new_weight = state_weight;
-				if ((type == Inf && transition_weight->getValue() < state_weight->getValue()) || (type == Sup && transition_weight->getValue() > state_weight->getValue())) {
-					new_weight = transition_weight;
-				}
-				Symbol* symbol = alphabet->at(edge->getSymbol()->getId());
-				State* from = states->at(edge->getFrom()->getId() * m + state_weight->getId());
-				State* to = states->at(edge->getTo()->getId() * m + new_weight->getId());
-				Edge* new_edge = new Edge(symbol, transition_weight, from, to);
-				from->addEdge(new_edge);
-				from->addSuccessor(new_edge);
-				to->addPredecessor(new_edge);
-				counts[transition_weight->getValue()]++;
-			}
-		}
-	}
+	// for (unsigned int state_id = 0; state_id < this->states->size(); ++state_id) {
+	// 	for (Symbol* symbol : *(this->states->at(state_id)->getAlphabet())) {
+	// 		for (Edge* edge : *(this->states->at(state_id)->getSuccessors(symbol->getId()))) {
+	// 			delete edge;
+	// 		}
+	// 	}
+	// }
 
-	MapVec<Weight<weight_t>*>* weights = new MapVec<Weight<weight_t>*>(counts.size());
-	weight_t min_weight;
-	weight_t max_weight;
-	unsigned int counter = 0;
-	for (auto weightCount : counts) {
-		Weight<weight_t>* w = new Weight<weight_t>(weightCount.first);
-		weights->insert(counter, w);
+	// for (unsigned int id = 0; id < this->states->size(); ++id) {
+	// 	delete this->states->at(id);
+	// }
+	// delete this->states;
 
-		if (counter == 0) {
-			min_weight = weightCount.first;
-		}
-		if (counter == counts.size() - 1) {
-			max_weight = weightCount.first;
-		}
+	// delete this->SCCs_tree;
 
-		counter++;
-	}
+	// this->name = name;
+	// this->states = states;
+	// this->initial = initial;
+	// this->initialize_SCC();	
 }
 
 

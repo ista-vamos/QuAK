@@ -88,7 +88,7 @@ public:
 	
 	Automaton* safetyClosure(value_function_t value_function) const;
 	Automaton* product(value_function_t value_function, const Automaton* B, product_weight_t product_weight) const;
-	Automaton* trim() const;
+	Automaton* trim();
 	Automaton* complete(value_function_t value_function) const;
 	Automaton* monotonize(value_function_t value_function) const;
 	void monotonizeInPlace(value_function_t value_function);

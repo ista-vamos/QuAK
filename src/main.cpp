@@ -13,11 +13,25 @@
 int main(int argc, char **argv) {
 	printf("--------------------------------------------\n");
 
+	Automaton* A = new Automaton("./samples/test3.txt");
+	Automaton* B = A->monotonize(Sup);
+	Automaton* C = B->trim();
+
+	std::cout << std::endl << A->toString() << std::endl;
+	std::cout << std::endl << B->toString() << std::endl;
+	std::cout << std::endl << C->toString() << std::endl;
+
+	delete A;
+	delete B;
+	delete C;
+/*	
+	printf("--------------------------------------------\n");
+
 	Automaton* toto = new Automaton("./samples/bigb_SUBSET.txt");
 	std::cout << std::endl << toto->toString() << std::endl;
 
 	printf("--------------------------------------------\n");
-/*
+
 	Word* period = new Word(toto->getAlphabet()->at(0));
 	TargetOf* set = new TargetOf();
 	State* state = toto->getStates()->at(1);
@@ -28,6 +42,7 @@ int main(int argc, char **argv) {
 	printf("--------------------------------------------\n");
 */
 
+/*
 	printf("MAX prefixes fix-point: computing ..\r");
 	int iter_W = 1;
 	FixpointStem* postIrev = new FixpointStem(toto->getInitial(), toto->getInitial(), true);
@@ -53,7 +68,7 @@ int main(int argc, char **argv) {
 		y += postI->getSetOfTargets(toto->getStates()->at(state_id))->size();
 	}
 	printf("Size %u\n", y);
-
+*/
 
 /*
 

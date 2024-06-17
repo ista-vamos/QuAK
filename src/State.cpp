@@ -137,6 +137,11 @@ std::string State::toString() const {
 	return this->name + ", scc: " + std::to_string(this->my_scc);
 }
 
+std::string State::toStringOnlyName() const {
+	return this->name;
+}
+
+
 
 /*
 int State::cmp (const State* other) const { return this->id - other->id; }
