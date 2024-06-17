@@ -20,7 +20,9 @@ void SetStd<T_element>::erase (T_element element) { this->all.erase(element); }
 
 
 template <typename T_element>
-unsigned int SetStd<T_element>::size () const { return this->all.size(); }
+unsigned int SetStd<T_element>::size () const {
+	return this->all.size();
+}
 
 
 template <typename T_element>

@@ -11,7 +11,7 @@
 
 template <typename T_key, typename T_value>
 class MapStd {
-private:
+protected:
 	std::map<T_key, T_value> all;
 public:
 	MapStd();
@@ -19,7 +19,7 @@ public:
 	void insert(T_key key, T_value value);
 	unsigned int size () const;
 	T_value at (T_key key);
-	bool contains (T_key key) { return all.find(key) != all.end();};
+	bool contains (T_key key) { return all.find(key) != all.end(); };
 	void update (T_key key, T_value value);
 	std::string toString(std::string (*f_key) (T_key key), std::string (*f_value) (T_value value)) const;
 	auto begin() {return all.begin();};

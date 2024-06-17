@@ -14,6 +14,7 @@ public:
 	~FixpointLoop ();
 	FixpointLoop (State* initA, TargetOf* initB, unsigned int capacity);
 	bool apply ();
+	SetStd<std::pair<ContextOf*,Word*>>* getSetOfContexts (State* stateA);
 	ContextOf* post (ContextOf* currentB, Symbol* symbol);
 	bool addIfExtreme (State* stateA, ContextOf* setB, Word* word);
 };

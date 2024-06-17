@@ -16,6 +16,7 @@ public:
 	~FixpointStem ();
 	FixpointStem (State* initA, State* initB, bool rev);
 	bool apply ();
+	SetStd<std::pair<TargetOf*,Word*>>* getSetOfTargets (State* stateA);
 	TargetOf* post (TargetOf* currentB, Symbol* symbol);
 	bool addIfExtreme (State* stateA, TargetOf* setB, Word* word);
 };

@@ -32,7 +32,7 @@ Symbol* Word::at (unsigned int i) {
 std::string Word::toString() {
 	std::string s = "";
 	for (unsigned int i = 0; i < this->all->size(); ++i) {
-		s = s + "(" + this->all->at(i)->toString() + ")";
+		s = s + this->all->at(i)->toString();
 	}
 	return s;
 }

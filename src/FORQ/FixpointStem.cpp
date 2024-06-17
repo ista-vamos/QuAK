@@ -22,18 +22,25 @@ FixpointStem::FixpointStem (State* initA, State* initB, bool rev) {
 }
 
 
+SetStd<std::pair<TargetOf*,Word*>>* FixpointStem::getSetOfTargets (State* stateA) {
+	return this->content->getSetOfTargets(stateA);
+}
+
+
 bool FixpointStem::addIfExtreme (State* stateA, TargetOf* setB, Word* word) {
-	if (this->reversed_inclusion)
+	if (this->reversed_inclusion) {
 		return this->content->addIfMax(stateA, setB, word);
-	else
+	}
+	else {
 		return this->content->addIfMin(stateA, setB, word);
+	}
 }
 
 
 TargetOf* FixpointStem::post (TargetOf* currentB, Symbol* symbol) {
 	TargetOf* postB = new TargetOf();
-	for (auto iter = currentB->begin(); iter != currentB->end(); ++iter) {
-		for (Edge* edge : *((*iter)->getSuccessors(symbol->getId())))  {
+	for (State* state: *currentB) {//fixme: check context
+		for (Edge* edge : *(state->getSuccessors(symbol->getId())))  {
 			postB->add(edge->getTo());
 		}
 	}
@@ -45,18 +52,18 @@ bool FixpointStem::apply () {
 	for (std::pair<State*, SetStd<std::pair<TargetOf*,Word*>>*> mapfromA : *(this->updates)) {
 		for (Symbol* symbol : *(mapfromA.first->getAlphabet())) {
 			for (std::pair<TargetOf*,Word*> pair : *(mapfromA.second)) {
-				TargetOf* postB = post(pair.first, symbol);
-				Word* word = new Word(pair.second, symbol);
-				bool flag = true;
 				for (Edge* edgeA : *(mapfromA.first->getSuccessors(symbol->getId()))) {
+					TargetOf* postB = post(pair.first, symbol);
+					Word* word = new Word(pair.second, symbol);
 					if(addIfExtreme(edgeA->getTo(), postB, word)) {
-						buffer->add(edgeA->getTo(), postB, word);
-						flag = false;
+						TargetOf* buffer_postB = post(pair.first, symbol);//fixme:
+						Word* buffer_word = new Word(pair.second, symbol);
+						buffer->add(edgeA->getTo(), buffer_postB, buffer_word);
 					}
-				}
-				if (flag == true) {
-					delete word;
-					delete postB;
+					else {
+						delete word;
+						delete postB;
+					}
 				}
 			}
 		}
@@ -66,8 +73,9 @@ bool FixpointStem::apply () {
 	tmp = this->updates;
 	this->updates = this->buffer;
 	this->buffer = tmp;
+	this->buffer->clear();
 
-	return (updates->size() == 0);
+	return (updates->size() > 0);
 }
 
 

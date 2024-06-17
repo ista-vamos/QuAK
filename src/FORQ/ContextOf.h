@@ -13,6 +13,7 @@ public:
 	ContextOf(unsigned int capacity);
 	void add (State* fromB, State* toB, unsigned int weight_id);
 	bool smaller_than (ContextOf* other);
+	unsigned int size () { return this->size(); };
 	StateRelation* at (unsigned int weight_id) const;
 };
 

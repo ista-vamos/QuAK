@@ -8,9 +8,9 @@
 
 class Parser {
 private:
-	std::string filename;
+	std::string filename_in;
 	int line_counter;
-	std::ifstream file;
+	std::ifstream file_in;
 
 	std::string initial = "";
 	MapStd<std::string,unsigned int> states;

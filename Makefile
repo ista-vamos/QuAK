@@ -19,7 +19,7 @@ BIN = chasm.out
 default: all
 
 
-exe:
+run:
 	./$(BINDIR)/$(BIN)
 
 
@@ -43,5 +43,6 @@ $(OBJDIR)/%.cpp.o: $(SRCDIR)/%.cpp
 
 clean:
 	rm -f $(wildcard $(OBJDIR)/*.o) $(wildcard $(OBJDIR)/*/*.o)
+	rm -f $(BINDIR)/$(BIN)
 
 
