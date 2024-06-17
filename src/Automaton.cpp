@@ -157,7 +157,7 @@ Automaton::Automaton (std::string filename) :
 }
 
 // TODO: CHECK
-// fixme: check if it is necessary, remove otherwise
+// fixme: check if it is necessary, remove otherwise -- i would keep it because copy constructors are useful in general
 // so far used in trim and complete
 Automaton::Automaton (const Automaton& to_copy) {
 	State::RESET();
@@ -511,11 +511,13 @@ Automaton* Automaton::booleanize(Weight<weight_t> threshold) const {
 }
 
 
-// TODO: remove
+// TODO: remove -- why? we can modify our constructions to not need this, but this is a useful function in general
 Automaton* Automaton::trim() const {
 	if (this->nb_reachable_states == this->states->size()) {
 		return new Automaton(*this);
 		// fixme this is terrible, we should really try to keep lost costs
+		// i agree but i would do this kind of optimizations at the very end -- we still have other features to add
+		// also, making new object could be useful when you want to debug or play around by changing the initial state
 	}
 
 	State::RESET();
@@ -585,6 +587,7 @@ Automaton* Automaton::trim() const {
 Automaton* Automaton::complete(value_function_t value_function) const {
 	if (this->isComplete()) {
 		return new Automaton(*this);// fixme: complete should complete the automaton not crating one
+		// i agree, but same thing as trim()
 	}
 
 	// State::RESET();
@@ -837,8 +840,8 @@ Automaton* Automaton::monotonize (value_function_t type) const {
 // TODO: CHECK
 // "this" needs to be monotone and deterministic
 // fixme: I don't understand, the liveness component is the copy of the original automaton where
-// --> all transitions with the local-top value takes the original min_weight_value
-// --> all transitions with NOT the local-top value takes the original max_weight_value
+// --> all transitions with the local-top value takes the original min_weight_value -- no they need to take a large value, e.g., the top value
+// --> all transitions with NOT the local-top value takes the original max_weight_value -- no they need to take the original weight
 Automaton* Automaton::livenessComponent (value_function_t type) const {
 	State::RESET();
 	Symbol::RESET();
@@ -862,10 +865,12 @@ Automaton* Automaton::livenessComponent (value_function_t type) const {
 	weight_t min_weight = this->max_weight;
 	weight_t max_weight = this->min_weight;
 	for (unsigned int weight_id = 0; weight_id < this->weights->size(); ++weight_id) {
-		if (top_values[weight_id] == this->weights->at(weight_id)->getValue()) {
+		if (top_values[weight_id] == this->weights->at(weight_id)->getValue()) { // need something like top_values[this->weights->at(weight_id)->getTag()] here
+			// if the original transition agrees with the safety closure, liveness component takes a large value (top value of the automaton here)
 			weights->insert(weight_id, new Weight<weight_t>(top_values[initial->getId()]));
 		}
 		else {
+			// otherwise, it takes the original transition's weight
 			weights->insert(weight_id, new Weight<weight_t>(this->weights->at(weight_id)->getValue()));
 		}
 		// fixme: min & max are computed with weights that may never occur
@@ -893,7 +898,7 @@ Automaton* Automaton::livenessComponent (value_function_t type) const {
 
 // TODO: CHECK
 // fixme:
-//		argument type is useless
+//		argument type is useless -- dsum would need a slightly different construction if we want to do it
 //		check memory leaks
 Automaton* Automaton::constantAutomaton (value_function_t type, Weight<weight_t> v) const {
 	State::RESET();
@@ -950,7 +955,7 @@ bool Automaton::isDeterministic () const {
 }
 
 
-// TODO: remove
+// TODO: remove -- why? we don't have to use it ourselves but it is a useful function in general
 bool Automaton::isComplete () const {
 	for (unsigned int state_id = 0; state_id < this->states->size(); ++state_id) {
 		for (unsigned int symbol_id = 0; symbol_id < this->alphabet->size(); ++symbol_id) {
@@ -1070,6 +1075,7 @@ bool Automaton::isIncludedIn(value_function_t type, const Automaton* rhs) const 
 
 
 // TODO: remove? we only need inclusion test since equivalence are against safety closures
+// why? this is a useful function in general
 bool Automaton::isEquivalent (value_function_t type, const Automaton* rhs) const {
 	return rhs->isIncludedIn(type, this) && this->isIncludedIn(type, rhs);
 }
@@ -1121,7 +1127,7 @@ bool Automaton::isLive (value_function_t type) const {
 }
 
 
-
+// 
 
 
 
