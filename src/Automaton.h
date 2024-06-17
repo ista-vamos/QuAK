@@ -8,7 +8,8 @@
 #include "Weight.h"
 #include "State.h"
 #include "Symbol.h"
-
+#include "Word.h"
+#include "FORQ/TargetOf.h"
 
 
 typedef enum {
@@ -117,10 +118,18 @@ public:
 	bool isLive (value_function_t type) const; // checks if SafetyClosure(A) = Top_A
 	
 	State* getInitial () const;
+	MapVec<Symbol*>* getAlphabet() const;
+	MapVec<State*>* getStates() const;
 	std::string getName() const;
 
 	static std::string toString (Automaton* A);
 	std::string toString () const;
+
+
+
+	weight_t iterable_final_product (State* loop, unsigned int j, weight_t accum, State* from, unsigned int i, Word* period, SetStd<std::pair<State*, unsigned int>>* P);
+	weight_t reachable_final_product (State* from, unsigned int i, Word* period, SetStd<std::pair<State*, unsigned int>>* S);
+	weight_t membership (TargetOf* U, Word* period);
 };
 
 #endif /* AUTOMATON_H_ */

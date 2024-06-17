@@ -18,7 +18,7 @@ public:
 	~SetStd();
 	void insert(T_element element);
 	void erase(T_element element);
-	bool contains (T_element element) { return all.find(element) != all.end();};
+	bool contains (T_element element) { return all.find(element) != all.end(); };
 	unsigned int size() const;
 	std::string toString (std::string (*f) (T_element element)) const;
 	auto begin() {return all.begin();};
@@ -60,9 +60,11 @@ template class SetStd<std::string>;
 template class SetStd<weight_t>;
 template class SetStd<Symbol*>;
 template class SetStd<State*>;
+template class SetStd<Word*>;
 template class SetStd<Edge*>;
 template class SetStd<std::pair<TargetOf*,Word*>>;
 template class SetStd<std::pair<ContextOf*,Word*>>;
+template class SetStd<std::pair<State*, unsigned int>>;
 
 template class SetList<SCC_Tree*>;
 template class SetList<State*>;

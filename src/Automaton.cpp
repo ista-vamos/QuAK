@@ -412,6 +412,9 @@ void Automaton::initialize_SCC (void) {
 
 // -------------------------------- Getters -------------------------------- //
 
+MapVec<Symbol*>* Automaton::getAlphabet() const { return this->alphabet; }
+MapVec<State*>* Automaton::getStates() const { return this->states; }
+
 
 State* Automaton::getInitial () const { return initial; }
 
@@ -1476,18 +1479,26 @@ std::string Automaton::top_toString() const {
 	s.append("\n\t\t   Inf -> ");
 	s.append(x>max_weight ? "+infinity" : std::to_string(x));
 
+/*
+	// fixme: top_Sup is erroneous (runtime error)
 	x = top_Sup(top_values);
 	s.append("\n\t\t   Sup -> ");
 	s.append(x<min_weight ? "-infinity" : std::to_string(x));
+*/
 
+	// fixme: top_LimInf is erroneous (wrong answer)
 	x = top_LimInf(top_values);
 	s.append("\n\t\tLimInf -> ");
 	s.append(x<min_weight ? "+infinity" : std::to_string(x));
 
+/*
+	// fixme: top_LimSup is erroneous (runtime error)
 	x = top_LimSup(top_values);
 	s.append("\n\t\tLimSup -> ");
 	s.append(x<min_weight ? "-infinity" : std::to_string(x));
+*/
 
+	// fixme: top_LimAvg is erroneous (wrong answer)
 	y = top_LimAvg(top_values);
 	s.append("\n\t\tLimAvg -> ");
 	s.append(y<min_weight ? "-infinity" : std::to_string(y));
@@ -1525,20 +1536,6 @@ std::string Automaton::toString () const {
 			s.append(states->at(state_id)->getSuccessors(symbol->getId())->toString(Edge::toString));
 		}
 	}
-	// s.append("\n\t");
-	// s.append("successors:");
-	// for (unsigned int state_id = 0; state_id < states->size(); ++state_id) {
-	// 	for (unsigned int symbol_id = 0; symbol_id < alphabet->size(); ++symbol_id) {
-	// 		s.append(states->at(state_id)->getSuccessors(symbol_id)->toString(Edge::toString));
-	// 	}
-	// }
-	// s.append("\n\t");
-	// s.append("predecessors:");
-	// for (unsigned int state_id = 0; state_id < states->size(); ++state_id) {
-	// 	for (unsigned int symbol_id = 0; symbol_id < alphabet->size(); ++symbol_id) {
-	// 		s.append(states->at(state_id)->getPredecessors(symbol_id)->toString(Edge::toString));
-	// 	}
-	// }
 	s.append("\n");
 	s.append(top_toString());
 	return s;
@@ -1549,5 +1546,63 @@ std::string Automaton::Automaton::toString (Automaton* A) {
 	return A->toString();
 }
 
+
+
+
+
+
+
+
+// -------------------------------- Membership -------------------------------- //
+
+
+weight_t Automaton::iterable_final_product (State* origin, unsigned int base, weight_t accum, State* from, unsigned int i, Word* period, SetStd<std::pair<State*, unsigned int>>* P) {
+	weight_t value = this->min_weight - 1;
+	P->insert(std::pair<State*, unsigned int>(from, i));
+
+	for (Edge* edge : *(from->getSuccessors(period->at(i)->getId()))) {
+		unsigned int ii = (i+1 == period->getLength())?0:i+1;
+		if (P->contains(std::pair<State*, unsigned int>(edge->getTo(), ii)) == false) {
+			weight_t x = iterable_final_product(origin, base, std::max(accum, edge->getWeight()->getValue()), edge->getTo(), ii, period, P);
+			value = std::max(x, value);
+		}
+		if (ii == base && origin == edge->getTo()) {
+			weight_t x = std::max(accum, edge->getWeight()->getValue());
+			value = std::max(x, value);
+		}
+	}
+
+	return value;
+}
+
+
+weight_t Automaton::reachable_final_product (State* from, unsigned int i, Word* period, SetStd<std::pair<State*, unsigned int>>* S) {
+	weight_t value = this->min_weight - 1;
+	S->insert(std::pair<State*, unsigned int>(from, i));
+
+	for (Edge* edge : *(from->getSuccessors(period->at(i)->getId()))) {
+		unsigned int ii = (i+1 == period->getLength())?0:i+1;
+		if (S->contains(std::pair<State*, unsigned int>(edge->getTo(), ii)) == false) {
+			value = std::max(reachable_final_product(edge->getTo(), ii, period, S), value);
+		}
+	}
+
+	SetStd<std::pair<State*, unsigned int>>* P = new SetStd<std::pair<State*, unsigned int>>();
+	value = std::max(iterable_final_product(from, i, this->min_weight-1, from, i, period, P), value);
+	delete P;
+	return value;
+}
+
+
+//O((nk+m).nk) -- we can do better, O(nk+m)
+weight_t Automaton::membership (TargetOf* U, Word* period) {
+	weight_t value = this->min_weight - 1;
+	for (State* start : *U) {
+		SetStd<std::pair<State*, unsigned int>>* S = new SetStd<std::pair<State*, unsigned int>>();
+		value = std::max(reachable_final_product(start, 0, period, S), value);
+		delete S;
+	}
+	return value;
+}
 
 

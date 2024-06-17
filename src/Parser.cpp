@@ -10,7 +10,7 @@
 
 void Parser::abort(std::string message) {
 	std::cerr << "@Error: parsing " << message.c_str() << std::endl;
-	std::cerr << "File: " << this->filename.c_str() << std::endl;
+	std::cerr << "File: " << this->filename_in.c_str() << std::endl;
 	std::cerr << "Line: " << this->line_counter << std::endl;
 	fflush(stdout);fflush(stderr);
 	exit(EXIT_FAILURE);
@@ -87,12 +87,12 @@ std::string Parser::readEdge (std::string line) {
 
 
 Parser::Parser(std::string filename) {
-	this->filename = filename;
+	this->filename_in = filename;
 	this->line_counter = 0;
-	this->file.open(filename);
+	this->file_in.open(filename);
 
 
-	if (this->file.is_open() == false) {
+	if (this->file_in.is_open() == false) {
 		std::cerr << "@Error: opening file " << filename << std::endl;
 		std::cerr << "Message: " << strerror(errno) << std::endl;
 		fflush(stdout);fflush(stderr);
@@ -101,12 +101,12 @@ Parser::Parser(std::string filename) {
 
 
 	std::string line;
-	while (this->initial == "" && getline(this->file, line)) {
+	while (this->initial == "" && getline(this->file_in, line)) {
 		line_counter++;
 		this->initial = readEdge(line);
 	}
 
-	while (getline(this->file, line)) {
+	while (getline(this->file_in, line)) {
 		line_counter++;
 		readEdge(line);
 	}
@@ -127,7 +127,7 @@ Parser::Parser(std::string filename) {
 	//	this->predecessors.at(edgeweird.second.first)->update(edgeweird.first.first, y+1);
 	//}
 
-	this->file.close();
+	this->file_in.close();
 }
 
 Parser::~Parser() {

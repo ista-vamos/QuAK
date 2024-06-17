@@ -18,6 +18,14 @@ PostContextVariable::PostContextVariable () :
 
 
 
+SetStd<std::pair<ContextOf*,Word*>>* PostContextVariable::getSetOfContexts (State* stateA) {
+	return this->at(stateA);
+}
+
+
+
+
+
 void PostContextVariable::add (State* stateA, ContextOf* setB, Word* w) {
 	if (this->contains(stateA) == false)
 		this->insert(stateA, new SetStd<std::pair<ContextOf*, Word*>>());
@@ -27,6 +35,7 @@ void PostContextVariable::add (State* stateA, ContextOf* setB, Word* w) {
 
 bool PostContextVariable::addIfMin (State* stateA, ContextOf* setB, Word* w) {
 	if (this->contains(stateA) == false) {
+		this->insert(stateA, new SetStd<std::pair<ContextOf*, Word*>>());
 		this->at(stateA)->insert(std::pair<ContextOf*, Word*>(setB, w));
 		return true;
 	}
@@ -34,9 +43,9 @@ bool PostContextVariable::addIfMin (State* stateA, ContextOf* setB, Word* w) {
 	for (std::pair<ContextOf*, Word*> pair : *(this->at(stateA))) {
 		if (pair.first->smaller_than(setB) == true) return false;
 		if (setB->smaller_than(pair.first) == true) {
-			this->at(stateA)->erase(pair);
 			delete pair.first;
 			delete pair.second;
+			this->at(stateA)->erase(pair);
 		}
 	}
 
@@ -49,6 +58,7 @@ bool PostContextVariable::addIfMin (State* stateA, ContextOf* setB, Word* w) {
 
 bool PostContextVariable::addIfMax (State* stateA, ContextOf* setB, Word* w) {
 	if (this->contains(stateA) == false) {
+		this->insert(stateA, new SetStd<std::pair<ContextOf*, Word*>>());
 		this->at(stateA)->insert(std::pair<ContextOf*, Word*>(setB, w));
 		return true;
 	}
@@ -56,9 +66,9 @@ bool PostContextVariable::addIfMax (State* stateA, ContextOf* setB, Word* w) {
 	for (std::pair<ContextOf*, Word*> pair : *(this->at(stateA))) {
 		if (setB->smaller_than(pair.first) == true) return false;
 		if (pair.first->smaller_than(setB) == true) {
-			this->at(stateA)->erase(pair);
 			delete pair.first;
 			delete pair.second;
+			this->at(stateA)->erase(pair);
 		}
 	}
 
