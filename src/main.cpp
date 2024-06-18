@@ -122,11 +122,26 @@ bool relevance_test (TargetOf* W, ContextOf* V) {
 int main(int argc, char **argv) {
 	printf("--------------------------------------------\n");
 
+	Automaton* A = new Automaton("./samples/test3.txt");
+	Automaton* B = A->monotonize(Sup);
+	Automaton* C = B->trim();
+
+	std::cout << std::endl << A->toString() << std::endl;
+	std::cout << std::endl << B->toString() << std::endl;
+	std::cout << std::endl << C->toString() << std::endl;
+
+	delete A;
+	delete B;
+	delete C;
+/*	
+	printf("--------------------------------------------\n");
+
 	Automaton* toto = new Automaton("./samples/bigb_SUBSET.txt");
 	toto->print();
 	//inclusion(toto, toto);
 
 	printf("--------------------------------------------\n");
+
 
 	//Automaton* totoInfSafe = toto->safetyClosure(Inf);
 	//inclusion(toto, totoInfSafe);// MapVec error
@@ -138,6 +153,45 @@ int main(int argc, char **argv) {
 	//inclusion(toto, titi); // wrong answer
 	//printf("--------------------------------------------\n");
 
+
+
+	Word* period = new Word(toto->getAlphabet()->at(0));
+	TargetOf* set = new TargetOf();
+	State* state = toto->getStates()->at(1);
+	set->add(state);
+	weight_t value = toto->membership(set, period);
+	std::cout << std::endl << "[" << state->getName() << "]({" << period->toString() << "}) = " << value << std::endl;
+
+	printf("--------------------------------------------\n");
+*/
+
+/*
+	printf("MAX prefixes fix-point: computing ..\r");
+	int iter_W = 1;
+	FixpointStem* postIrev = new FixpointStem(toto->getInitial(), toto->getInitial(), true);
+	while (postIrev->apply()) {
+		iter_W++;
+	}
+	printf("MAX prefixes fix-point: done ( %d iterations )\n", iter_W);
+	unsigned int x = 0;
+	for (unsigned int state_id = 0; state_id < toto->getStates()->size(); ++state_id) {
+		x += postIrev->getSetOfTargets(toto->getStates()->at(state_id))->size();
+	}
+	printf("Size %u\n", x);
+
+	printf("MIN prefixes fix-point: computing ..\r");
+	int iter_U = 1;
+	FixpointStem* postI = new FixpointStem(toto->getInitial(), toto->getInitial(), false);
+	while (postI->apply()) {
+		iter_U++;
+	}
+	printf("MIN prefixes fix-point: done ( %d iterations )\n", iter_U);
+	unsigned int y = 0;
+	for (unsigned int state_id = 0; state_id < toto->getStates()->size(); ++state_id) {
+		y += postI->getSetOfTargets(toto->getStates()->at(state_id))->size();
+	}
+	printf("Size %u\n", y);
+*/
 
 /*
 	Automaton* A = new Automaton("./samples/test3.txt");

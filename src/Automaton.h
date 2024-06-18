@@ -87,9 +87,10 @@ public:
 	
 	Automaton* safetyClosure(value_function_t value_function) const;
 	Automaton* product(value_function_t value_function, const Automaton* B, product_weight_t product_weight) const;
-	Automaton* trim() const;
+	Automaton* trim();
 	Automaton* complete(value_function_t value_function) const;
 	Automaton* monotonize(value_function_t value_function) const;
+	void monotonizeInPlace(value_function_t value_function);
 	Automaton* booleanize(Weight<weight_t> v) const;
 	Automaton* constantAutomaton (value_function_t type, Weight<weight_t> v) const;
 	Automaton* livenessComponent (value_function_t type) const;
@@ -123,13 +124,14 @@ public:
 	weight_t getMaxWeightValue () const;
 
 	std::string getName() const;
-	unsigned int getMinWeightId() const;
-	unsigned int getMaxWeightId() const;
-	// MapVec<Weight<weight_t>*>* getWeights() const;
 
 	void print_top() const;
 	void print () const;
 
+	/*
+	static std::string toString (Automaton* A);
+	std::string toString () const;
+	*/
 
 
 	weight_t iterable_final_product (State* loop, unsigned int j, weight_t accum, State* from, unsigned int i, Word* period, SetStd<std::pair<State*, unsigned int>>* P);

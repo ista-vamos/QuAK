@@ -35,6 +35,7 @@ public:
 	void addPredecessor (Edge* edge);
 	static std::string toString (State *state);
 	std::string toString() const;
+	std::string toStringOnlyName() const;
 
 	/*
 	bool operator< (const State* other) const;
