@@ -42,12 +42,12 @@
 #define delete_verbose(...)
 #endif
 
-//#define TMP_VERBOSE
-#ifdef TMP_VERBOSE
-#define tmp_verbose(...)								\
+//#define NIC_VERBOSE
+#ifdef NIC_VERBOSE
+#define NIC_verbose(...)								\
 		fprintf(stdout, __VA_ARGS__)
 #else
-#define tmp_verbose(...)
+#define NIC_verbose(...)
 #endif
 
 

@@ -31,9 +31,12 @@ Symbol* Word::at (unsigned int i) {
 
 std::string Word::toString() {
 	std::string s = "";
-	for (unsigned int i = 0; i < this->all->size(); ++i) {
-		s = s + this->all->at(i)->toString();
+	for (Symbol* symbol : *(this->all)) {
+		s.append(symbol->toString());
 	}
+//	for (unsigned int i = 0; i < this->all->size(); ++i) {
+//		s.append(this->all->at(i)->toString());
+//	}
 	return s;
 }
 

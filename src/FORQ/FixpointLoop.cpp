@@ -14,57 +14,35 @@ FixpointLoop::FixpointLoop (State* initA, TargetOf* initB, unsigned int capacity
 	this->updates = new PostContextVariable();
 	this->buffer = new PostContextVariable();
 
+
 	for (Symbol* symbol : *(initA->getAlphabet())) {
-		ContextOf* init_setB = new ContextOf(capacity);
+		ContextOf* init_setB = new ContextOf(this->capacity);
+
 		for (State* fromB : *initB) {
 			for (Edge* edgeB : *(fromB->getSuccessors(symbol->getId()))) {
 				init_setB->add(fromB, edgeB->getTo(), edgeB->getWeight()->getId());
 			}
 		}
+
 		for (Edge* edgeA : *(initA->getSuccessors(symbol->getId()))) {
 			Word* init_word = new Word(symbol);
-			this->content->add(edgeA->getTo(), init_setB, init_word);
-			this->updates->add(edgeA->getTo(), init_setB, init_word);
+			this->content->add(edgeA->getTo(), init_setB, init_word, edgeA->getWeight()->getValue());
+			this->updates->add(edgeA->getTo(), init_setB, init_word, edgeA->getWeight()->getValue());
 		}
 	}
 }
 
 
 
-SetStd<std::pair<ContextOf*,Word*>>* FixpointLoop::getSetOfContexts (State* stateA) {
-	return this->content->getSetOfContexts(stateA);
+SetStd<std::pair<ContextOf*,std::pair<Word*,weight_t>>>* FixpointLoop::getSetOfContextsOrNULL (State* stateA) {
+	return this->content->getSetOfContextsOrNULL(stateA);
 }
 
-bool FixpointLoop::apply () {
-	for (std::pair<State*, SetStd<std::pair<ContextOf*,Word*>>*> mapfromA : *(this->updates)) {
-		for (Symbol* symbol : *(mapfromA.first->getAlphabet())) {
-			for (std::pair<ContextOf*,Word*> pair : *(mapfromA.second)) {
-				for (Edge* edgeA : *(mapfromA.first->getSuccessors(symbol->getId()))) {
-					ContextOf* postB = post(pair.first, symbol);//fixme:
-					Word* word = new Word(pair.second, symbol);
-					if (addIfExtreme(edgeA->getTo(), postB, word)) {
-						ContextOf* buffer_postB = post(pair.first, symbol);//fixme:
-						Word* buffer_word = new Word(pair.second, symbol);
-						buffer->add(edgeA->getTo(), buffer_postB, buffer_word);
-					}
-					else {
-						delete word;
-						delete postB;
-					}
-				}
-			}
-		}
-	}
 
-	PostContextVariable* tmp;
-	tmp = this->updates;
-	this->updates = this->buffer;
-	this->buffer = tmp;
-	this->buffer->clear();
 
-	return (updates->size() == 0);
+bool FixpointLoop::addIfExtreme (State* stateA, ContextOf* setB, Word* word, weight_t value) {
+	return this->content->addIfMin(stateA, setB, word, value);
 }
-
 
 
 
@@ -86,8 +64,41 @@ ContextOf* FixpointLoop::post (ContextOf* currentB, Symbol* symbol) {
 }
 
 
-bool FixpointLoop::addIfExtreme (State* stateA, ContextOf* setB, Word* word) {
-	return this->content->addIfMin(stateA, setB, word);
+
+bool FixpointLoop::apply () {
+	for (std::pair<State*, SetStd<std::pair<ContextOf*,std::pair<Word*,weight_t>>>*> mapfromA : *(this->updates)) {
+		for (Symbol* symbol : *(mapfromA.first->getAlphabet())) {
+			auto iter = mapfromA.second->begin();
+			while (iter != mapfromA.second->end()) {
+				ContextOf* postB = post(iter->first, symbol);
+				Word* word = new Word(iter->second.first, symbol);
+				weight_t value = iter->second.second;
+				++iter;
+
+				for (Edge* edgeA : *(mapfromA.first->getSuccessors(symbol->getId()))) {
+					if (addIfExtreme(edgeA->getTo(), postB, word, std::max(value, edgeA->getWeight()->getValue()))) {
+						buffer->add(edgeA->getTo(), postB, word, std::max(value, edgeA->getWeight()->getValue()));
+					}
+				}
+
+				if (postB->getRef() == 0) {
+					delete word;
+					delete postB;
+				}
+			}
+		}
+	}
+
+	PostContextVariable* tmp;
+	tmp = this->updates;
+	this->updates = this->buffer;
+	this->buffer = tmp;
+	this->buffer->clear();
+
+	return (this->updates->size() == 0);
 }
+
+
+
 
 

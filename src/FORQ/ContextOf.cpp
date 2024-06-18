@@ -17,14 +17,11 @@ ContextOf::ContextOf(unsigned int capacity) : MapVec<StateRelation*>(capacity) {
 
 void ContextOf::add (State* fromB, State* toB, unsigned int weight_id) {
 	// fixme: redundancy
-	for (unsigned int id = weight_id; weight_id >= 0; --id) {
+	for (unsigned int id = 0; id <= weight_id; ++id) {
 		this->at(id)->add(fromB, toB);
 	}
 }
 
-StateRelation* ContextOf::at (unsigned int weight_id) const {
-	return this->at(weight_id);
-}
 
 
 bool ContextOf::smaller_than (ContextOf* other) {

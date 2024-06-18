@@ -13,7 +13,6 @@ template <typename T_element> class SetStd {
 protected:
 	std::set<T_element> all;
 public:
-	//static SetStd<T_element> EmptySet = SetStd();
 	SetStd();
 	~SetStd();
 	void insert(T_element element);
@@ -63,7 +62,7 @@ template class SetStd<State*>;
 template class SetStd<Word*>;
 template class SetStd<Edge*>;
 template class SetStd<std::pair<TargetOf*,Word*>>;
-template class SetStd<std::pair<ContextOf*,Word*>>;
+template class SetStd<std::pair<ContextOf*,std::pair<Word*,weight_t>>>;
 template class SetStd<std::pair<State*, unsigned int>>;
 
 template class SetList<SCC_Tree*>;

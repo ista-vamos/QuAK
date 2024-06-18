@@ -22,8 +22,8 @@ FixpointStem::FixpointStem (State* initA, State* initB, bool rev) {
 }
 
 
-SetStd<std::pair<TargetOf*,Word*>>* FixpointStem::getSetOfTargets (State* stateA) {
-	return this->content->getSetOfTargets(stateA);
+SetStd<std::pair<TargetOf*,Word*>>* FixpointStem::getSetOfTargetsOrNULL (State* stateA) {
+	return this->content->getSetOfTargetsOrNULL(stateA);
 }
 
 
@@ -39,7 +39,7 @@ bool FixpointStem::addIfExtreme (State* stateA, TargetOf* setB, Word* word) {
 
 TargetOf* FixpointStem::post (TargetOf* currentB, Symbol* symbol) {
 	TargetOf* postB = new TargetOf();
-	for (State* state: *currentB) {//fixme: check context
+	for (State* state: *currentB) {
 		for (Edge* edge : *(state->getSuccessors(symbol->getId())))  {
 			postB->add(edge->getTo());
 		}
@@ -51,19 +51,21 @@ TargetOf* FixpointStem::post (TargetOf* currentB, Symbol* symbol) {
 bool FixpointStem::apply () {
 	for (std::pair<State*, SetStd<std::pair<TargetOf*,Word*>>*> mapfromA : *(this->updates)) {
 		for (Symbol* symbol : *(mapfromA.first->getAlphabet())) {
-			for (std::pair<TargetOf*,Word*> pair : *(mapfromA.second)) {
+			auto iter = mapfromA.second->begin();
+			while (iter != mapfromA.second->end()) {
+				TargetOf* postB = post(iter->first, symbol);
+				Word* word = new Word(iter->second, symbol);
+				++iter;
+
 				for (Edge* edgeA : *(mapfromA.first->getSuccessors(symbol->getId()))) {
-					TargetOf* postB = post(pair.first, symbol);
-					Word* word = new Word(pair.second, symbol);
 					if(addIfExtreme(edgeA->getTo(), postB, word)) {
-						TargetOf* buffer_postB = post(pair.first, symbol);//fixme:
-						Word* buffer_word = new Word(pair.second, symbol);
-						buffer->add(edgeA->getTo(), buffer_postB, buffer_word);
+						buffer->add(edgeA->getTo(), postB, word);
 					}
-					else {
-						delete word;
-						delete postB;
-					}
+				}
+
+				if (postB->getRef() == 0) {
+					delete word;
+					delete postB;
 				}
 			}
 		}
@@ -75,7 +77,7 @@ bool FixpointStem::apply () {
 	this->buffer = tmp;
 	this->buffer->clear();
 
-	return (updates->size() > 0);
+	return (this->updates->size() > 0);
 }
 
 

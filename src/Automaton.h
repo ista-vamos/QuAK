@@ -61,8 +61,8 @@ private:
 			weight_t max_weight,
 			State* initial
 	);
-	void initialize_SCC_flood (State* state, int* tag, int* low, SCC_Tree* ancestor);
-	void initialize_SCC_explore (State* state, int *time, int* spot, int* low, SetList<State*>* stack, bool* stackMem);
+	void initialize_SCC_tree (State* state, int* spot, int* low, bool* stackMem, SCC_Tree* ancestor);
+	void initialize_SCC_tag (State* state, int* tag, int *time, int* spot, int* low, SetList<State*>* stack, bool* stackMem);
 	void initialize_SCC (void);
 
 	void top_reachably_scc (State* state, lol_t lol, bool* spot, weight_t* values) const;
@@ -80,7 +80,6 @@ private:
 	weight_t top_LimAvg (weight_t* top_values) const;
 
 	weight_t computeTop (value_function_t value_function, weight_t* top_values) const;
-	std::string top_toString() const;
 public:
 	Automaton (std::string filename);
 	Automaton (const Automaton& to_copy);
@@ -119,14 +118,17 @@ public:
 	State* getInitial () const;
 	MapVec<Symbol*>* getAlphabet() const;
 	MapVec<State*>* getStates() const;
+	MapVec<Weight<weight_t>*>* getWeights() const;
+	weight_t getMinWeightValue () const;
+	weight_t getMaxWeightValue () const;
+
 	std::string getName() const;
 	unsigned int getMinWeightId() const;
 	unsigned int getMaxWeightId() const;
 	// MapVec<Weight<weight_t>*>* getWeights() const;
 
-
-	static std::string toString (Automaton* A);
-	std::string toString () const;
+	void print_top() const;
+	void print () const;
 
 
 
