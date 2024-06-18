@@ -1,6 +1,5 @@
 #include <iostream>
 #include "Automaton.h"
-/*
 #include "Word.h"
 #include "FORQ/TargetOf.h"
 #include "FORQ/FixpointLoop.h"
@@ -9,7 +8,6 @@
 #include "FORQ/StateRelation.h"
 #include "FORQ/PostContextVariable.h"
 #include "FORQ/PostTargetVariable.h"
-*/
 
 
 bool inclusion (Automaton* A, Automaton* B) {
@@ -127,9 +125,9 @@ int main(int argc, char **argv) {
 	Automaton* B = A->constantAutomaton(Sup, 0);
 	// Automaton* C = B->trim();
 
-	std::cout << std::endl << A->toString() << std::endl;
-	std::cout << std::endl << B->toString() << std::endl;
-	// std::cout << std::endl << C->toString() << std::endl;
+	A->print();
+	B->print();
+	// C->print();
 
 	delete A;
 	delete B;
