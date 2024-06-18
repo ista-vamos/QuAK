@@ -90,9 +90,8 @@ public:
 	Automaton* trim();
 	Automaton* complete(value_function_t value_function) const;
 	Automaton* monotonize(value_function_t value_function) const;
-	void monotonizeInPlace(value_function_t value_function);
 	Automaton* booleanize(Weight<weight_t> v) const;
-	Automaton* constantAutomaton (value_function_t type, Weight<weight_t> v) const;
+	Automaton* constantAutomaton (Weight<weight_t> v) const;
 	Automaton* livenessComponent (value_function_t type) const;
 
 
