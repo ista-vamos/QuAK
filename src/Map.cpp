@@ -38,10 +38,14 @@ T_value MapStd<T_key, T_value>::at (T_key key) {
 	return this->all.at(key);
 }
 
+
+
 template <typename T_key, typename T_value>
 unsigned int MapStd<T_key, T_value>::size () const {
 	return this->all.size();
 }
+
+
 
 template <typename T_key, typename T_value>
 std::string MapStd<T_key, T_value>::toString (std::string (*f_key) (T_key key), std::string (*f_value) (T_value value)) const {

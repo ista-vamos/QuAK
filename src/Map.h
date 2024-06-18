@@ -94,7 +94,7 @@ template class MapStd<std::string, unsigned int>;
 template class MapStd<std::string, MapStd<std::string, unsigned int>*>;
 template class MapStd<State*,SetStd<std::pair<TargetOf*,Word*>>*>;
 template class MapStd<State*, TargetOf*>;
-template class MapStd<State*, SetStd<std::pair<ContextOf*,Word*>>*>;
+template class MapStd<State*, SetStd<std::pair<ContextOf*,std::pair<Word*,weight_t>>>*>;
 
 template class MapVec<Weight<weight_t>*>;
 template class MapVec<State*>;

@@ -11,6 +11,115 @@
 #include "FORQ/PostTargetVariable.h"
 */
 
+
+bool inclusion (Automaton* A, Automaton* B) {
+
+	printf("MAX prefixes fix-point: computing ..\n");
+	unsigned int iter_W = 1;
+	FixpointStem* postIrev = new FixpointStem(A->getInitial(), B->getInitial(), true);
+	while (postIrev->apply()) { iter_W++; }
+	printf("MAX prefixes fix-point: done ( %u iterations )\n", iter_W);
+	/*
+	for (unsigned int stateA_id = 0; stateA_id < A->getStates()->size(); ++stateA_id) {
+		State* stateA = A->getStates()->at(stateA_id);
+		SetStd<std::pair<TargetOf*, Word*>>* targets = postIrev->getSetOfTargetsOrNULL(stateA);
+		printf("%s ->\n", stateA->getName().c_str());
+		for (std::pair<TargetOf*, Word*> pair : *targets) {
+			printf("\t %s\n", pair.second->toString().c_str());
+		}
+	}
+	*/
+
+	printf("MIN prefixes fix-point: computing ..\n");
+	unsigned int iter_U = 1;
+	FixpointStem* postI = new FixpointStem(A->getInitial(), B->getInitial(), false);
+	while (postI->apply()) { iter_U++; }
+	printf("MIN prefixes fix-point: done ( %u iterations )\n", iter_U);
+	/*
+	for (unsigned int stateA_id = 0; stateA_id < A->getStates()->size(); ++stateA_id) {
+		State* stateA = A->getStates()->at(stateA_id);
+		SetStd<std::pair<TargetOf*, Word*>>* targets = postI->getSetOfTargetsOrNULL(stateA);
+		printf("%s ->\n", stateA->getName().c_str());
+		for (std::pair<TargetOf*, Word*> pair : *targets) {
+			printf("\t %s\n", pair.second->toString().c_str());
+		}
+	}
+	*/
+
+
+	unsigned int final_counter = 0;
+	unsigned int membership_counter = 0;
+	unsigned int call_V = 0;
+	for (unsigned int stateA_id = 0; stateA_id < A->getStates()->size(); ++stateA_id) {
+		State* stateA = A->getStates()->at(stateA_id);
+		final_counter++;
+
+		unsigned int max_counter = 0;
+		SetStd<std::pair<TargetOf*, Word*>>* setW = postIrev->getSetOfTargetsOrNULL(stateA);
+		if (setW == NULL) continue;
+		for (std::pair<TargetOf*, Word*> pairW : *setW) {
+			call_V++;
+			max_counter++;
+
+			TargetOf* W = pairW.first;
+			Word* word_of_W = pairW.second;
+
+			unsigned int iter_V_local = 1;
+			FixpointLoop* postF = new FixpointLoop(stateA, W, B->getWeights()->size());
+			while (postF->apply()) { iter_V_local++; }
+
+			unsigned int period_counter = 0;
+			SetStd<std::pair<ContextOf*, std::pair<Word*,weight_t>>>* setV = postF->getSetOfContextsOrNULL(stateA);
+			if (setV == NULL) continue;
+			for (std::pair<ContextOf*, std::pair<Word*,weight_t>> pairV : *setV) {
+				period_counter++;
+				ContextOf* V = pairV.first;
+				Word* word_of_V = pairV.second.first;
+				weight_t valueA = pairV.second.second;
+				if (valueA <= B->getMinWeightValue()) continue;
+
+				//if (relevance_test(W, V) == false) continue;
+				SetStd<std::pair<TargetOf*, Word*>>* setU = postI->getSetOfTargetsOrNULL(stateA);
+				if (setU == NULL) continue;
+				for (std::pair<TargetOf*, Word*> pairU : *setU) {
+					TargetOf* U = pairU.first;
+					Word* word_of_U = pairU.second;
+
+					if (U->smaller_than(W) == true) {
+						membership_counter++;
+						int valueB = B->membership(U, word_of_V);
+						TargetOf* tmp = new TargetOf();
+						tmp->add(stateA);
+						int value = A->membership(tmp, word_of_V);
+						if (valueA != value) {
+							printf("inconsistent values\n");
+						}
+
+						if (valueB < valueA) {
+							printf("witness: %s cycle{ %s }\n", word_of_U->toString().c_str(), word_of_V->toString().c_str());
+							return false;
+						}
+					}
+				}
+			}
+		}
+	}
+	return true;
+}
+
+
+/*
+bool relevance_test (TargetOf* W, ContextOf* V) {
+	for (SetOfStates set : V.getFirst().values())
+		if (set->smaller_than(W) == false) return false;
+	return true;
+}
+*/
+
+
+
+
+
 int main(int argc, char **argv) {
 	printf("--------------------------------------------\n");
 
@@ -29,9 +138,23 @@ int main(int argc, char **argv) {
 	printf("--------------------------------------------\n");
 
 	Automaton* toto = new Automaton("./samples/bigb_SUBSET.txt");
-	std::cout << std::endl << toto->toString() << std::endl;
+	toto->print();
+	//inclusion(toto, toto);
 
 	printf("--------------------------------------------\n");
+
+
+	//Automaton* totoInfSafe = toto->safetyClosure(Inf);
+	//inclusion(toto, totoInfSafe);// MapVec error
+	//printf("--------------------------------------------\n");
+	//Automaton* totoSupSafe = toto->safetyClosure(Sup);
+	//inclusion(toto, totoSupSafe);// error
+	//printf("--------------------------------------------\n");
+	//Automaton* titi = new Automaton("./samples/bigb_SUPERSET.txt");
+	//inclusion(toto, titi); // wrong answer
+	//printf("--------------------------------------------\n");
+
+
 
 	Word* period = new Word(toto->getAlphabet()->at(0));
 	TargetOf* set = new TargetOf();
@@ -72,8 +195,6 @@ int main(int argc, char **argv) {
 */
 
 /*
-
-	printf("--------------------------------------------\n");
 	Automaton* A = new Automaton("./samples/test3.txt");
 	std::cout << std::endl << A->toString() << std::endl;
 	printf("--------------------------------------------\n");

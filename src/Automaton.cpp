@@ -14,6 +14,7 @@ public:
 	State* origin;
 	SetList<SCC_Tree*>* nexts;
 	SCC_Tree(State* origin) : origin(origin), nexts(new SetList<SCC_Tree*>) {};
+	SCC_Tree(State* origin, SetList<SCC_Tree*>* nexts) : origin(origin), nexts(nexts) {};
 	void addNext (SCC_Tree* next) { this->nexts->push(next); };
 	~SCC_Tree() { for (auto tree : *nexts) delete tree; delete nexts; }
 	std::string toString (std::string offset) const {
@@ -328,20 +329,19 @@ Automaton* Automaton::product(value_function_t value_function, const Automaton* 
 // -------------------------------- SCCs -------------------------------- //
 
 
-void Automaton::initialize_SCC_flood (State* state, int* tag, int* low, SCC_Tree* ancestor) {
+void Automaton::initialize_SCC_tree (State* state, int* spot, int* low, bool* stackMem, SCC_Tree* ancestor) {
+	stackMem[state->getId()] = true;
+
 	for (Symbol* symbol : *(state->getAlphabet())) {
 		for (Edge* edge : *(state->getSuccessors(symbol->getId()))) {
-			if (edge->getTo()->getTag() == -1){
-				if (low[state->getId()] == low[edge->getTo()->getId()]) {
-					edge->getTo()->setTag(state->getTag());
-					initialize_SCC_flood(edge->getTo(), tag, low, ancestor);
+			if (stackMem[edge->getTo()->getId()] == false) {
+				if (spot[edge->getTo()->getId()] == low[edge->getTo()->getId()]) {
+					SCC_Tree* data = new SCC_Tree(edge->getTo());
+					ancestor->addNext(data);
+					initialize_SCC_tree(edge->getTo(), spot, low, stackMem, data);
 				}
 				else {
-					(*tag)++;
-					SCC_Tree* data = new SCC_Tree(edge->getTo());
-					edge->getTo()->setTag(*tag);
-					initialize_SCC_flood(edge->getTo(), tag, low, data);
-					ancestor->addNext(data);
+					initialize_SCC_tree(edge->getTo(), spot, low, stackMem, ancestor);
 				}
 			}
 		}
@@ -349,7 +349,7 @@ void Automaton::initialize_SCC_flood (State* state, int* tag, int* low, SCC_Tree
 }
 
 
-void Automaton::initialize_SCC_explore (State* state, int* time, int* spot, int* low, SetList<State*>* stack, bool* stackMem) {
+void Automaton::initialize_SCC_tag (State* state, int* tag, int* time, int* spot, int* low, SetList<State*>* stack, bool* stackMem) {
 	spot[state->getId()] = *time;
 	low[state->getId()] = *time;
 	(*time)++;
@@ -359,7 +359,7 @@ void Automaton::initialize_SCC_explore (State* state, int* time, int* spot, int*
 	for (Symbol* symbol : *(state->getAlphabet())) {
 		for (Edge* edge : *(state->getSuccessors(symbol->getId()))) {
 			if (spot[edge->getTo()->getId()] == -1) {
-				initialize_SCC_explore(edge->getTo(), time, spot, low, stack, stackMem);
+				initialize_SCC_tag(edge->getTo(), tag, time, spot, low, stack, stackMem);
 				low[state->getId()] = std::min(low[state->getId()], low[edge->getTo()->getId()]);
 			}
 			else if (stackMem[edge->getTo()->getId()] == true) {
@@ -369,12 +369,15 @@ void Automaton::initialize_SCC_explore (State* state, int* time, int* spot, int*
 	}
 
 	if (spot[state->getId()] == low[state->getId()]) {
-		//this->SCCs_list->push(state);
-		(this->nb_SCCs)++;
 		while (stack->head() != state) {
+			stack->head()->setTag(*tag);
 			stackMem[stack->head()->getId()] = false;
 			stack->pop();
 		}
+		state->setTag(*tag);
+		(*tag)++;
+		stackMem[state->getId()] = false;
+		stack->pop();
 	}
 }
 
@@ -385,22 +388,20 @@ void Automaton::initialize_SCC (void) {
 	int* low = new int[size];
 	bool* stackMem = new bool[size];
 	int time = 0;
+	int tag = 0;
 	SetList<State*> stack;
 
-	//this->SCCs_list = new SetList<State*>;
 	for (unsigned int state_id = 0; state_id < size; ++state_id) {
 		spot[state_id] = -1;
-		low[state_id] = -1;
 		stackMem[state_id] = false;
 	}
 
-	initialize_SCC_explore(initial, &time, spot, low, &stack, stackMem);
+	initialize_SCC_tag(initial, &tag, &time, spot, low, &stack, stackMem);
+	this->nb_SCCs = tag;
 	this->nb_reachable_states = time;
 
-	int tag = 0;
-	this->initial->setTag(0);
 	this->SCCs_tree = new SCC_Tree(this->initial);
-	this->initialize_SCC_flood(this->initial, &tag, low, this->SCCs_tree);
+	this->initialize_SCC_tree(this->initial, spot, low, stackMem, this->SCCs_tree);
 
 	delete [] spot;
 	delete [] low;
@@ -418,7 +419,9 @@ void Automaton::initialize_SCC (void) {
 
 MapVec<Symbol*>* Automaton::getAlphabet() const { return this->alphabet; }
 MapVec<State*>* Automaton::getStates() const { return this->states; }
-
+MapVec<Weight<weight_t>*>* Automaton::getWeights() const { return this->weights; }
+weight_t Automaton::getMinWeightValue () const { return this->min_weight; }
+	weight_t Automaton::getMaxWeightValue () const { return this->max_weight; }
 
 State* Automaton::getInitial () const { return initial; }
 
@@ -1045,7 +1048,7 @@ bool Automaton::isUniversal_det (value_function_t type, Weight<weight_t> v) cons
 // fixme: memory leak
 bool Automaton::isIncludedIn_det (value_function_t type, const Automaton* rhs) const {
 	Automaton* C = this->product(type, rhs, Minus)->trim();
-	std::cout << std::endl << C->toString() << std::endl;
+	C->print();
 
 	weight_t top_values[C->nb_SCCs];
 	weight_t t = C->computeTop(type, top_values);
@@ -1206,7 +1209,6 @@ void Automaton::top_reachably_scc (State* state, lol_t lol, bool* spot, weight_t
 void Automaton::top_reachably_tree (SCC_Tree* tree, lol_t lol, bool* spot, weight_t* values, weight_t* top_values) const {
 	top_reachably_scc(tree->origin, lol, spot, values);
 	top_values[tree->origin->getTag()] = values[tree->origin->getId()];
-
 	for (auto iter = tree->nexts->begin(); iter != tree->nexts->end(); ++iter) {
 		top_reachably_tree(*iter, lol, spot, values, top_values);
 		top_values[tree->origin->getTag()] = std::max(top_values[tree->origin->getTag()],
@@ -1218,9 +1220,10 @@ void Automaton::top_reachably_tree (SCC_Tree* tree, lol_t lol, bool* spot, weigh
 weight_t Automaton::top_Sup (weight_t* top_values) const {
 	weight_t values[this->states->size()];
 	bool spot[this->states->size()];
-	for (unsigned int state_id = 0; state_id < this->states->size(); ++state_id) spot[state_id] = false;
+	for (unsigned int state_id = 0; state_id < this->states->size(); ++state_id)
+		spot[state_id] = false;
 	top_reachably_tree(this->SCCs_tree, lol_step, spot, values, top_values);
-	return top_values[0];
+	return top_values[this->initial->getTag()];
 }
 
 
@@ -1229,7 +1232,7 @@ weight_t Automaton::top_LimSup (weight_t* top_values) const {
 	bool spot[this->states->size()];
 	for (unsigned int state_id = 0; state_id < this->states->size(); ++state_id) spot[state_id] = false;
 	top_reachably_tree(this->SCCs_tree, lol_in, spot, values, top_values);
-	return top_values[0];
+	return top_values[this->initial->getTag()];
 }
 
 
@@ -1286,7 +1289,6 @@ void Automaton::top_safety_scc (weight_t* values, bool in_scc) const {
 		while (edges.at(weight_id)->size() > 0) {
 			Edge* edge = edges.at(weight_id)->head();
 			edges.at(weight_id)->pop();
-			tmp_verbose("\tTAKE EDGE %s\n", edge->toString().c_str());
 			top_safety_scc_recursive(edge, in_scc, values, counters);
 		}
 	}
@@ -1330,7 +1332,7 @@ weight_t Automaton::top_LimInf (weight_t* top_values) const {
 	}
 
 	top_safety_tree(this->SCCs_tree, top_values);
-	return top_values[0];
+	return top_values[this->initial->getTag()];
 }
 
 
@@ -1416,7 +1418,7 @@ weight_t Automaton::top_LimAvg (weight_t* top_values) const {
 	}
 
 	top_avg_tree(this->SCCs_tree, top_values);
-	return top_values[0];
+	return top_values[this->initial->getTag()];
 }
 
 
@@ -1447,82 +1449,84 @@ weight_t Automaton::computeTop (value_function_t value_function, weight_t* top_v
 // -------------------------------- toStrings -------------------------------- //
 
 
-std::string Automaton::top_toString() const {
+void Automaton::print_top() const {
 	weight_t top_values[this->nb_SCCs];
 	weight_t x;
 	double y;
-	std::string s = "\ttop:";
+	std::cout << "\ttop:";
 
+/**/
 	x = top_Inf();
-	s.append("\n\t\t   Inf -> ");
-	s.append(x>max_weight ? "+infinity" : std::to_string(x));
+	std::cout << "\n\t\t   Inf -> ";
+	std::cout << (x > this->max_weight) ? "+infinity" : std::to_string(x);
+	printf("\n");fflush(stdout);
+/**/
 
-/*
-	// fixme: top_Sup is erroneous (runtime error)
+/**/
 	x = top_Sup(top_values);
-	s.append("\n\t\t   Sup -> ");
-	s.append(x<min_weight ? "-infinity" : std::to_string(x));
-*/
+	std::cout << "\n\t\t   Sup -> ";
+	std::cout << (x < this->min_weight) ? "-infinity" : std::to_string(x);
+	printf("\n");fflush(stdout);
+/**/
 
+/**/
 	// fixme: top_LimInf is erroneous (wrong answer)
 	x = top_LimInf(top_values);
-	s.append("\n\t\tLimInf -> ");
-	s.append(x<min_weight ? "+infinity" : std::to_string(x));
+	std::cout << "\n\t\tLimInf -> ";
+	std::cout << (x < this->min_weight) ? "+infinity" : std::to_string(x);
+	printf("\n");fflush(stdout);
+/**/
 
-/*
+/**/
 	// fixme: top_LimSup is erroneous (runtime error)
 	x = top_LimSup(top_values);
-	s.append("\n\t\tLimSup -> ");
-	s.append(x<min_weight ? "-infinity" : std::to_string(x));
-*/
+	std::cout << "\n\t\tLimSup -> ";
+	std::cout << (x < this->min_weight) ? "-infinity" : std::to_string(x);
+	printf("\n");fflush(stdout);
+/**/
 
+
+/**/
 	// fixme: top_LimAvg is erroneous (wrong answer)
 	y = top_LimAvg(top_values);
-	s.append("\n\t\tLimAvg -> ");
-	s.append(y<min_weight ? "-infinity" : std::to_string(y));
+	std::cout << "\n\t\tLimAvg -> ";
+	std::cout << (y < this->min_weight) ? "-infinity" : std::to_string(y);
+	printf("\n");fflush(stdout);
+/**/
 
-	s.append("\n");
-	return s;
+	std::cout << "\n";
 }
 
 
-std::string Automaton::toString () const {
-	std::string s = "Automaton \"";
-	s.append(this->name);
-	s.append("\":\n\t");
-	s.append("alphabet:");
-	s.append(alphabet->toString(Symbol::toString));
-	s.append("\n\t");
-	s.append("weights:");
-	s.append(weights->toString(Weight<weight_t>::toString));
-	s.append("\n\t\tMIN = ");
-	s.append(std::to_string(min_weight));
-	s.append("\n\t\tMAX = ");
-	s.append(std::to_string(max_weight));
-	s.append("\n\t");
-	s.append("states:");
-	s.append(states->toString(State::toString));
-	s.append("\n\t\tINITIAL = ");
-	s.append(initial->getName());
-	s.append("\n\t");
-	s.append("SCCs:");
-	s.append(this->SCCs_tree->toString("\t\t"));
-	s.append("\n\t");
-	s.append("edges:");
+void Automaton::print () const {
+	std::cout << "Automaton \"" << this->name << "\":\n";
+	std::cout << "\talphabet (" << this->alphabet->size() << "):";
+	std::cout << this->alphabet->toString(Symbol::toString) << "\n";
+	std::cout << "\tweights (" << this->weights->size() << "):";
+	std::cout << weights->toString(Weight<weight_t>::toString) << "\n";
+	std::cout << "\t\tMIN = " << std::to_string(min_weight) << "\n";
+	std::cout << "\t\tMAX = " << std::to_string(max_weight) << "\n";
+	std::cout << "\tstates (" << this->states->size() << "):";
+	std::cout << states->toString(State::toString) << "\n";
+	std::cout << "\t\tINITIAL = " << initial->getName() << "\n";
+	std::cout << "\tSCCs (" << this->nb_SCCs << "):";
+	std::cout << this->SCCs_tree->toString("\t\t") << "\n";
+	unsigned int nb_edge = 0;
 	for (unsigned int state_id = 0; state_id < states->size(); ++state_id) {
 		for (Symbol* symbol : *(states->at(state_id)->getAlphabet())) {
-			s.append(states->at(state_id)->getSuccessors(symbol->getId())->toString(Edge::toString));
+			nb_edge += states->at(state_id)->getSuccessors(symbol->getId())->size();
 		}
 	}
-	s.append("\n");
-	s.append(top_toString());
-	return s;
+	std::cout << "\tedges (" << nb_edge << "):";
+	for (unsigned int state_id = 0; state_id < states->size(); ++state_id) {
+		for (Symbol* symbol : *(states->at(state_id)->getAlphabet())) {
+			std::cout << states->at(state_id)->getSuccessors(symbol->getId())->toString(Edge::toString);
+		}
+	}
+	std::cout << "\n";
+	print_top();
 }
 
-
-std::string Automaton::Automaton::toString (Automaton* A) {
-	return A->toString();
-}
 
 
 
