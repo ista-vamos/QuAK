@@ -4,7 +4,10 @@
 #include "Edge.h"
 #include "utility.h"
 #include <map>
+#include <set>
 #include <unordered_map>
+
+auto weightComparator = [](Weight<weight_t>* a, Weight<weight_t>* b) { return a->getValue() < b->getValue(); };
 
 class SCC_Tree {
 public:
@@ -478,10 +481,8 @@ Automaton* Automaton::booleanize(Weight<weight_t> threshold) const {
 }
 
 
-// TODO: remove -- why? we can modify our constructions to not need this, but this is a useful function in general
 Automaton* Automaton::trim() {
 	if (this->nb_reachable_states == this->states->size()) {
-		// return new Automaton(*this);
 		return this;
 	}
 
@@ -704,9 +705,6 @@ Automaton* Automaton::safetyClosure(value_function_t value_function) const {
 }
 
 
-// TODO: CHECK
-// Useful for Liveness component of the decomposition
-// fixme: make it in place, overall liveness component should build a single automaton
 Automaton* Automaton::monotonize (value_function_t type) const {
 	if (type != Inf && type != Sup) {
 		fail("monotonize only possible for inf or sup automata");
@@ -743,8 +741,8 @@ Automaton* Automaton::monotonize (value_function_t type) const {
 		initial = states->at(this->initial->getId() * m);
 	}
 
-	// TO BE FIXED
-	std::map<weight_t,int> counts;
+	std::set<Weight<weight_t>*, decltype(weightComparator)> newWeightSet(weightComparator);
+	unsigned int counter = 0;
 	for (unsigned int state_id = 0; state_id < n; ++state_id) {
 		for (Edge* edge : *(this->states->at(state_id)->getEdges())) {
 			Weight<weight_t>* transition_weight = this->weights->at(edge->getWeight()->getId());
@@ -757,35 +755,34 @@ Automaton* Automaton::monotonize (value_function_t type) const {
 				Symbol* symbol = alphabet->at(edge->getSymbol()->getId());
 				State* from = states->at(edge->getFrom()->getId() * m + state_weight->getId());
 				State* to = states->at(edge->getTo()->getId() * m + new_weight->getId());
-				Edge* new_edge = new Edge(symbol, transition_weight, from, to);
+				Weight<weight_t>* w = new Weight<weight_t>(transition_weight);
+				newWeightSet.insert(w);
+				Edge* new_edge = new Edge(symbol, w, from, to);
 				from->addEdge(new_edge);
 				from->addSuccessor(new_edge);
 				to->addPredecessor(new_edge);
-				counts[transition_weight->getValue()]++;
-
 			}
 		}
 	}
 
-	MapVec<Weight<weight_t>*>* weights = new MapVec<Weight<weight_t>*>(counts.size());
+	MapVec<Weight<weight_t>*>* weights = new MapVec<Weight<weight_t>*>(newWeightSet.size());
 	weight_t min_weight;
 	weight_t max_weight;
-	unsigned int counter = 0;
-	for (auto weightCount : counts) {
-		Weight<weight_t>* w = new Weight<weight_t>(weightCount.first);
-		weights->insert(counter, w);
+	counter = 0;
+	for (auto weight : newWeightSet) {
+		weights->insert(counter, weight);
 
 		if (counter == 0) {
-			min_weight = weightCount.first;
+			min_weight = weight->getValue();
 		}
-		if (counter == counts.size() - 1) {
-			max_weight = weightCount.first;
+		if (counter == newWeightSet.size() - 1) {
+			max_weight = weight->getValue();
 		}
 
 		counter++;
 	}
 
-	return new Automaton(name, alphabet, states, weights, min_weight, max_weight, initial);
+	return (new Automaton(name, alphabet, states, weights, min_weight, max_weight, initial))->trim();
 }
 
 // it is not possible to implement this truly in-place because dynamic arrays cannot be truly resized -- need to copy them into a new, larger array

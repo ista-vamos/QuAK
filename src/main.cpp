@@ -1,5 +1,6 @@
 #include <iostream>
 #include "Automaton.h"
+/*
 #include "Word.h"
 #include "FORQ/TargetOf.h"
 #include "FORQ/FixpointLoop.h"
@@ -8,22 +9,22 @@
 #include "FORQ/StateRelation.h"
 #include "FORQ/PostContextVariable.h"
 #include "FORQ/PostTargetVariable.h"
-
+*/
 
 int main(int argc, char **argv) {
 	printf("--------------------------------------------\n");
 
 	Automaton* A = new Automaton("./samples/test3.txt");
-	Automaton* B = A->monotonize(Sup);
-	Automaton* C = B->trim();
+	Automaton* B = A->constantAutomaton(Sup, 0);
+	// Automaton* C = B->trim();
 
 	std::cout << std::endl << A->toString() << std::endl;
 	std::cout << std::endl << B->toString() << std::endl;
-	std::cout << std::endl << C->toString() << std::endl;
+	// std::cout << std::endl << C->toString() << std::endl;
 
 	delete A;
 	delete B;
-	delete C;
+	// delete C;
 /*	
 	printf("--------------------------------------------\n");
 
