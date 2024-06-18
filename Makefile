@@ -7,8 +7,8 @@ CPPFLAG = -g -Wall
 SRCDIR = src
 SRC0 = $(wildcard $(SRCDIR)/*.c) $(wildcard $(SRCDIR)/*.cpp)
 SRC1 = $(wildcard $(SRCDIR)/*/*.c) $(wildcard $(SRCDIR)/*/*.cpp)
-# SRC = $(SRC0) $(SRC1)
-SRC = $(SRC0)
+SRC = $(SRC0) $(SRC1)
+#SRC = $(SRC0)
 
 OBJDIR = obj
 OBJ = $(SRC:$(SRCDIR)/%=$(OBJDIR)/%.o)

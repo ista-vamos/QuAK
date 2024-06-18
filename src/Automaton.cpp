@@ -97,22 +97,23 @@ Automaton::Automaton (
 }
 
 
+
+
 Automaton::Automaton (std::string filename) :
 		name(filename),
 		alphabet(NULL),
 		states(NULL),
 		weights(NULL),
 		SCCs_tree(NULL),
-		//SCCs_list(NULL),
 		initial(NULL)
 {
+	MapStd<weight_t, Weight<weight_t>*> weight_register;
+	MapStd<std::string, State*> state_register;
+	MapStd<std::string, Symbol*> symbol_register;
+
 	Parser parser(filename);
 	min_weight = *(parser.weights.begin());
 	max_weight = *(parser.weights.begin());
-
-	MapStd<weight_t, Weight<weight_t>*> weight_register;
-	MapStd<std::string, Symbol*> symbol_register;
-	MapStd<std::string, State*> state_register;
 
 	Weight<weight_t>::RESET();
 	this->weights = new MapVec<Weight<weight_t>*>(parser.weights.size());
@@ -121,11 +122,8 @@ Automaton::Automaton (std::string filename) :
 	State::RESET();
 	this->states = new MapVec<State*>(parser.states.size());
 
-	for (std::pair<std::string, unsigned int> pair : parser.states) {
-		State* state = new State(pair.first, alphabet->size());
-		//unsigned int nb_ougoing_edge = pair.second;
-		//MapStd<std::string,unsigned int>* succ = parser.successors.at(pair.first); // symbolname -> nb_succ
-		//MapStd<std::string,unsigned int>* pred = parser.predecessors.at(pair.first); // symbolname -> nb_pred
+	for (std::string statename: parser.states) {
+		State* state = new State(statename, alphabet->size());
 		this->states->insert(state->getId(), state);
 		state_register.insert(state->getName(), state);
 	}
@@ -159,6 +157,78 @@ Automaton::Automaton (std::string filename) :
 	initialize_SCC();
 	delete_verbose("@Detail: 3 MapStd will be deleted (automaton constructor registers)\n");
 }
+
+
+Automaton::Automaton (std::string filename, Automaton* other) :
+		name(filename),
+		alphabet(NULL),
+		states(NULL),
+		weights(NULL),
+		SCCs_tree(NULL),
+		initial(NULL)
+{
+	MapStd<weight_t, Weight<weight_t>*> weight_register;
+	MapStd<std::string, State*> state_register;
+	MapStd<std::string, Symbol*> sync_register;
+	MapStd<std::string, Symbol*> symbol_register;
+	for (unsigned int symbol_id = 0; symbol_id < other->alphabet->size(); ++symbol_id) {
+		other->alphabet->at(symbol_id);
+		sync_register.insert(other->alphabet->at(symbol_id)->getName(), other->alphabet->at(symbol_id));
+	}
+
+	Parser parser(filename, &sync_register);
+	min_weight = *(parser.weights.begin());
+	max_weight = *(parser.weights.begin());
+
+	Weight<weight_t>::RESET();
+	this->weights = new MapVec<Weight<weight_t>*>(parser.weights.size());
+	Symbol::RESET(sync_register.size());
+	this->alphabet = new MapVec<Symbol*>(parser.alphabet.size());
+	State::RESET();
+	this->states = new MapVec<State*>(parser.states.size());
+
+	for (std::string statename : parser.states) {
+		State* state = new State(statename, alphabet->size());
+		this->states->insert(state->getId(), state);
+		state_register.insert(state->getName(), state);
+	}
+	this->initial = state_register.at(parser.initial);
+
+
+	for (std::string symbolname : parser.alphabet) {
+		Symbol * symbol;
+		if (sync_register.contains(symbolname))
+			symbol = new Symbol(sync_register.at(symbolname));
+		else
+			symbol = new Symbol(symbolname);
+		this->alphabet->insert(symbol->getId(), symbol);
+		symbol_register.insert(symbol->getName(), symbol);
+	}
+
+	for (weight_t value : parser.weights) {
+		Weight<weight_t>* weight = new Weight<weight_t>(value);
+		this->weights->insert(weight->getId(), weight);
+		weight_register.insert(weight->getValue(), weight);
+		this->min_weight = std::min(this->min_weight, value);
+		this->max_weight = std::max(this->max_weight, value);
+	}
+
+	for (auto tuple : parser.edges) {
+		Symbol* symbol = symbol_register.at(tuple.first.first);
+		Weight<weight_t>* weight = weight_register.at(tuple.first.second);
+		State* from = state_register.at(tuple.second.first);
+		State* to = state_register.at(tuple.second.second);
+		Edge *edge = new Edge(symbol, weight, from, to);
+		from->addEdge(edge);
+		from->addSuccessor(edge);
+		to->addPredecessor(edge);
+	}
+
+	initialize_SCC();
+	delete_verbose("@Detail: 3 MapStd will be deleted (automaton constructor registers)\n");
+}
+
+
 
 // TODO: CHECK
 // fixme: check if it is necessary, remove otherwise -- i would keep it because copy constructors are useful in general
@@ -1584,7 +1654,6 @@ void Automaton::print_top() const {
 
 
 void Automaton::print () const {
-	std::cout << "Automaton \"" << this->name << "\":\n";
 	std::cout << "\talphabet (" << this->alphabet->size() << "):";
 	std::cout << this->alphabet->toString(Symbol::toString) << "\n";
 	std::cout << "\tweights (" << this->weights->size() << "):";
@@ -1596,7 +1665,7 @@ void Automaton::print () const {
 	std::cout << "\t\tINITIAL = " << initial->getName() << "\n";
 	std::cout << "\tSCCs (" << this->nb_SCCs << "):";
 	std::cout << this->SCCs_tree->toString("\t\t") << "\n";
-	unsigned int nb_edge = 0;
+	/*unsigned int nb_edge = 0;
 	for (unsigned int state_id = 0; state_id < states->size(); ++state_id) {
 		for (Symbol* symbol : *(states->at(state_id)->getAlphabet())) {
 			nb_edge += states->at(state_id)->getSuccessors(symbol->getId())->size();
@@ -1607,7 +1676,7 @@ void Automaton::print () const {
 		for (Symbol* symbol : *(states->at(state_id)->getAlphabet())) {
 			std::cout << states->at(state_id)->getSuccessors(symbol->getId())->toString(Edge::toString);
 		}
-	}
+	}*/
 	std::cout << "\n";
 	print_top();
 }

@@ -1,16 +1,12 @@
 #include <sstream>
 #include <cstring> // errno, atoi
-#include "Set.h"
-#include "Map.h"
-#include "Symbol.h"
-#include "State.h"
 #include "utility.h"
 #include "Parser.h"
 
 
 void Parser::abort(std::string message) {
 	std::cerr << "@Error: parsing " << message.c_str() << std::endl;
-	std::cerr << "File: " << this->filename_in.c_str() << std::endl;
+	std::cerr << "File: " << this->filename.c_str() << std::endl;
 	std::cerr << "Line: " << this->line_counter << std::endl;
 	fflush(stdout);fflush(stderr);
 	exit(EXIT_FAILURE);
@@ -63,15 +59,13 @@ std::string Parser::readEdge (std::string line) {
 	std::string fromname;
 	buffer >> fromname;
 	if (fromname.empty()) abort("transition without source state");
-	this->states.insert(fromname,0);
-	this->states.update(fromname, this->states.at(fromname)+1);
+	this->states.insert(fromname);
 	parser_verbose("Parser: From = '%s'\n", fromname.c_str());
 
 	std::string toname;
 	buffer >> toname;
 	if (toname.empty()) abort("transition without destination state");
-	this->states.insert(toname, 0);
-	this->states.update(toname, this->states.at(toname)+1);
+	this->states.insert(toname);
 	parser_verbose("Parser: To = '%s'\n", toname.c_str());
 
 	std::pair<std::pair<std::string, weight_t>,std::pair<std::string, std::string>> edge;
@@ -87,12 +81,12 @@ std::string Parser::readEdge (std::string line) {
 
 
 Parser::Parser(std::string filename) {
-	this->filename_in = filename;
+	this->filename = filename;
 	this->line_counter = 0;
-	this->file_in.open(filename);
+	this->file.open(filename);
 
 
-	if (this->file_in.is_open() == false) {
+	if (this->file.is_open() == false) {
 		std::cerr << "@Error: opening file " << filename << std::endl;
 		std::cerr << "Message: " << strerror(errno) << std::endl;
 		fflush(stdout);fflush(stderr);
@@ -101,42 +95,56 @@ Parser::Parser(std::string filename) {
 
 
 	std::string line;
-	while (this->initial == "" && getline(this->file_in, line)) {
+	while (this->initial == "" && getline(this->file, line)) {
 		line_counter++;
 		this->initial = readEdge(line);
 	}
 
-	while (getline(this->file_in, line)) {
+	while (getline(this->file, line)) {
 		line_counter++;
 		readEdge(line);
 	}
 
 	if (this->initial == "") abort("empty file");
-
-	//for (std::pair<std::string,unsigned int> statepair : this->states) {
-	//	this->successors.insert(statepair.first, new MapStd<std::string,unsigned int>);
-	//	this->predecessors.insert(statepair.first, new MapStd<std::string,unsigned int>);
-	//}
-	//for (auto edgeweird : this->edges) {
-	//	this->successors.at(edgeweird.second.first)->insert(edgeweird.first.first, 0);
-	//	unsigned int x = this->successors.at(edgeweird.second.first)->at(edgeweird.first.first);
-	//	this->successors.at(edgeweird.second.first)->update(edgeweird.first.first, x+1);
-	//
-	//	this->predecessors.at(edgeweird.second.first)->insert(edgeweird.first.first, 0);
-	//	unsigned int y = this->predecessors.at(edgeweird.second.first)->at(edgeweird.first.first);
-	//	this->predecessors.at(edgeweird.second.first)->update(edgeweird.first.first, y+1);
-	//}
-
-	this->file_in.close();
+	this->file.close();
 }
+
+
+
+Parser::Parser(std::string filename, MapStd<std::string, Symbol*>* symbol_register) {
+	this->filename = filename;
+	this->line_counter = 0;
+	this->file.open(filename);
+
+	for (std::pair<std::string, Symbol*> pair : *symbol_register) {
+		this->alphabet.insert(pair.first);
+	}
+
+	if (this->file.is_open() == false) {
+		std::cerr << "@Error: opening file " << filename << std::endl;
+		std::cerr << "Message: " << strerror(errno) << std::endl;
+		fflush(stdout);fflush(stderr);
+		exit(EXIT_FAILURE);
+	}
+
+
+	std::string line;
+	while (this->initial == "" && getline(this->file, line)) {
+		line_counter++;
+		this->initial = readEdge(line);
+	}
+
+	while (getline(this->file, line)) {
+		line_counter++;
+		readEdge(line);
+	}
+
+	if (this->initial == "") abort("empty file");
+	this->file.close();
+}
+
 
 Parser::~Parser() {
 	delete_verbose("@Detail: 4 SetStd will be deleted (parser)\n");
-	//for (std::pair<std::string, MapStd<std::string,unsigned int>*> iter : predecessors) {
-	//	delete iter.second;
-	//}
-	//for (std::pair<std::string, MapStd<std::string,unsigned int>*> iter : successors) {
-	//	delete iter.second;
-	//}
 }
 

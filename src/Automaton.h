@@ -84,6 +84,7 @@ private:
 	Automaton* toLimSup_helperLimInf () const;
 
 public:
+	Automaton (std::string filename, Automaton* other);
 	Automaton (std::string filename);
 	Automaton (const Automaton& to_copy);
 	~Automaton ();
