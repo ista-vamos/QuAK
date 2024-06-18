@@ -124,18 +124,17 @@ int main(int argc, char **argv) {
 
 	Automaton* A = new Automaton("./samples/test3.txt");
 	// bool flag = A->isLive(Sup);
-	// Automaton* B = A->constantAutomaton(0);
+	Automaton* B = A->toLimSup(LimInf);
 	// Automaton* C = B->trim();
 
 	A->print();
-	// B->print();
+	B->print();
 	// C->print();
 
 	delete A;
 	delete B;
-	delete C;
-*/
-
+	// delete C;
+/*	
 	printf("--------------------------------------------\n");
 
 	Automaton* toto = new Automaton("./samples/bigb_SUBSET.txt");

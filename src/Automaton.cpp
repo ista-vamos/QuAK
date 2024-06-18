@@ -802,7 +802,7 @@ Automaton* Automaton::monotonize (value_function_t type) const {
 		for (unsigned int weight_id = 0; weight_id < m; ++weight_id) {
 			std::string state_name = "(" + this->states->at(state_id)->toStringOnlyName() + ", " + this->weights->at(weight_id)->toString() + ")";
 			State* new_state = new State(state_name, this->alphabet->size());
-			states->insert(state_id * n + weight_id, new_state);
+			states->insert(state_id * m + weight_id, new_state);
 		}
 	}
 
@@ -814,8 +814,8 @@ Automaton* Automaton::monotonize (value_function_t type) const {
 		initial = states->at(this->initial->getId() * m);
 	}
 
-	std::set<Weight<weight_t>*, decltype(weightComparator)> newWeightSet(weightComparator);
-	unsigned int counter = 0;
+	// std::map<weight_t, Weight<weight_t>*, decltype(weightComparator)> newWeightSet(weightComparator);
+	std::map<weight_t, Weight<weight_t>*> newWeightSet;
 	for (unsigned int state_id = 0; state_id < n; ++state_id) {
 		for (Edge* edge : *(this->states->at(state_id)->getEdges())) {
 			Weight<weight_t>* transition_weight = this->weights->at(edge->getWeight()->getId());
@@ -828,8 +828,17 @@ Automaton* Automaton::monotonize (value_function_t type) const {
 				Symbol* symbol = alphabet->at(edge->getSymbol()->getId());
 				State* from = states->at(edge->getFrom()->getId() * m + state_weight->getId());
 				State* to = states->at(edge->getTo()->getId() * m + new_weight->getId());
-				Weight<weight_t>* w = new Weight<weight_t>(transition_weight);
-				newWeightSet.insert(w);
+
+				Weight<weight_t>* w; // TODO: CHECK HERE
+				auto search = newWeightSet.find(weights->at(weight_id)->getValue()); 
+				if (search == newWeightSet.end()) {
+					w = new Weight<weight_t>(transition_weight);
+					newWeightSet[transition_weight->getValue()] = w;
+				}
+				else{
+					w = newWeightSet[transition_weight->getValue()];
+				}
+
 				Edge* new_edge = new Edge(symbol, w, from, to);
 				from->addEdge(new_edge);
 				from->addSuccessor(new_edge);
@@ -841,15 +850,15 @@ Automaton* Automaton::monotonize (value_function_t type) const {
 	MapVec<Weight<weight_t>*>* weights = new MapVec<Weight<weight_t>*>(newWeightSet.size());
 	weight_t min_weight;
 	weight_t max_weight;
-	counter = 0;
+	unsigned long counter = 0;
 	for (auto weight : newWeightSet) {
-		weights->insert(counter, weight);
+		weights->insert(counter, weight.second);
 
 		if (counter == 0) {
-			min_weight = weight->getValue();
+			min_weight = weight.first;
 		}
 		if (counter == newWeightSet.size() - 1) {
-			max_weight = weight->getValue();
+			max_weight = weight.first;
 		}
 
 		counter++;
@@ -951,7 +960,153 @@ Automaton* Automaton::constantAutomaton (Weight<weight_t> v) const {
 	return new Automaton(name, alphabet, states, weights, v.getValue(), v.getValue(), initial);
 }
 
+// TODO: CHECK
+Automaton* Automaton::toLimSup_helperLimInf () const {
+	State::RESET();
+	Symbol::RESET();
+	Weight<weight_t>::RESET();
 
+	std::string name = "LimSup(" + this->name + ")";
+	
+	MapVec<Symbol*>* alphabet = new MapVec<Symbol*>(this->alphabet->size());
+	for (unsigned int symbol_id = 0; symbol_id < this->alphabet->size(); ++symbol_id) {
+		alphabet->insert(symbol_id, new Symbol(this->alphabet->at(symbol_id)));
+	}
+
+	unsigned int n = this->states->size();
+	unsigned int m = this->weights->size();
+
+	MapVec<State*>* states = new MapVec<State*>(n * m + 1);
+	for (unsigned int state_id = 0; state_id < n; ++state_id) {
+		for (unsigned int weight_id = 0; weight_id < m; ++weight_id) {
+			std::string state_name = "(" + this->states->at(state_id)->toStringOnlyName() + ", " + this->weights->at(weight_id)->toString() + ")";
+			State* new_state = new State(state_name, this->alphabet->size());
+			states->insert(state_id * m + weight_id, new_state);
+		}
+	}
+	states->insert(n * m, new State("newSink", this->alphabet->size()));
+
+	State* initial = states->at(this->initial->getId() * m);
+
+	// std::map<weight_t, Weight<weight_t>*, decltype(weightComparator)> newWeightSet(weightComparator); // TODO: check if this works as intended, also for monotonize
+	std::map<weight_t, Weight<weight_t>*> newWeightSet; // TODO: check if this works as intended, also for monotonize
+
+	// make copies with allowed transitions
+	for (unsigned int weight_id = 0; weight_id < m; ++weight_id) {
+		for (unsigned int state_id = 0; state_id < n; ++state_id) {
+			for (Edge* edge : *(this->states->at(state_id)->getEdges())) {
+				Weight<weight_t>* transition_weight = this->weights->at(edge->getWeight()->getId());
+				State* from = states->at(edge->getFrom()->getId() * m + weight_id);
+				Symbol* symbol = alphabet->at(edge->getSymbol()->getId());
+
+				State* to;
+				Weight<weight_t>* w;
+				if (transition_weight->getValue() >= weights->at(weight_id)->getValue()) {
+					auto search = newWeightSet.find(weights->at(weight_id)->getValue()); 
+					if (search == newWeightSet.end()) {
+						w = new Weight<weight_t>(weights->at(weight_id));
+						newWeightSet[weights->at(weight_id)->getValue()] = w;
+					}
+					else{
+						w = newWeightSet[weights->at(weight_id)->getValue()];
+					}
+
+					// add transitions between copies
+					// the exact weight here is not important, any of these transitions are taken at most once on any run
+					for (unsigned int larger_id = weight_id; larger_id < m; ++larger_id) {
+						to = states->at(edge->getTo()->getId() * m + larger_id);
+						Edge* new_edge = new Edge(symbol, w, from, to);
+						from->addEdge(new_edge);
+						from->addSuccessor(new_edge);
+						to->addPredecessor(new_edge);
+					}
+				}
+				else { // weights are ordered
+					auto search = newWeightSet.find(weights->at(0)->getValue()); 
+					if (search == newWeightSet.end()) {
+						w = new Weight<weight_t>(weights->at(0));
+						newWeightSet[weights->at(0)->getValue()] = w;
+					}
+					else{
+						w = newWeightSet[weights->at(0)->getValue()];
+					}
+
+					to = states->at(n * m);
+					Edge* new_edge = new Edge(symbol, w, from, to);
+					from->addEdge(new_edge);
+					from->addSuccessor(new_edge);
+					to->addPredecessor(new_edge);
+				}
+			}
+		}
+	}
+
+	// add self loop to sink
+	State* sink = states->at(n * m);
+	for (unsigned int symbol_id = 0; symbol_id < this->alphabet->size(); ++symbol_id) {
+		Symbol* symbol = alphabet->at(symbol_id);
+		Weight<weight_t>* sink_weight = this->weights->at(0);
+		Edge* new_edge = new Edge(symbol, sink_weight, sink, sink);
+		sink->addEdge(new_edge);
+		sink->addSuccessor(new_edge);
+		sink->addPredecessor(new_edge);
+	}
+
+	// // add transitions between copies -- handled above
+	// for (unsigned int weight_id = 0; weight_id < m; ++weight_id) {
+	// 	for (unsigned int larger_id = weight_id + 1; larger_id < m; ++larger_id) {
+	// 		for (unsigned int state_id = 0; state_id < n; ++state_id) {
+	// 			Weight<weight_t>* transition_weight = this->weights->at(larger_id);
+	// 			State* from = states->at(state_id * m + weight_id);
+	// 			Symbol* symbol = alphabet->at(edge->getSymbol()->getId());
+
+	// 			State* to;
+	// 			Weight<weight_t>* w;
+	// 			Edge* new_edge = new Edge(symbol, w, from, to);
+	// 			from->addEdge(new_edge);
+	// 			from->addSuccessor(new_edge);
+	// 			to->addPredecessor(new_edge);
+	// 		}
+	// 	}
+	// }
+
+	MapVec<Weight<weight_t>*>* weights = new MapVec<Weight<weight_t>*>(newWeightSet.size());
+	weight_t min_weight;
+	weight_t max_weight;
+	unsigned long counter = 0;
+	for (auto weight : newWeightSet) {
+		weights->insert(counter, weight.second);
+
+		if (counter == 0) {
+			min_weight = weight.first;
+		}
+		if (counter == newWeightSet.size() - 1) {
+			max_weight = weight.first;
+		}
+
+		counter++;
+	}
+
+	return (new Automaton(name, alphabet, states, weights, min_weight, max_weight, initial))->trim();
+}
+
+Automaton* Automaton::toLimSup (value_function_t type) const {
+	if (type == LimSup) {
+		fail("input automaton already limsup");
+	}
+	else if (type == LimAvg) {
+		fail("limavg cannot be translated to limsup");
+	} 
+	else if (type == Inf || type == Sup) {
+		return this->monotonize(type);
+	}
+	else if (type == LimInf) {
+		return this->toLimSup_helperLimInf();
+	}
+	else {
+		fail("invalid value function");
+	}
+}
 
 
 

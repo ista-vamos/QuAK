@@ -80,6 +80,9 @@ private:
 	weight_t top_LimAvg (weight_t* top_values) const;
 
 	weight_t computeTop (value_function_t value_function, weight_t* top_values) const;
+
+	Automaton* toLimSup_helperLimInf () const;
+
 public:
 	Automaton (std::string filename, Automaton* other);
 	Automaton (std::string filename);
@@ -94,6 +97,7 @@ public:
 	Automaton* booleanize(Weight<weight_t> v) const;
 	Automaton* constantAutomaton (Weight<weight_t> v) const;
 	Automaton* livenessComponent (value_function_t type) const;
+	Automaton* toLimSup (value_function_t type) const;
 
 
 	bool isDeterministic () const;
