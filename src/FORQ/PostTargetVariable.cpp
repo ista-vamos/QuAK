@@ -76,15 +76,19 @@ void PostTargetVariable::clear () {
 
 
 
-bool PostTargetVariable::addIfMin (State* stateA, TargetOf* setB, Word* w) {
+bool PostTargetVariable::addIfMin (State* stateA, TargetOf* setB, Word* word) {
 	if (this->contains(stateA) == false)
 		this->insert(stateA, new SetStd<std::pair<TargetOf*, Word*>>());
 
 
 	auto iter = this->at(stateA)->begin();
 	while (iter!= this->at(stateA)->end()) {
-		if (iter->first->smaller_than(setB) == true) return false;
+		if (iter->first->smaller_than(setB) == true) {
+			NIC_verbose("%s : %s < %s\n", stateA->getName().c_str(), iter->second->toString().c_str(), word->toString().c_str());
+			return false;
+		}
 		if (setB->smaller_than(iter->first) == true) {
+			NIC_verbose("%s : %s < %s\n", stateA->getName().c_str(), word->toString().c_str(), iter->second->toString().c_str());
 			auto tmp = iter;
 			++iter;
 			this->at(stateA)->erase(*tmp);
@@ -94,25 +98,25 @@ bool PostTargetVariable::addIfMin (State* stateA, TargetOf* setB, Word* w) {
 		}
 	}
 
-	this->add(stateA, setB, w);
+	this->add(stateA, setB, word);
 	return true;
 }
 
 
 
 
-bool PostTargetVariable::addIfMax (State* stateA, TargetOf* setB, Word* w) {
+bool PostTargetVariable::addIfMax (State* stateA, TargetOf* setB, Word* word) {
 	if (this->contains(stateA) == false)
 		this->insert(stateA, new SetStd<std::pair<TargetOf*, Word*>>());
 
 	auto iter = this->at(stateA)->begin();
 	while (iter!= this->at(stateA)->end()) {
 		if (setB->smaller_than(iter->first) == true) {
-			NIC_verbose("%s : %s < %s\n", stateA->getName().c_str(), w->toString().c_str(), iter->second->toString().c_str());
+			NIC_verbose("%s : %s < %s\n", stateA->getName().c_str(), word->toString().c_str(), iter->second->toString().c_str());
 			return false;
 		}
 		if (iter->first->smaller_than(setB) == true) {
-			NIC_verbose("%s : %s < %s\n", stateA->getName().c_str(), iter->second->toString().c_str(), w->toString().c_str());
+			NIC_verbose("%s : %s < %s\n", stateA->getName().c_str(), iter->second->toString().c_str(), word->toString().c_str());
 			auto tmp = iter;
 			++iter;
 			this->at(stateA)->erase(*tmp);
@@ -122,7 +126,7 @@ bool PostTargetVariable::addIfMax (State* stateA, TargetOf* setB, Word* w) {
 		}
 	}
 
-	this->add(stateA, setB, w);
+	this->add(stateA, setB, word);
 	return true;
 }
 
