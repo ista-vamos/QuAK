@@ -4,7 +4,10 @@
 #include "Edge.h"
 #include "utility.h"
 #include <map>
+#include <set>
 #include <unordered_map>
+
+auto weightComparator = [](Weight<weight_t>* a, Weight<weight_t>* b) { return a->getValue() < b->getValue(); };
 
 class SCC_Tree {
 public:
@@ -551,10 +554,8 @@ Automaton* Automaton::booleanize(Weight<weight_t> threshold) const {
 }
 
 
-// TODO: remove -- why? we can modify our constructions to not need this, but this is a useful function in general
 Automaton* Automaton::trim() {
 	if (this->nb_reachable_states == this->states->size()) {
-		// return new Automaton(*this);
 		return this;
 	}
 
@@ -777,9 +778,6 @@ Automaton* Automaton::safetyClosure(value_function_t value_function) const {
 }
 
 
-// TODO: CHECK
-// Useful for Liveness component of the decomposition
-// fixme: make it in place, overall liveness component should build a single automaton
 Automaton* Automaton::monotonize (value_function_t type) const {
 	if (type != Inf && type != Sup) {
 		fail("monotonize only possible for inf or sup automata");
@@ -816,8 +814,8 @@ Automaton* Automaton::monotonize (value_function_t type) const {
 		initial = states->at(this->initial->getId() * m);
 	}
 
-	// TO BE FIXED
-	std::map<weight_t,int> counts;
+	std::set<Weight<weight_t>*, decltype(weightComparator)> newWeightSet(weightComparator);
+	unsigned int counter = 0;
 	for (unsigned int state_id = 0; state_id < n; ++state_id) {
 		for (Edge* edge : *(this->states->at(state_id)->getEdges())) {
 			Weight<weight_t>* transition_weight = this->weights->at(edge->getWeight()->getId());
@@ -830,117 +828,35 @@ Automaton* Automaton::monotonize (value_function_t type) const {
 				Symbol* symbol = alphabet->at(edge->getSymbol()->getId());
 				State* from = states->at(edge->getFrom()->getId() * m + state_weight->getId());
 				State* to = states->at(edge->getTo()->getId() * m + new_weight->getId());
-				Edge* new_edge = new Edge(symbol, transition_weight, from, to);
+				Weight<weight_t>* w = new Weight<weight_t>(transition_weight);
+				newWeightSet.insert(w);
+				Edge* new_edge = new Edge(symbol, w, from, to);
 				from->addEdge(new_edge);
 				from->addSuccessor(new_edge);
 				to->addPredecessor(new_edge);
-				counts[transition_weight->getValue()]++;
-
 			}
 		}
 	}
 
-	MapVec<Weight<weight_t>*>* weights = new MapVec<Weight<weight_t>*>(counts.size());
+	MapVec<Weight<weight_t>*>* weights = new MapVec<Weight<weight_t>*>(newWeightSet.size());
 	weight_t min_weight;
 	weight_t max_weight;
-	unsigned int counter = 0;
-	for (auto weightCount : counts) {
-		Weight<weight_t>* w = new Weight<weight_t>(weightCount.first);
-		weights->insert(counter, w);
+	counter = 0;
+	for (auto weight : newWeightSet) {
+		weights->insert(counter, weight);
 
 		if (counter == 0) {
-			min_weight = weightCount.first;
+			min_weight = weight->getValue();
 		}
-		if (counter == counts.size() - 1) {
-			max_weight = weightCount.first;
+		if (counter == newWeightSet.size() - 1) {
+			max_weight = weight->getValue();
 		}
 
 		counter++;
 	}
 
-	return new Automaton(name, alphabet, states, weights, min_weight, max_weight, initial);
+	return (new Automaton(name, alphabet, states, weights, min_weight, max_weight, initial))->trim();
 }
-
-// it is not possible to implement this truly in-place because dynamic arrays cannot be truly resized -- need to copy them into a new, larger array
-// i think the same also goes for trim() -- need to copy the reachable stuff into a new, smaller array
-void Automaton::monotonizeInPlace (value_function_t type) {
-	// if (type != Inf && type != Sup) {
-	// 	fail("monotonize only possible for inf or sup automata");
-	// }
-
-	// State::RESET();
-	// // Symbol::RESET();
-	// // Weight<weight_t>::RESET();
-
-	// std::string name = "Monotone(" + this->getName() + ")";
-
-	// // MapVec<Symbol*>* alphabet = new MapVec<Symbol*>(this->alphabet->size());
-	// // for (unsigned int symbol_id = 0; symbol_id < this->alphabet->size(); ++symbol_id) {
-	// // 	alphabet->insert(symbol_id, new Symbol(this->alphabet->at(symbol_id)));
-	// // }
-
-	// unsigned int n = this->states->size();
-	// unsigned int m = this->weights->size();
-
-	// MapVec<State*>* states = new MapVec<State*>(n * m);
-	// for (unsigned int state_id = 0; state_id < n; ++state_id) {
-	// 	for (unsigned int weight_id = 0; weight_id < m; ++weight_id) {
-	// 		std::string state_name = "(" + this->states->at(state_id)->toStringOnlyName() + ", " + this->weights->at(weight_id)->toString() + ")";
-	// 		State* new_state = new State(state_name, this->alphabet->size());
-	// 		states->insert(state_id * n + weight_id, new_state);
-	// 	}
-	// }
-
-	// for (unsigned int state_id = 0; state_id < n; ++state_id) {
-	// 	for (Edge* edge : *(this->states->at(state_id)->getEdges())) {
-	// 		Weight<weight_t>* transition_weight = weights->at(edge->getWeight()->getId());
-	// 		for (unsigned int weight_id = 0; weight_id < m; ++weight_id) {
-	// 			Weight<weight_t>* state_weight = weights->at(weight_id);
-	// 			Weight<weight_t>* new_weight = state_weight;
-	// 			if ((type == Inf && transition_weight->getValue() < state_weight->getValue()) || (type == Sup && transition_weight->getValue() > state_weight->getValue())) {
-	// 				new_weight = transition_weight;
-	// 			}
-	// 			Symbol* symbol = alphabet->at(edge->getSymbol()->getId());
-	// 			State* from = states->at(edge->getFrom()->getId() * m + state_weight->getId());
-	// 			State* to = states->at(edge->getTo()->getId() * m + new_weight->getId());
-	// 			Edge* new_edge = new Edge(symbol, transition_weight, from, to);
-	// 			from->addEdge(new_edge);
-	// 			from->addSuccessor(new_edge);
-	// 			to->addPredecessor(new_edge);
-	// 		}
-	// 	}
-	// }
-
-	// State* initial;
-
-	// if (type == Inf) {
-	// 	initial = states->at(this->initial->getId() * m + this->weights->size() - 1); // weights are ordered
-	// }
-	// else if (type == Sup) {
-	// 	initial = states->at(this->initial->getId() * m);
-	// }
-
-	// for (unsigned int state_id = 0; state_id < this->states->size(); ++state_id) {
-	// 	for (Symbol* symbol : *(this->states->at(state_id)->getAlphabet())) {
-	// 		for (Edge* edge : *(this->states->at(state_id)->getSuccessors(symbol->getId()))) {
-	// 			delete edge;
-	// 		}
-	// 	}
-	// }
-
-	// for (unsigned int id = 0; id < this->states->size(); ++id) {
-	// 	delete this->states->at(id);
-	// }
-	// delete this->states;
-
-	// delete this->SCCs_tree;
-
-	// this->name = name;
-	// this->states = states;
-	// this->initial = initial;
-	// this->initialize_SCC();	
-}
-
 
 
 // TODO: CHECK
@@ -1002,11 +918,7 @@ Automaton* Automaton::livenessComponent (value_function_t type) const {
 
 
 
-// TODO: CHECK
-// fixme:
-//		argument type is useless -- dsum would need a slightly different construction if we want to do it
-//		check memory leaks
-Automaton* Automaton::constantAutomaton (value_function_t type, Weight<weight_t> v) const {
+Automaton* Automaton::constantAutomaton (Weight<weight_t> v) const {
 	State::RESET();
 	Symbol::RESET();
 	Weight<weight_t>::RESET();
@@ -1022,11 +934,11 @@ Automaton* Automaton::constantAutomaton (value_function_t type, Weight<weight_t>
 	states->insert(0, new State("init", alphabet->size()));
 
 	State* initial = states->at(0);
+	Weight<weight_t>* weight = new Weight<weight_t>(v.getValue());
 
 	for (unsigned int symbol_id = 0; symbol_id < alphabet->size(); ++symbol_id) {
 		Symbol* symbol = alphabet->at(symbol_id);
 		State* state = states->at(0);
-		Weight<weight_t>* weight = new Weight<weight_t>(v.getValue());
 		Edge* edge = new Edge(symbol, weight, state, state);
 		state->addEdge(edge);
 		state->addSuccessor(edge);
@@ -1082,43 +994,43 @@ bool Automaton::isEmpty (value_function_t type, Weight<weight_t> v) const {
 
 
 
-// can update this for DSum (same idea works but not exactly like this)
-// fixme: memory leak
+// fixme: memory leak -- test with valgrind after isIncludedIn is done
 bool Automaton::isUniversal (value_function_t type, Weight<weight_t> v) const {
-	Automaton* C = this->constantAutomaton(type, v);
-
+	bool out = false;
+	Automaton* C = this->constantAutomaton(v);
+	
 	if (C->isIncludedIn(type, this)) {
-		return true;
+		out = true;
 	}
 
-	return false;
+	delete C;
+	return out;
 }
 
 
 // TODO: need to prove Bottom(A) = -Top(-A) for limavg (and dsum -- maybe also others)
-// fixme: memory leaks
+// fixme: memory leaks -- test with valgrind after computeTop is done
 bool Automaton::isUniversal_det (value_function_t type, Weight<weight_t> v) const {
+	bool out = false;
 	Weight<weight_t>* minusOne = new Weight<weight_t>(-1);
-	Automaton* C = this->constantAutomaton(type, minusOne);
+	Automaton* C = this->constantAutomaton(minusOne);
 
 	Automaton* CC = this->product(type, C, Times);
-	// TODO:
-	// (1) multiply weights by -1 without a product
-	// (2) compute top
-	// (3) multiply weights by -1 to leave the automaton unchanged
-	
+
 	weight_t top_values[CC->nb_SCCs];
 	if((-1) * CC->computeTop(type, top_values) >= v.getValue()) {
-		return true;
+		out = true;
 	}
 
-	return false;
+	delete C;
+	delete CC;
+	return out;
 }
 
 
 // this works only for limavg and dsum
 // fixme: update product, do not use trim, inline in isIncludedIn case Avg
-// fixme: memory leak
+// fixme: memory leak -- test with valgrind after computeTop is done
 bool Automaton::isIncludedIn_det (value_function_t type, const Automaton* rhs) const {
 	Automaton* C = this->product(type, rhs, Minus)->trim();
 	C->print();
@@ -1129,6 +1041,18 @@ bool Automaton::isIncludedIn_det (value_function_t type, const Automaton* rhs) c
 		return false;
 	}
 	return true;
+
+	/* USE THIS FOR NO MEMORY LEAKS
+	bool out = true;
+	Automaton* C = this->product(type, rhs, Minus)->trim();
+	weight_t top_values[C->nb_SCCs];
+	weight_t t = C->computeTop(type, top_values);
+	if(t < 0) {
+		out = false;
+	}
+	delete C;
+	return out;
+	*/
 }
 
 
@@ -1152,7 +1076,7 @@ bool Automaton::isIncludedIn_bool(value_function_t type, const Automaton* rhs) c
 
 
 // TODO: once limsup inclusion implemented, update to handle all inclusion decisions
-// fixme: memory leaks
+// fixme: memory leaks -- test with valgrind after this is updated
 bool Automaton::isIncludedIn(value_function_t type, const Automaton* rhs) const {
 	
 	if (type == LimAvg) { 
@@ -1219,7 +1143,7 @@ bool Automaton::isConstant (value_function_t type) const {
 	}
 	else {
 		weight_t top_values[this->nb_SCCs];
-		Automaton* Top = this->constantAutomaton(type, this->computeTop(type, top_values));
+		Automaton* Top = this->constantAutomaton(this->computeTop(type, top_values));
 		return this->isEquivalent(type, Top);
 		// fixme: do only what is necessary i.e. universality A <= Top
 		// the construction of a constant automaton is the design of isUniversal not isConstant
@@ -1227,9 +1151,12 @@ bool Automaton::isConstant (value_function_t type) const {
 }
 
 
-// fixme: memory leaks
+// fixme: memory leaks -- test with valgrind
 bool Automaton::isLive (value_function_t type) const {
-	return this->safetyClosure(type)->isConstant(type);
+	Automaton* S = this->safetyClosure(type);
+	bool out = S->isConstant(type);
+	delete S;
+	return out;
 }
 
 
