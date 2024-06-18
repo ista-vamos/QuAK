@@ -4,6 +4,7 @@
 
 int ID_of_Symbols = 0;
 void Symbol::Symbol::RESET() { ID_of_Symbols = 0; }
+void Symbol::Symbol::RESET(int n) { ID_of_Symbols = n; }
 
 
 Symbol::~Symbol() {

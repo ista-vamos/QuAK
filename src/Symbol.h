@@ -16,6 +16,7 @@ class Symbol {
 		std::string getName() const;
 		const int getId() const;
 		static void RESET();
+		static void RESET(int n);
 		static std::string toString(Symbol* symbol);
 		std::string toString() const;
 

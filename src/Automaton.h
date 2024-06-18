@@ -81,6 +81,7 @@ private:
 
 	weight_t computeTop (value_function_t value_function, weight_t* top_values) const;
 public:
+	Automaton (std::string filename, Automaton* other);
 	Automaton (std::string filename);
 	Automaton (const Automaton& to_copy);
 	~Automaton ();
