@@ -71,7 +71,8 @@ void PostTargetVariable::clear () {
 			}
 		}
 	}
-	all.clear();
+
+	MapStd<State*,SetStd<std::pair<TargetOf*,Word*>>*>::clear();
 }
 
 

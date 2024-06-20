@@ -7,7 +7,7 @@
 #include "../State.h"
 
 
-class ContextOf : protected MapVec<StateRelation*> {
+class ContextOf : protected MapArray<StateRelation*> {
 private:
 	int nb_ref = 0;
 public:
@@ -19,8 +19,7 @@ public:
 
 	void add (State* fromB, State* toB, unsigned int weight_id);
 	bool smaller_than (ContextOf* other);
-	StateRelation* at (unsigned int weight_id) const { return MapVec<StateRelation*>::at(weight_id); }
-	//unsigned int size () { return this->size(); };
+	StateRelation* at (unsigned int weight_id) const { return MapArray<StateRelation*>::at(weight_id); }
 };
 
 #endif /* CONTEXTOF_H_ */

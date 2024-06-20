@@ -17,8 +17,8 @@ private:
 	weight_t max_weight;
 	SetStd<Symbol*>* alphabet;
 	SetStd<Edge*>* edges;
-	MapVec<SetStd<Edge*>*>* successors;
-	MapVec<SetStd<Edge*>*>* predecessors;
+	MapArray<SetStd<Edge*>*>* successors;
+	MapArray<SetStd<Edge*>*>* predecessors;
 public:
 	static void RESET();
 	~State();

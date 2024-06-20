@@ -38,9 +38,9 @@ typedef enum {
 class Automaton {
 private:
 	std::string name;
-	MapVec<Symbol*>* alphabet;
-	MapVec<State*>* states;
-	MapVec<Weight<weight_t>*>* weights;
+	MapArray<Symbol*>* alphabet;
+	MapArray<State*>* states;
+	MapArray<Weight<weight_t>*>* weights;
 	SCC_Tree* SCCs_tree;
 	//SetList<State*>* SCCs_list; -- NOT NECESSARY
 	weight_t min_weight;
@@ -54,9 +54,9 @@ private:
 private:
 	Automaton(
 			std::string name,
-			MapVec<Symbol*>* alphabet,
-			MapVec<State*>* states,
-			MapVec<Weight<weight_t>*>* weights,
+			MapArray<Symbol*>* alphabet,
+			MapArray<State*>* states,
+			MapArray<Weight<weight_t>*>* weights,
 			weight_t min_weight,
 			weight_t max_weight,
 			State* initial
@@ -121,9 +121,9 @@ public:
 	bool isLive (value_function_t type) const; // checks if SafetyClosure(A) = Top_A
 	
 	State* getInitial () const;
-	MapVec<Symbol*>* getAlphabet() const;
-	MapVec<State*>* getStates() const;
-	MapVec<Weight<weight_t>*>* getWeights() const;
+	MapArray<Symbol*>* getAlphabet() const;
+	MapArray<State*>* getStates() const;
+	MapArray<Weight<weight_t>*>* getWeights() const;
 	weight_t getMinWeightValue () const;
 	weight_t getMaxWeightValue () const;
 

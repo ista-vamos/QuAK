@@ -11,9 +11,10 @@
 
 template <typename T_key, typename T_value>
 class MapStd {
-protected:
+private:
 	std::map<T_key, T_value> all;
-	//std::unordered_map<T_key, T_value> all;
+protected:
+	void clear () { all.clear(); }
 public:
 	MapStd();
 	~MapStd();
@@ -29,15 +30,35 @@ public:
 
 
 
+template <typename T_key, typename T_value>
+class MapHash {
+private:
+	std::unordered_map<T_key, T_value> all;
+protected:
+	void clear () { all.clear(); }
+public:
+	MapHash();
+	~MapHash();
+	void insert(T_key key, T_value value);
+	unsigned int size () const;
+	T_value at (T_key key);
+	bool contains (T_key key) { return all.find(key) != all.end(); };
+	void update (T_key key, T_value value);
+	std::string toString(std::string (*f_key) (T_key key), std::string (*f_value) (T_value value)) const;
+	auto begin() {return  all.begin();};
+	auto end() {return all.end();};
+};
+
+
 
 template <typename T_value>
-class MapVec {
+class MapArray {
 private:
 	T_value* all = NULL;
 	unsigned int capacity = 0;
 public:
-	~MapVec();
-	MapVec(unsigned int capacity);
+	~MapArray();
+	MapArray(unsigned int capacity);
 	void insert(unsigned int key, T_value value);
 	unsigned int size () const;
 	T_value at (unsigned int key) const;
@@ -97,12 +118,12 @@ template class MapStd<State*,SetStd<std::pair<TargetOf*,Word*>>*>;
 template class MapStd<State*, TargetOf*>;
 template class MapStd<State*, SetStd<std::pair<ContextOf*,std::pair<Word*,weight_t>>>*>;
 
-template class MapVec<Weight<weight_t>*>;
-template class MapVec<State*>;
-template class MapVec<SetList<Edge*>*>;
-template class MapVec<Symbol*>;
-template class MapVec<SetStd<Edge*>*>;
-template class MapVec<StateRelation*>;
+template class MapArray<Weight<weight_t>*>;
+template class MapArray<State*>;
+template class MapArray<SetList<Edge*>*>;
+template class MapArray<Symbol*>;
+template class MapArray<SetStd<Edge*>*>;
+template class MapArray<StateRelation*>;
 
 
 #endif /* MAP_H_ */

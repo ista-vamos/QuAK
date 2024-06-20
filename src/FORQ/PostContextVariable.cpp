@@ -73,7 +73,8 @@ void PostContextVariable::clear () {
 			}
 		}
 	}
-	all.clear();
+
+	MapStd<State*, SetStd<std::pair<ContextOf*,std::pair<Word*, weight_t>>>*>::clear();
 }
 
 

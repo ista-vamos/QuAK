@@ -1,13 +1,14 @@
 #include <iostream>
 #include "Automaton.h"
- #include "Word.h"
- #include "FORQ/TargetOf.h"
- #include "FORQ/FixpointLoop.h"
- #include "FORQ/FixpointStem.h"
- #include "FORQ/ContextOf.h"
- #include "FORQ/StateRelation.h"
- #include "FORQ/PostContextVariable.h"
- #include "FORQ/PostTargetVariable.h"
+#include "Map.h"
+#include "Word.h"
+#include "FORQ/TargetOf.h"
+#include "FORQ/FixpointLoop.h"
+#include "FORQ/FixpointStem.h"
+#include "FORQ/ContextOf.h"
+#include "FORQ/StateRelation.h"
+#include "FORQ/PostContextVariable.h"
+#include "FORQ/PostTargetVariable.h"
 
 
 
@@ -126,6 +127,8 @@ bool inclusion (Automaton* A, Automaton* B) {
 
 
 int main(int argc, char **argv) {
+
+
 /*
 	printf("--------------------------------------------\n");
 
@@ -143,15 +146,6 @@ int main(int argc, char **argv) {
 	// delete C;
 */
 
-
-
-	Automaton* A1 = new Automaton("./samples/slides_example_SUPERSET.txt");
-	A1->print();
-
-
-
-	Automaton* toto = NULL;
-	Automaton* titi = NULL;
 /*
 	printf("--------------------------------------------\n");
 	printf("--------------------------------------------\n");
@@ -432,11 +426,13 @@ int main(int argc, char **argv) {
 	// std::cout << "Empty(A,2): " << A->complete(Inf)->isEmpty(Inf, 2) << std::endl; // this crashes because the sink weight causes problems to top value computation
 	std::cout << "Universal(A,0): " << A->isUniversal_det(Sup,0) << std::endl;
 	std::cout << "Universal(A,0): " << A->complete(Sup)->isUniversal_det(Sup,0) << std::endl;
-*/
+
 
 	// std::cout << "Included(A,B): " << A->isIncludedIn_det(Sup, B) << std::endl;
 	// std::cout << "Included(B,A): " << B->isIncludedIn_det(Sup, A) << std::endl;
 	// std::cout << "Equivalent(A,B): " << A->isIncludedIn_det(Sup, B) << std::endl;
-
+*/
 	return EXIT_SUCCESS;
 }
+
+

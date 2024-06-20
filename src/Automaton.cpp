@@ -78,9 +78,9 @@ Automaton::~Automaton () {
 
 Automaton::Automaton (
 		std::string name,
-		MapVec<Symbol*>* alphabet,
-		MapVec<State*>* states,
-		MapVec<Weight<weight_t>*>* weights,
+		MapArray<Symbol*>* alphabet,
+		MapArray<State*>* states,
+		MapArray<Weight<weight_t>*>* weights,
 		weight_t min_weight,
 		weight_t max_weight,
 		State* initial
@@ -116,11 +116,11 @@ Automaton::Automaton (std::string filename) :
 	max_weight = *(parser.weights.begin());
 
 	Weight<weight_t>::RESET();
-	this->weights = new MapVec<Weight<weight_t>*>(parser.weights.size());
+	this->weights = new MapArray<Weight<weight_t>*>(parser.weights.size());
 	Symbol::RESET();
-	this->alphabet = new MapVec<Symbol*>(parser.alphabet.size());
+	this->alphabet = new MapArray<Symbol*>(parser.alphabet.size());
 	State::RESET();
-	this->states = new MapVec<State*>(parser.states.size());
+	this->states = new MapArray<State*>(parser.states.size());
 
 	for (weight_t value : parser.weights) {
 		Weight<weight_t>* weight = new Weight<weight_t>(value);
@@ -181,11 +181,11 @@ Automaton::Automaton (std::string filename, Automaton* other) :
 	max_weight = *(parser.weights.begin());
 
 	Weight<weight_t>::RESET();
-	this->weights = new MapVec<Weight<weight_t>*>(parser.weights.size());
+	this->weights = new MapArray<Weight<weight_t>*>(parser.weights.size());
 	Symbol::RESET(sync_register.size());
-	this->alphabet = new MapVec<Symbol*>(parser.alphabet.size());
+	this->alphabet = new MapArray<Symbol*>(parser.alphabet.size());
 	State::RESET();
-	this->states = new MapVec<State*>(parser.states.size());
+	this->states = new MapArray<State*>(parser.states.size());
 
 	for (weight_t value : parser.weights) {
 		Weight<weight_t>* weight = new Weight<weight_t>(value);
@@ -240,17 +240,17 @@ Automaton::Automaton (const Automaton& to_copy) {
 
 	this->name = to_copy.name;
 
-	this->alphabet = new MapVec<Symbol*>(to_copy.alphabet->size());
+	this->alphabet = new MapArray<Symbol*>(to_copy.alphabet->size());
 	for (unsigned int symbol_id = 0; symbol_id < to_copy.alphabet->size(); ++symbol_id) {
 		this->alphabet->insert(symbol_id, new Symbol(to_copy.alphabet->at(symbol_id)));
 	}
-	this->states = new MapVec<State*>(to_copy.states->size());
+	this->states = new MapArray<State*>(to_copy.states->size());
 	for (unsigned int state_id = 0; state_id < to_copy.states->size(); ++state_id) {
 		this->states->insert(state_id, new State(to_copy.states->at(state_id)));
 	}
 	this->initial = this->states->at(to_copy.initial->getId());
 	
-	this->weights = new MapVec<Weight<weight_t>*>(to_copy.weights->size());
+	this->weights = new MapArray<Weight<weight_t>*>(to_copy.weights->size());
 	this->min_weight = to_copy.min_weight;
 	this->max_weight = to_copy.max_weight;
 	for (unsigned int weight_id = 0; weight_id < to_copy.weights->size(); ++weight_id) {
@@ -303,7 +303,7 @@ Automaton* Automaton::product(value_function_t value_function, const Automaton* 
 	}
 	std::string name = type + "(" + this->getName() + "," + B->getName() + ")";
 
-	MapVec<Symbol*>* alphabet = new MapVec<Symbol*>(this->alphabet->size());
+	MapArray<Symbol*>* alphabet = new MapArray<Symbol*>(this->alphabet->size());
 	for (unsigned int symbol_id = 0; symbol_id < this->alphabet->size(); ++symbol_id) {
 		alphabet->insert(symbol_id, new Symbol(this->alphabet->at(symbol_id)));
 	}
@@ -313,7 +313,7 @@ Automaton* Automaton::product(value_function_t value_function, const Automaton* 
 	// TODO: avoid constructing useless states
 	//		n = this->nb_reachable_states
 	//		m = B->nb_reachable_states
-	MapVec<State*>* states = new MapVec<State*>(n * m);
+	MapArray<State*>* states = new MapArray<State*>(n * m);
 
 	for (int i = 0; i < n; i++) {
 		for (int j = 0; j < m; j++) {
@@ -366,7 +366,7 @@ Automaton* Automaton::product(value_function_t value_function, const Automaton* 
 		}
 	}
 
-	MapVec<Weight<weight_t>*>* weights = new MapVec<Weight<weight_t>*>(counts.size());
+	MapArray<Weight<weight_t>*>* weights = new MapArray<Weight<weight_t>*>(counts.size());
 	weight_t min_weight;
 	weight_t max_weight;
 	long unsigned int counter = 0;
@@ -487,9 +487,9 @@ void Automaton::initialize_SCC (void) {
 
 // -------------------------------- Getters -------------------------------- //
 
-MapVec<Symbol*>* Automaton::getAlphabet() const { return this->alphabet; }
-MapVec<State*>* Automaton::getStates() const { return this->states; }
-MapVec<Weight<weight_t>*>* Automaton::getWeights() const { return this->weights; }
+MapArray<Symbol*>* Automaton::getAlphabet() const { return this->alphabet; }
+MapArray<State*>* Automaton::getStates() const { return this->states; }
+MapArray<Weight<weight_t>*>* Automaton::getWeights() const { return this->weights; }
 
 weight_t Automaton::getMinWeightValue () const { return this->min_weight; }
 weight_t Automaton::getMaxWeightValue () const { return this->max_weight; }
@@ -514,11 +514,11 @@ Automaton* Automaton::booleanize(Weight<weight_t> threshold) const {
 
 	std::string name = "Bool(" + this->getName() + ", " + threshold.toString() + ")";
 
-	MapVec<Symbol*>* alphabet = new MapVec<Symbol*>(this->alphabet->size());
+	MapArray<Symbol*>* alphabet = new MapArray<Symbol*>(this->alphabet->size());
 	for (unsigned int symbol_id = 0; symbol_id < this->alphabet->size(); ++symbol_id) {
 		alphabet->insert(symbol_id, new Symbol(this->alphabet->at(symbol_id)));
 	}
-	MapVec<State*>* states = new MapVec<State*>(this->states->size());
+	MapArray<State*>* states = new MapArray<State*>(this->states->size());
 	for (unsigned int state_id = 0; state_id < this->states->size(); ++state_id) {
 		states->insert(state_id, new State(this->states->at(state_id)));
 	}
@@ -544,7 +544,7 @@ Automaton* Automaton::booleanize(Weight<weight_t> threshold) const {
 		}
 	}
 
-	MapVec<Weight<weight_t>*>* weights = new MapVec<Weight<weight_t>*>(max_weight - min_weight + 1);
+	MapArray<Weight<weight_t>*>* weights = new MapArray<Weight<weight_t>*>(max_weight - min_weight + 1);
 
 	for (int i = min_weight; i <= max_weight; i++) {
 		Weight<weight_t>* w = new Weight<weight_t>(i);
@@ -566,12 +566,12 @@ Automaton* Automaton::trim() {
 
 	std::string name = "Trim(" + this->getName() + ")";
 
-	MapVec<Symbol*>* alphabet = new MapVec<Symbol*>(this->alphabet->size());
+	MapArray<Symbol*>* alphabet = new MapArray<Symbol*>(this->alphabet->size());
 	for (unsigned int symbol_id = 0; symbol_id < this->alphabet->size(); ++symbol_id) {
 		alphabet->insert(symbol_id, new Symbol(this->alphabet->at(symbol_id)));
 	}
 
-	MapVec<State*>* states = new MapVec<State*>(this->nb_reachable_states);
+	MapArray<State*>* states = new MapArray<State*>(this->nb_reachable_states);
 	long unsigned int counter = 0;
 	std::unordered_map<unsigned int, unsigned int> stateIdTable;
 	for (unsigned int state_id = 0; state_id < this->states->size(); ++state_id) {
@@ -618,7 +618,7 @@ Automaton* Automaton::trim() {
 
 	// Weight<weight_t>::RESET();
 	counter = 0;
-	MapVec<Weight<weight_t>*>* weights = new MapVec<Weight<weight_t>*>(tracker.size());
+	MapArray<Weight<weight_t>*>* weights = new MapArray<Weight<weight_t>*>(tracker.size());
 	for (auto w : tracker) {
 		weights->insert(counter, w.second);
 		counter++;
@@ -653,11 +653,11 @@ Automaton* Automaton::complete(value_function_t value_function) const {
 
 	std::string name = "Complete(" + this->name + ")";
 
-	MapVec<Symbol*>* alphabet = new MapVec<Symbol*>(this->alphabet->size());
+	MapArray<Symbol*>* alphabet = new MapArray<Symbol*>(this->alphabet->size());
 	for (unsigned int symbol_id = 0; symbol_id < this->alphabet->size(); ++symbol_id) {
 		alphabet->insert(symbol_id, new Symbol(this->alphabet->at(symbol_id)));
 	}
-	MapVec<State*>* states = new MapVec<State*>(this->states->size() + 1);
+	MapArray<State*>* states = new MapArray<State*>(this->states->size() + 1);
 	for (unsigned int state_id = 0; state_id < this->states->size(); ++state_id) {
 		states->insert(state_id, new State(this->states->at(state_id)));
 	}
@@ -666,7 +666,7 @@ Automaton* Automaton::complete(value_function_t value_function) const {
 	State* sink_state = new State("sink", alphabet->size());
 	states->insert(this->states->size(), sink_state);
 
-	MapVec<Weight<weight_t>*>* weights = new MapVec<Weight<weight_t>*>(this->weights->size() + 1);
+	MapArray<Weight<weight_t>*>* weights = new MapArray<Weight<weight_t>*>(this->weights->size() + 1);
 	weight_t min_weight = this->max_weight;
 	weight_t max_weight = this->min_weight;
 	for (unsigned int weight_id = 0; weight_id < this->weights->size(); ++weight_id) {
@@ -740,11 +740,11 @@ Automaton* Automaton::safetyClosure(value_function_t value_function) const {
 
 	std::string name = "SafetyClosure(" + this->name + ")";
 
-	MapVec<Symbol*>* alphabet = new MapVec<Symbol*>(this->alphabet->size());
+	MapArray<Symbol*>* alphabet = new MapArray<Symbol*>(this->alphabet->size());
 	for (unsigned int symbol_id = 0; symbol_id < this->alphabet->size(); ++symbol_id) {
 		alphabet->insert(symbol_id, new Symbol(this->alphabet->at(symbol_id)));
 	}
-	MapVec<State*>* states = new MapVec<State*>(this->states->size());
+	MapArray<State*>* states = new MapArray<State*>(this->states->size());
 	for (unsigned int state_id = 0; state_id < this->states->size(); ++state_id) {
 		states->insert(state_id, new State(this->states->at(state_id)));
 	}
@@ -753,7 +753,7 @@ Automaton* Automaton::safetyClosure(value_function_t value_function) const {
 
 	weight_t top_values[this->nb_SCCs];
 	computeTop(value_function, top_values);
-	MapVec<Weight<weight_t>*>* weights = new MapVec<Weight<weight_t>*>(this->nb_SCCs);
+	MapArray<Weight<weight_t>*>* weights = new MapArray<Weight<weight_t>*>(this->nb_SCCs);
 	weight_t min_weight = this->max_weight;
 	weight_t max_weight = this->min_weight;
 	for (unsigned int weight_id = 0; weight_id < this->nb_SCCs; ++weight_id) {
@@ -790,7 +790,7 @@ Automaton* Automaton::monotonize (value_function_t type) const {
 
 	std::string name = "Monotone(" + this->getName() + ")";
 
-	MapVec<Symbol*>* alphabet = new MapVec<Symbol*>(this->alphabet->size());
+	MapArray<Symbol*>* alphabet = new MapArray<Symbol*>(this->alphabet->size());
 	for (unsigned int symbol_id = 0; symbol_id < this->alphabet->size(); ++symbol_id) {
 		alphabet->insert(symbol_id, new Symbol(this->alphabet->at(symbol_id)));
 	}
@@ -798,7 +798,7 @@ Automaton* Automaton::monotonize (value_function_t type) const {
 	unsigned int n = this->states->size();
 	unsigned int m = this->weights->size();
 
-	MapVec<State*>* states = new MapVec<State*>(n * m);
+	MapArray<State*>* states = new MapArray<State*>(n * m);
 	for (unsigned int state_id = 0; state_id < n; ++state_id) {
 		for (unsigned int weight_id = 0; weight_id < m; ++weight_id) {
 			std::string state_name = "(" + this->states->at(state_id)->toStringOnlyName() + ", " + this->weights->at(weight_id)->toString() + ")";
@@ -848,7 +848,7 @@ Automaton* Automaton::monotonize (value_function_t type) const {
 		}
 	}
 
-	MapVec<Weight<weight_t>*>* weights = new MapVec<Weight<weight_t>*>(newWeightSet.size());
+	MapArray<Weight<weight_t>*>* weights = new MapArray<Weight<weight_t>*>(newWeightSet.size());
 	weight_t min_weight;
 	weight_t max_weight;
 	unsigned long counter = 0;
@@ -881,11 +881,11 @@ Automaton* Automaton::livenessComponent (value_function_t type) const {
 
 	std::string name = "LivenessComponent(" + this->getName() + ")";
 
-	MapVec<Symbol*>* alphabet = new MapVec<Symbol*>(this->alphabet->size());
+	MapArray<Symbol*>* alphabet = new MapArray<Symbol*>(this->alphabet->size());
 	for (unsigned int symbol_id = 0; symbol_id < this->alphabet->size(); ++symbol_id) {
 		alphabet->insert(symbol_id, new Symbol(this->alphabet->at(symbol_id)));
 	}
-	MapVec<State*>* states = new MapVec<State*>(this->states->size());
+	MapArray<State*>* states = new MapArray<State*>(this->states->size());
 	for (unsigned int state_id = 0; state_id < this->states->size(); ++state_id) {
 		states->insert(state_id, new State(this->states->at(state_id)));
 	}
@@ -893,7 +893,7 @@ Automaton* Automaton::livenessComponent (value_function_t type) const {
 
 	weight_t top_values[this->nb_SCCs];
 	computeTop(type, top_values);
-	MapVec<Weight<weight_t>*>* weights = new MapVec<Weight<weight_t>*>(this->weights->size());
+	MapArray<Weight<weight_t>*>* weights = new MapArray<Weight<weight_t>*>(this->weights->size());
 	weight_t min_weight = this->max_weight;
 	weight_t max_weight = this->min_weight;
 	for (unsigned int weight_id = 0; weight_id < this->weights->size(); ++weight_id) {
@@ -935,12 +935,12 @@ Automaton* Automaton::constantAutomaton (Weight<weight_t> v) const {
 
 	std::string name = "Constant(" + v.toString() + ")";
 	
-	MapVec<Symbol*>* alphabet = new MapVec<Symbol*>(this->alphabet->size());
+	MapArray<Symbol*>* alphabet = new MapArray<Symbol*>(this->alphabet->size());
 	for (unsigned int symbol_id = 0; symbol_id < this->alphabet->size(); ++symbol_id) {
 		alphabet->insert(symbol_id, new Symbol(this->alphabet->at(symbol_id)));
 	}
 
-	MapVec<State*>* states = new MapVec<State*>(1);
+	MapArray<State*>* states = new MapArray<State*>(1);
 	states->insert(0, new State("init", alphabet->size()));
 
 	State* initial = states->at(0);
@@ -955,7 +955,7 @@ Automaton* Automaton::constantAutomaton (Weight<weight_t> v) const {
 		state->addPredecessor(edge);
 	}
 
-	MapVec<Weight<weight_t>*>* weights = new MapVec<Weight<weight_t>*>(1);
+	MapArray<Weight<weight_t>*>* weights = new MapArray<Weight<weight_t>*>(1);
 	weights->insert(0, new Weight<weight_t>(v.getValue()));
 
 	return new Automaton(name, alphabet, states, weights, v.getValue(), v.getValue(), initial);
@@ -969,7 +969,7 @@ Automaton* Automaton::toLimSup_helperLimInf () const {
 
 	std::string name = "LimSup(" + this->name + ")";
 	
-	MapVec<Symbol*>* alphabet = new MapVec<Symbol*>(this->alphabet->size());
+	MapArray<Symbol*>* alphabet = new MapArray<Symbol*>(this->alphabet->size());
 	for (unsigned int symbol_id = 0; symbol_id < this->alphabet->size(); ++symbol_id) {
 		alphabet->insert(symbol_id, new Symbol(this->alphabet->at(symbol_id)));
 	}
@@ -977,7 +977,7 @@ Automaton* Automaton::toLimSup_helperLimInf () const {
 	unsigned int n = this->states->size();
 	unsigned int m = this->weights->size();
 
-	MapVec<State*>* states = new MapVec<State*>(n * m + 1);
+	MapArray<State*>* states = new MapArray<State*>(n * m + 1);
 	for (unsigned int state_id = 0; state_id < n; ++state_id) {
 		for (unsigned int weight_id = 0; weight_id < m; ++weight_id) {
 			std::string state_name = "(" + this->states->at(state_id)->toStringOnlyName() + ", " + this->weights->at(weight_id)->toString() + ")";
@@ -1071,7 +1071,7 @@ Automaton* Automaton::toLimSup_helperLimInf () const {
 	// 	}
 	// }
 
-	MapVec<Weight<weight_t>*>* weights = new MapVec<Weight<weight_t>*>(newWeightSet.size());
+	MapArray<Weight<weight_t>*>* weights = new MapArray<Weight<weight_t>*>(newWeightSet.size());
 	weight_t min_weight;
 	weight_t max_weight;
 	unsigned long counter = 0;
@@ -1423,7 +1423,7 @@ void Automaton::top_safety_scc_recursive (Edge* edge, bool in_scc, int* values, 
 
 void Automaton::top_safety_scc (weight_t* values, bool in_scc) const {
 	//O(x)
-	MapVec<SetList<Edge*>*> edges(this->weights->size());
+	MapArray<SetList<Edge*>*> edges(this->weights->size());
 	for (unsigned int weight_id = 0; weight_id < this->weights->size(); ++weight_id) {
 		edges.insert(weight_id, new SetList<Edge*>);
 	}
@@ -1614,47 +1614,24 @@ void Automaton::print_top() const {
 	double y;
 	std::cout << "\ttop:\n";
 
-
 	x = top_Inf();
 	std::cout << "\t\t   Inf -> ";
-	if (x > this->max_weight)
-		std::cout << "+infinity\n";
-	else
-		std::cout << x << "\n";
-
 
 	x = top_Sup(top_values);
 	std::cout << "\t\t   Sup -> ";
-	if (x < this->min_weight)
-		std::cout << "-infinity\n";
-	else
-		std::cout << x << "\n";
-
+	std::cout << ((x < this->min_weight) ? "-infinity" : std::to_string(x)) << "\n";
 
 	x = top_LimInf(top_values);
 	std::cout << "\t\tLimInf -> ";
-	if (x < this->min_weight)
-		std::cout << "+infinity\n";
-	else
-		std::cout << x << "\n";
-
-
+	std::cout << ((x < this->min_weight) ? "+infinity" : std::to_string(x)) << "\n";
 
 	x = top_LimSup(top_values);
 	std::cout << "\t\tLimSup -> ";
-	if (x < this->min_weight)
-		std::cout << "-infinity\n";
-	else
-		std::cout << x << "\n";
-
-
+	std::cout << ((x < this->min_weight) ? "-infinity" : std::to_string(x)) << "\n";
 
 	y = top_LimAvg(top_values);
 	std::cout << "\t\tLimAvg -> ";
-	if (y < this->min_weight)
-		std::cout << "-infinity\n";
-	else
-		std::cout << y << "\n";
+	std::cout << ((y < this->min_weight) ? "-infinity" : std::to_string(y)) << "\n";
 }
 
 

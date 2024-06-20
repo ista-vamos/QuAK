@@ -15,7 +15,7 @@ void TargetOf::add (State* stateB) {
 
 
 bool TargetOf::smaller_than (TargetOf* other){
-	return std::includes(other->all.begin(), other->all.end(), this->all.begin(), this->all.end());
+	return std::includes(other->begin(), other->end(), this->begin(), this->end());
 }
 
 

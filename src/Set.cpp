@@ -40,6 +40,7 @@ std::string SetStd<T_element>::toString (std::string (*f) (T_element)) const {
 // -------------------------------- SetList -------------------------------- //
 
 
+
 template <typename T_element>
 SetList<T_element>::SetList() {}
 

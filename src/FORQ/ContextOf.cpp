@@ -8,7 +8,7 @@ ContextOf::~ContextOf() {
 }
 
 
-ContextOf::ContextOf(unsigned int capacity) : MapVec<StateRelation*>(capacity) {
+ContextOf::ContextOf(unsigned int capacity) : MapArray<StateRelation*>(capacity) {
 	for (unsigned int weight_id = 0; weight_id < this->size(); ++weight_id) {
 		this->insert(weight_id, new StateRelation());
 	}
