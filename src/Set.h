@@ -7,7 +7,7 @@
 #include <string>
 #include <set>
 #include <list>
-
+#include <unordered_set>
 
 template <typename T_element> class SetStd {
 protected:

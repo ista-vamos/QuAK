@@ -6,13 +6,14 @@
 #include <vector>
 #include <string>
 #include <map>
-
+#include <unordered_map>
 
 
 template <typename T_key, typename T_value>
 class MapStd {
 protected:
 	std::map<T_key, T_value> all;
+	//std::unordered_map<T_key, T_value> all;
 public:
 	MapStd();
 	~MapStd();
@@ -22,7 +23,7 @@ public:
 	bool contains (T_key key) { return all.find(key) != all.end(); };
 	void update (T_key key, T_value value);
 	std::string toString(std::string (*f_key) (T_key key), std::string (*f_value) (T_value value)) const;
-	auto begin() {return all.begin();};
+	auto begin() {return  all.begin();};
 	auto end() {return all.end();};
 };
 

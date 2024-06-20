@@ -1,8 +1,8 @@
 GCC = gcc
-CFLAG = -g -Wall
+CFLAG = -g -O3 -Wall
 
 GPP = g++
-CPPFLAG = -g -Wall
+CPPFLAG = -g -O3 -Wall
 
 SRCDIR = src
 SRC0 = $(wildcard $(SRCDIR)/*.c) $(wildcard $(SRCDIR)/*.cpp)

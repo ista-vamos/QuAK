@@ -35,10 +35,34 @@ State::~State () {
 }
 
 
+State::State (std::string name, unsigned int alphabet_size, weight_t automaton_min_weight, weight_t automaton_max_weight) :
+		my_id(ID_of_States++),
+		name(name),
+		my_scc(-1),
+		min_weight(automaton_max_weight),
+		max_weight(automaton_min_weight),
+		alphabet(NULL),
+		edges(NULL),
+		successors(NULL),
+		predecessors(NULL)
+{
+	this->alphabet = new SetStd<Symbol*>();
+	this->edges = new SetStd<Edge*>();
+	this->successors = new MapVec<SetStd<Edge*>*>(alphabet_size);
+	this->predecessors = new MapVec<SetStd<Edge*>*>(alphabet_size);
+	for (unsigned int symbol_id = 0; symbol_id < alphabet_size; ++symbol_id) {
+		this->successors->insert(symbol_id, new SetStd<Edge*>()); //fixme: change later
+		this->predecessors->insert(symbol_id, new SetStd<Edge*>());
+	}
+}
+
+
 State::State (std::string name, unsigned int alphabet_size) :
 		my_id(ID_of_States++),
 		name(name),
 		my_scc(-1),
+		min_weight(0),
+		max_weight(0),
 		alphabet(NULL),
 		edges(NULL),
 		successors(NULL),
@@ -58,6 +82,8 @@ State::State (State* state) :
 		my_id(state->my_id),
 		name(state->name),
 		my_scc(state->my_scc),
+		min_weight(state->min_weight),
+		max_weight(state->max_weight),
 		alphabet(NULL),
 		edges(NULL),
 		successors(NULL),
@@ -76,6 +102,15 @@ State::State (State* state) :
 
 std::string State::getName() const {
 	return this->name;
+}
+
+
+weight_t State::getMaxWeightValue() const {
+	return this->max_weight;
+}
+
+weight_t State::getMinWeightValue() const {
+	return this->min_weight;
 }
 
 
@@ -119,6 +154,8 @@ void State::addEdge (Edge *edge) {
 
 void State::addSuccessor (Edge* edge) {
 	this->alphabet->insert(edge->getSymbol());
+	this->min_weight = std::min(this->min_weight, edge->getWeight()->getValue());
+	this->max_weight = std::max(this->max_weight, edge->getWeight()->getValue());
 	this->successors->at(edge->getSymbol()->getId())->insert(edge);
 }
 

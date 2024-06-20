@@ -95,7 +95,7 @@ bool FixpointLoop::apply () {
 	this->buffer = tmp;
 	this->buffer->clear();
 
-	return (this->updates->size() == 0);
+	return (this->updates->size() > 0);
 }
 
 

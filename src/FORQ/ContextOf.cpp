@@ -26,7 +26,9 @@ void ContextOf::add (State* fromB, State* toB, unsigned int weight_id) {
 
 bool ContextOf::smaller_than (ContextOf* other) {
 	for (unsigned int weight_id = 0; weight_id < this->size(); ++weight_id) {
-		if (this->at(weight_id)->smaller_than(other->at(weight_id)) == false) return false;
+		if (this->at(weight_id)->smaller_than(other->at(weight_id)) == false) {
+			return false;
+		}
 	}
 	return true;
 }

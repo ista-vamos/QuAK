@@ -19,6 +19,11 @@ bool TargetOf::smaller_than (TargetOf* other){
 }
 
 
-/*std::string TargetOf::toString () const {
+/*
+std::string TargetOf::TargetOf::toString (TargetOf* tmp) {
+	return tmp->toString();
+}
+std::string TargetOf::toString () const {
 	return SetStd<State*>::toString(State::toString);
-}*/
+}
+*/

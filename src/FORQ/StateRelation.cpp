@@ -23,8 +23,12 @@ void StateRelation::add (State* fromB, State* toB) {
 
 bool StateRelation::smaller_than (StateRelation* other){
 	for (std::pair<State*, TargetOf*> pair : *this) {
-		if (other->contains(pair.first) == false) return false;
-		if (pair.second->smaller_than(other->at(pair.first))) return false;
+		if (other->contains(pair.first) == false) {
+			return false;
+		}
+		if (pair.second->smaller_than(other->at(pair.first)) == false) {
+			return false;
+		}
 	}
 	return true;
 }

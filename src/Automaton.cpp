@@ -122,8 +122,16 @@ Automaton::Automaton (std::string filename) :
 	State::RESET();
 	this->states = new MapVec<State*>(parser.states.size());
 
+	for (weight_t value : parser.weights) {
+		Weight<weight_t>* weight = new Weight<weight_t>(value);
+		this->weights->insert(weight->getId(), weight);
+		weight_register.insert(weight->getValue(), weight);
+		this->min_weight = std::min(this->min_weight, value);
+		this->max_weight = std::max(this->max_weight, value);
+	}
+
 	for (std::string statename: parser.states) {
-		State* state = new State(statename, alphabet->size());
+		State* state = new State(statename, alphabet->size(), this->min_weight, this->max_weight);
 		this->states->insert(state->getId(), state);
 		state_register.insert(state->getName(), state);
 	}
@@ -133,14 +141,6 @@ Automaton::Automaton (std::string filename) :
 		Symbol* symbol = new Symbol(symbolname);
 		this->alphabet->insert(symbol->getId(), symbol);
 		symbol_register.insert(symbol->getName(), symbol);
-	}
-
-	for (weight_t value : parser.weights) {
-		Weight<weight_t>* weight = new Weight<weight_t>(value);
-		this->weights->insert(weight->getId(), weight);
-		weight_register.insert(weight->getValue(), weight);
-		this->min_weight = std::min(this->min_weight, value);
-		this->max_weight = std::max(this->max_weight, value);
 	}
 
 	for (auto tuple : parser.edges) {
@@ -187,8 +187,16 @@ Automaton::Automaton (std::string filename, Automaton* other) :
 	State::RESET();
 	this->states = new MapVec<State*>(parser.states.size());
 
+	for (weight_t value : parser.weights) {
+		Weight<weight_t>* weight = new Weight<weight_t>(value);
+		this->weights->insert(weight->getId(), weight);
+		weight_register.insert(weight->getValue(), weight);
+		this->min_weight = std::min(this->min_weight, value);
+		this->max_weight = std::max(this->max_weight, value);
+	}
+
 	for (std::string statename : parser.states) {
-		State* state = new State(statename, alphabet->size());
+		State* state = new State(statename, alphabet->size(), this->min_weight, this->max_weight);
 		this->states->insert(state->getId(), state);
 		state_register.insert(state->getName(), state);
 	}
@@ -203,14 +211,6 @@ Automaton::Automaton (std::string filename, Automaton* other) :
 			symbol = new Symbol(symbolname);
 		this->alphabet->insert(symbol->getId(), symbol);
 		symbol_register.insert(symbol->getName(), symbol);
-	}
-
-	for (weight_t value : parser.weights) {
-		Weight<weight_t>* weight = new Weight<weight_t>(value);
-		this->weights->insert(weight->getId(), weight);
-		weight_register.insert(weight->getValue(), weight);
-		this->min_weight = std::min(this->min_weight, value);
-		this->max_weight = std::max(this->max_weight, value);
 	}
 
 	for (auto tuple : parser.edges) {
@@ -490,8 +490,9 @@ void Automaton::initialize_SCC (void) {
 MapVec<Symbol*>* Automaton::getAlphabet() const { return this->alphabet; }
 MapVec<State*>* Automaton::getStates() const { return this->states; }
 MapVec<Weight<weight_t>*>* Automaton::getWeights() const { return this->weights; }
+
 weight_t Automaton::getMinWeightValue () const { return this->min_weight; }
-	weight_t Automaton::getMaxWeightValue () const { return this->max_weight; }
+weight_t Automaton::getMaxWeightValue () const { return this->max_weight; }
 
 State* Automaton::getInitial () const { return initial; }
 
@@ -1361,9 +1362,10 @@ void Automaton::top_reachably_scc (State* state, lol_t lol, bool* spot, weight_t
 }
 
 
-void Automaton::top_reachably_tree (SCC_Tree* tree, lol_t lol, bool* spot, weight_t* values, weight_t* top_values) const {
+void Automaton::top_reachably_tree (SCC_Tree* tree, lol_t lol, bool* spot, weight_t* values, weight_t top_values[]) const {
 	top_reachably_scc(tree->origin, lol, spot, values);
 	top_values[tree->origin->getTag()] = values[tree->origin->getId()];
+
 	for (auto iter = tree->nexts->begin(); iter != tree->nexts->end(); ++iter) {
 		top_reachably_tree(*iter, lol, spot, values, top_values);
 		top_values[tree->origin->getTag()] = std::max(top_values[tree->origin->getTag()],
@@ -1375,10 +1377,12 @@ void Automaton::top_reachably_tree (SCC_Tree* tree, lol_t lol, bool* spot, weigh
 weight_t Automaton::top_Sup (weight_t* top_values) const {
 	weight_t values[this->states->size()];
 	bool spot[this->states->size()];
+
 	for (unsigned int state_id = 0; state_id < this->states->size(); ++state_id)
 		spot[state_id] = false;
+
 	top_reachably_tree(this->SCCs_tree, lol_step, spot, values, top_values);
-	return top_values[this->initial->getTag()];
+	return top_values[this->SCCs_tree->origin->getTag()];
 }
 
 
@@ -1387,7 +1391,7 @@ weight_t Automaton::top_LimSup (weight_t* top_values) const {
 	bool spot[this->states->size()];
 	for (unsigned int state_id = 0; state_id < this->states->size(); ++state_id) spot[state_id] = false;
 	top_reachably_tree(this->SCCs_tree, lol_in, spot, values, top_values);
-	return top_values[this->initial->getTag()];
+	return top_values[this->SCCs_tree->origin->getTag()];
 }
 
 
@@ -1487,7 +1491,7 @@ weight_t Automaton::top_LimInf (weight_t* top_values) const {
 	}
 
 	top_safety_tree(this->SCCs_tree, top_values);
-	return top_values[this->initial->getTag()];
+	return top_values[this->SCCs_tree->origin->getTag()];
 }
 
 
@@ -1573,7 +1577,7 @@ weight_t Automaton::top_LimAvg (weight_t* top_values) const {
 	}
 
 	top_avg_tree(this->SCCs_tree, top_values);
-	return top_values[this->initial->getTag()];
+	return top_values[this->SCCs_tree->origin->getTag()];
 }
 
 
@@ -1608,52 +1612,54 @@ void Automaton::print_top() const {
 	weight_t top_values[this->nb_SCCs];
 	weight_t x;
 	double y;
-	std::cout << "\ttop:";
+	std::cout << "\ttop:\n";
 
-/**/
+
 	x = top_Inf();
-	std::cout << "\n\t\t   Inf -> ";
-	std::cout << (x > this->max_weight) ? "+infinity" : std::to_string(x);
-	printf("\n");fflush(stdout);
-/**/
+	std::cout << "\t\t   Inf -> ";
+	if (x > this->max_weight)
+		std::cout << "+infinity\n";
+	else
+		std::cout << x << "\n";
 
-/**/
+
 	x = top_Sup(top_values);
-	std::cout << "\n\t\t   Sup -> ";
-	std::cout << (x < this->min_weight) ? "-infinity" : std::to_string(x);
-	printf("\n");fflush(stdout);
-/**/
+	std::cout << "\t\t   Sup -> ";
+	if (x < this->min_weight)
+		std::cout << "-infinity\n";
+	else
+		std::cout << x << "\n";
 
-/**/
-	// fixme: top_LimInf is erroneous (wrong answer)
+
 	x = top_LimInf(top_values);
-	std::cout << "\n\t\tLimInf -> ";
-	std::cout << (x < this->min_weight) ? "+infinity" : std::to_string(x);
-	printf("\n");fflush(stdout);
-/**/
+	std::cout << "\t\tLimInf -> ";
+	if (x < this->min_weight)
+		std::cout << "+infinity\n";
+	else
+		std::cout << x << "\n";
 
-/**/
-	// fixme: top_LimSup is erroneous (runtime error)
+
+
 	x = top_LimSup(top_values);
-	std::cout << "\n\t\tLimSup -> ";
-	std::cout << (x < this->min_weight) ? "-infinity" : std::to_string(x);
-	printf("\n");fflush(stdout);
-/**/
+	std::cout << "\t\tLimSup -> ";
+	if (x < this->min_weight)
+		std::cout << "-infinity\n";
+	else
+		std::cout << x << "\n";
 
 
-/**/
-	// fixme: top_LimAvg is erroneous (wrong answer)
+
 	y = top_LimAvg(top_values);
-	std::cout << "\n\t\tLimAvg -> ";
-	std::cout << (y < this->min_weight) ? "-infinity" : std::to_string(y);
-	printf("\n");fflush(stdout);
-/**/
-
-	std::cout << "\n";
+	std::cout << "\t\tLimAvg -> ";
+	if (y < this->min_weight)
+		std::cout << "-infinity\n";
+	else
+		std::cout << y << "\n";
 }
 
 
 void Automaton::print () const {
+	std::cout << "automaton (" << this->name << "):\n";
 	std::cout << "\talphabet (" << this->alphabet->size() << "):";
 	std::cout << this->alphabet->toString(Symbol::toString) << "\n";
 	std::cout << "\tweights (" << this->weights->size() << "):";
@@ -1665,7 +1671,7 @@ void Automaton::print () const {
 	std::cout << "\t\tINITIAL = " << initial->getName() << "\n";
 	std::cout << "\tSCCs (" << this->nb_SCCs << "):";
 	std::cout << this->SCCs_tree->toString("\t\t") << "\n";
-	/*unsigned int nb_edge = 0;
+	unsigned int nb_edge = 0;
 	for (unsigned int state_id = 0; state_id < states->size(); ++state_id) {
 		for (Symbol* symbol : *(states->at(state_id)->getAlphabet())) {
 			nb_edge += states->at(state_id)->getSuccessors(symbol->getId())->size();
@@ -1676,7 +1682,7 @@ void Automaton::print () const {
 		for (Symbol* symbol : *(states->at(state_id)->getAlphabet())) {
 			std::cout << states->at(state_id)->getSuccessors(symbol->getId())->toString(Edge::toString);
 		}
-	}*/
+	}
 	std::cout << "\n";
 	print_top();
 }

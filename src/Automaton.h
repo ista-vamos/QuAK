@@ -127,6 +127,7 @@ public:
 	weight_t getMinWeightValue () const;
 	weight_t getMaxWeightValue () const;
 
+
 	std::string getName() const;
 
 	void print_top() const;
