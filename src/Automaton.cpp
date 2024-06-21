@@ -91,7 +91,7 @@ Automaton::Automaton (
 		max_weight(max_weight),
 		initial(initial)
 {
-	initialize_SCC();
+	compute_SCC();
 }
 
 
@@ -149,7 +149,7 @@ void Automaton::build(Parser* parser, MapStd<std::string, Symbol*> sync_register
 		to->addPredecessor(edge);
 	}
 
-	initialize_SCC();
+	compute_SCC();
 	delete_verbose("@Detail: 3 MapStd will be deleted (automaton constructor registers)\n");
 }
 
@@ -196,8 +196,8 @@ weight_t aggregator_apply (aggregator_t aggregator, Weight<weight_t>* x, Weight<
 }
 
 
-Automaton::Automaton(const Automaton* A, const Automaton* B, aggregator_t aggregator) :
-	name(aggregator_name(aggregator) + "(" + this->getName() + "," + B->getName() + ")")
+Automaton::Automaton(const Automaton* A, const Automaton* B, aggregator_t f) :
+	name(aggregator_name(f) + "(" + A->getName() + "," + B->getName() + ")")
 {
 	MapStd<std::string, Symbol*> sync_register;
 	Parser parser;
@@ -213,18 +213,18 @@ Automaton::Automaton(const Automaton* A, const Automaton* B, aggregator_t aggreg
 				for (Edge* edgeA : *(A->states->at(stateA_id)->getSuccessors(symbol->getId()))) {
 					for (Edge* edgeB : *(B->states->at(stateB_id)->getSuccessors(symbol->getId()))) {
 						std::string symbolname = symbol->getName();
-						weight_t weight = aggregator_apply(aggregator, edgeA->getWeight(), edgeB->getWeight());
+						weight_t weightvalue = aggregator_apply(f, edgeA->getWeight(), edgeB->getWeight());
 						std::string fromname =  "(" + edgeA->getFrom()->getName() + "," + edgeB->getFrom()->getName() + ")";
 						std::string toname =  "(" + edgeA->getTo()->getName() + "," + edgeB->getTo()->getName() + ")";
 
 						parser.alphabet.insert(symbolname);
-						parser.weights.insert(weight);
+						parser.weights.insert(weightvalue);
 						parser.states.insert(fromname);
 						parser.states.insert(toname);
 
 						std::pair<std::pair<std::string, weight_t>,std::pair<std::string, std::string>> edge;
 						edge.first.first = symbolname;
-						edge.first.second = weight;
+						edge.first.second = weightvalue;
 						edge.second.first = fromname;
 						edge.second.second = toname;
 						parser.edges.insert(edge);
@@ -238,7 +238,73 @@ Automaton::Automaton(const Automaton* A, const Automaton* B, aggregator_t aggreg
 }
 
 
-// TODO: remove and use Automaton(const Automaton* A, const Automaton* B, aggregator_t aggregator) instead
+Automaton::Automaton(const Automaton* A, value_function_t f) :
+	name(A->getName())
+{
+	MapStd<std::string, Symbol*> sync_register;
+	Parser parser;
+
+	for (unsigned int stateA_id = 0; stateA_id < A->states->size(); ++stateA_id) {
+		if (A->states->at(stateA_id)->getTag() == -1) continue;
+		parser.states.insert(A->states->at(stateA_id)->getName());
+		for (Symbol* symbol : *(A->states->at(stateA_id)->getAlphabet())) {
+			parser.alphabet.insert(symbol->getName());
+			for (Edge* edgeA : *(A->states->at(stateA_id)->getSuccessors(symbol->getId()))) {
+				parser.weights.insert(edgeA->getWeight()->getValue());
+				std::pair<std::pair<std::string, weight_t>,std::pair<std::string, std::string>> edge;
+				edge.first.first = edgeA->getSymbol()->getName();
+				edge.first.second = edgeA->getWeight()->getValue();
+				edge.second.first = edgeA->getFrom()->getName();
+				edge.second.second = edgeA->getTo()->getName();
+				parser.edges.insert(edge);
+			}
+		}
+	}
+
+	parser.states.insert("sink");
+	weight_t min_value = *(parser.weights.begin());
+	weight_t max_value = *(parser.weights.end());
+	weight_t weightvalue;
+	switch(f) {
+		case Inf: case LimInf : case LimAvg:
+			weightvalue = max_value + 1;
+			break;
+		case Sup: case LimSup:
+			weightvalue = min_value - 1;
+			break;
+		default: fail("case value function");
+	}
+
+	for (unsigned int stateA_id = 0; stateA_id < A->states->size(); ++stateA_id) {
+		if (A->states->at(stateA_id)->getTag() == -1) continue;
+		for (unsigned int symbol_id = 0; symbol_id < A->states->size(); ++symbol_id) {
+			if (parser.alphabet.contains(A->alphabet->at(symbol_id)->getName()) == false) continue;
+			if (A->states->at(stateA_id)->getAlphabet()->contains(A->alphabet->at(symbol_id)) == true) continue;
+			std::pair<std::pair<std::string, weight_t>,std::pair<std::string, std::string>> edge;
+			edge.first.first = A->alphabet->at(symbol_id)->getName();
+			edge.first.second = weightvalue;
+			edge.second.first = A->states->at(stateA_id)->getName();
+			edge.second.second = "sink";
+			parser.edges.insert(edge);
+		}
+	}
+
+	for (std::string symbolname: parser.alphabet) {
+		std::pair<std::pair<std::string, weight_t>,std::pair<std::string, std::string>> edge;
+		edge.first.first = symbolname;
+		edge.first.second = weightvalue;
+		edge.second.first = "sink";
+		edge.second.second = "sink";
+		parser.edges.insert(edge);
+	}
+
+	build(&parser, sync_register);
+}
+
+
+
+/*
+// TODO: remove, use Automaton(const Automaton* A, const Automaton* B, aggregator_t aggregator) instead
 Automaton* Automaton::product(value_function_t value_function, const Automaton* B, aggregator_t aggregator) const {
 	State::RESET();
 	Symbol::RESET();
@@ -311,16 +377,11 @@ Automaton* Automaton::product(value_function_t value_function, const Automaton* 
 
 	return new Automaton(name, alphabet, states, weights, min_weight, max_weight, initial);
 }
+*/
 
 
-
-
-
-
-
-// TODO: CHECK
-// fixme: check if it is necessary, remove otherwise -- i would keep it because copy constructors are useful in general
-// so far used in trim and complete
+/*
+//TODO: remove, use Automaton::Automaton(const Automaton* A, value_function_t f) instead
 Automaton::Automaton (const Automaton& to_copy) {
 	State::RESET();
 	Symbol::RESET();
@@ -359,12 +420,9 @@ Automaton::Automaton (const Automaton& to_copy) {
 		}
 	}
 
-	this->initialize_SCC();
+	this->compute_SCC();
 }
-
-
-
-
+*/
 
 
 
@@ -383,7 +441,7 @@ Automaton::Automaton (const Automaton& to_copy) {
 // -------------------------------- SCCs -------------------------------- //
 
 
-void Automaton::initialize_SCC_tree (State* state, int* spot, int* low, bool* stackMem, SCC_Tree* ancestor) {
+void Automaton::compute_SCC_tree (State* state, int* spot, int* low, bool* stackMem, SCC_Tree* ancestor) {
 	stackMem[state->getId()] = true;
 
 	for (Symbol* symbol : *(state->getAlphabet())) {
@@ -392,10 +450,10 @@ void Automaton::initialize_SCC_tree (State* state, int* spot, int* low, bool* st
 				if (spot[edge->getTo()->getId()] == low[edge->getTo()->getId()]) {
 					SCC_Tree* data = new SCC_Tree(edge->getTo());
 					ancestor->addNext(data);
-					initialize_SCC_tree(edge->getTo(), spot, low, stackMem, data);
+					compute_SCC_tree(edge->getTo(), spot, low, stackMem, data);
 				}
 				else {
-					initialize_SCC_tree(edge->getTo(), spot, low, stackMem, ancestor);
+					compute_SCC_tree(edge->getTo(), spot, low, stackMem, ancestor);
 				}
 			}
 		}
@@ -403,7 +461,7 @@ void Automaton::initialize_SCC_tree (State* state, int* spot, int* low, bool* st
 }
 
 
-void Automaton::initialize_SCC_tag (State* state, int* tag, int* time, int* spot, int* low, SetList<State*>* stack, bool* stackMem) {
+void Automaton::compute_SCC_tag (State* state, int* tag, int* time, int* spot, int* low, SetList<State*>* stack, bool* stackMem) {
 	spot[state->getId()] = *time;
 	low[state->getId()] = *time;
 	(*time)++;
@@ -413,7 +471,7 @@ void Automaton::initialize_SCC_tag (State* state, int* tag, int* time, int* spot
 	for (Symbol* symbol : *(state->getAlphabet())) {
 		for (Edge* edge : *(state->getSuccessors(symbol->getId()))) {
 			if (spot[edge->getTo()->getId()] == -1) {
-				initialize_SCC_tag(edge->getTo(), tag, time, spot, low, stack, stackMem);
+				compute_SCC_tag(edge->getTo(), tag, time, spot, low, stack, stackMem);
 				low[state->getId()] = std::min(low[state->getId()], low[edge->getTo()->getId()]);
 			}
 			else if (stackMem[edge->getTo()->getId()] == true) {
@@ -436,7 +494,7 @@ void Automaton::initialize_SCC_tag (State* state, int* tag, int* time, int* spot
 }
 
 
-void Automaton::initialize_SCC (void) {
+void Automaton::compute_SCC (void) {
 	unsigned int size = this->states->size();
 	int* spot = new int[size];
 	int* low = new int[size];
@@ -450,12 +508,12 @@ void Automaton::initialize_SCC (void) {
 		stackMem[state_id] = false;
 	}
 
-	initialize_SCC_tag(initial, &tag, &time, spot, low, &stack, stackMem);
+	compute_SCC_tag(initial, &tag, &time, spot, low, &stack, stackMem);
 	this->nb_SCCs = tag;
 	this->nb_reachable_states = time;
 
 	this->SCCs_tree = new SCC_Tree(this->initial);
-	this->initialize_SCC_tree(this->initial, spot, low, stackMem, this->SCCs_tree);
+	this->compute_SCC_tree(this->initial, spot, low, stackMem, this->SCCs_tree);
 
 	delete [] spot;
 	delete [] low;
@@ -499,6 +557,10 @@ std::string Automaton::getName() const { return this->name; }
 // --> Inclusion for inf, sup, liminf, limsup done though limsup inclusion
 // easy for inf sup liminf limsup. only change the weights to 1 if >= thr, 0 otherwise
 // may be nonregular for limavg and dsum
+// fixme:
+//		booleanize should NOT complete NOR trim
+//		otherwise the comparizon with quantitative inclusion will be unfair!
+// TODO: rewrite a version that use build
 Automaton* Automaton::booleanize(Weight<weight_t> threshold) const {
 	State::RESET();
 	Symbol::RESET();
@@ -547,6 +609,10 @@ Automaton* Automaton::booleanize(Weight<weight_t> threshold) const {
 }
 
 
+
+//fixme: this function is obsolete
+//	Automaton(const Automaton* A, value_function_t f) trim and complete
+//	remove once all depenpendencies will be treated (i.e., no called anymore)
 Automaton* Automaton::trim() {
 	if (this->nb_reachable_states == this->states->size()) {
 		return this;
@@ -620,11 +686,9 @@ Automaton* Automaton::trim() {
 }
 
 
-// TODO:
-// CHECK if useful
-// CHECK if correct
-// fixme:
-// if useful, change it to change the automaton, not rebuild one
+
+/*
+// TODO: remove, use Automaton::Automaton(const Automaton* A, value_function_t f) instead
 Automaton* Automaton::complete(value_function_t value_function) const {
 	if (this->isComplete()) {
 		return new Automaton(*this);// fixme: complete should complete the automaton not crating one
@@ -723,6 +787,7 @@ Automaton* Automaton::complete(value_function_t value_function) const {
 
 	return new Automaton(name, alphabet, states, weights, min_weight, max_weight, initial);
 }
+*/
 
 
 Automaton* Automaton::safetyClosure(value_function_t value_function) const {
@@ -744,7 +809,7 @@ Automaton* Automaton::safetyClosure(value_function_t value_function) const {
 
 
 	weight_t top_values[this->nb_SCCs];
-	computeTop(value_function, top_values);
+	compute_Top(value_function, top_values);
 	MapArray<Weight<weight_t>*>* weights = new MapArray<Weight<weight_t>*>(this->nb_SCCs);
 	weight_t min_weight = this->max_weight;
 	weight_t max_weight = this->min_weight;
@@ -884,7 +949,7 @@ Automaton* Automaton::livenessComponent (value_function_t type) const {
 	State* initial = states->at(this->initial->getId());
 
 	weight_t top_values[this->nb_SCCs];
-	computeTop(type, top_values);
+	compute_Top(type, top_values);
 	MapArray<Weight<weight_t>*>* weights = new MapArray<Weight<weight_t>*>(this->weights->size());
 	weight_t min_weight = this->max_weight;
 	weight_t max_weight = this->min_weight;
@@ -1134,7 +1199,7 @@ bool Automaton::isComplete () const {
 
 bool Automaton::isEmpty (value_function_t type, Weight<weight_t> v) const {
 	weight_t top_values[this->nb_SCCs];
-	if (this->computeTop(type, top_values) >= v.getValue()) {
+	if (this->compute_Top(type, top_values) >= v.getValue()) {
 		return false;
 	}
 	return true;
@@ -1159,20 +1224,18 @@ bool Automaton::isUniversal (value_function_t type, Weight<weight_t> v) const {
 // TODO: need to prove Bottom(A) = -Top(-A) for limavg (and dsum -- maybe also others)
 // fixme: memory leaks -- test with valgrind after computeTop is done
 bool Automaton::isUniversal_det (value_function_t type, Weight<weight_t> v) const {
-	bool out = false;
 	Weight<weight_t>* minusOne = new Weight<weight_t>(-1);
-	Automaton* C = this->constantAutomaton(minusOne);
+	Automaton* C = this->constantAutomaton(minusOne); // fixme: inefficient
 
-	Automaton* CC = this->product(type, C, Times);
+	Automaton* CC = new Automaton(this, C, Times); // trim product
+	//Automaton* CC = this->product(type, C, Times); // -- old implementation
 
 	weight_t top_values[CC->nb_SCCs];
-	if((-1) * CC->computeTop(type, top_values) >= v.getValue()) {
-		out = true;
-	}
+	weight_t CCtop = CC->compute_Top(type, top_values);
 
 	delete C;
 	delete CC;
-	return out;
+	return (-CCtop >= v.getValue());
 }
 
 
@@ -1180,27 +1243,14 @@ bool Automaton::isUniversal_det (value_function_t type, Weight<weight_t> v) cons
 // fixme: update product, do not use trim, inline in isIncludedIn case Avg
 // fixme: memory leak -- test with valgrind after computeTop is done
 bool Automaton::isIncludedIn_det (value_function_t type, const Automaton* rhs) const {
-	Automaton* C = this->product(type, rhs, Minus)->trim();
+	Automaton* C = new Automaton(this, rhs, Minus); // trim product
+	//Automaton* C = this->product(type, rhs, Minus)->trim(); // old implementation
 	C->print();
 
 	weight_t top_values[C->nb_SCCs];
-	weight_t t = C->computeTop(type, top_values);
-	if(t < 0) {
-		return false;
-	}
-	return true;
-
-	/* USE THIS FOR NO MEMORY LEAKS
-	bool out = true;
-	Automaton* C = this->product(type, rhs, Minus)->trim();
-	weight_t top_values[C->nb_SCCs];
-	weight_t t = C->computeTop(type, top_values);
-	if(t < 0) {
-		out = false;
-	}
+	weight_t Ctop = C->compute_Top(type, top_values);
 	delete C;
-	return out;
-	*/
+	return (Ctop < 0);
 }
 
 
@@ -1281,7 +1331,7 @@ bool Automaton::isConstant (value_function_t type) const {
 	if (type == LimAvg) { 
 		if (this->isDeterministic()) {
 			weight_t top_values[this->nb_SCCs];
-			return this->isUniversal_det(type, this->computeTop(type, top_values));
+			return this->isUniversal_det(type, this->compute_Top(type, top_values));
 		}
 		else {
 			// TODO: implement distance automata boundedness check for nondet limavg
@@ -1291,7 +1341,7 @@ bool Automaton::isConstant (value_function_t type) const {
 	}
 	else {
 		weight_t top_values[this->nb_SCCs];
-		Automaton* Top = this->constantAutomaton(this->computeTop(type, top_values));
+		Automaton* Top = this->constantAutomaton(this->compute_Top(type, top_values));
 		return this->isEquivalent(type, Top);
 		// fixme: do only what is necessary i.e. universality A <= Top
 		// the construction of a constant automaton is the design of isUniversal not isConstant
@@ -1569,7 +1619,7 @@ weight_t Automaton::top_LimAvg (weight_t* top_values) const {
 }
 
 
-weight_t Automaton::computeTop (value_function_t value_function, weight_t* top_values) const {
+weight_t Automaton::compute_Top (value_function_t value_function, weight_t* top_values) const {
 	switch (value_function) {
 		case Inf:
 			return top_Inf();

@@ -13,7 +13,7 @@
 template <typename T_element> class SetStd {
 private:
 	std::set<T_element> all;
-	//std::unordered_set<T_element> all;
+	//std::unordered_set<T_element> all; // do not use unordered data structure without changing parser
 public:
 	SetStd();
 	~SetStd();

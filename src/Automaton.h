@@ -49,13 +49,14 @@ private:
 	weight_t min_weight;
 	weight_t max_weight;
 	State* initial;
-	unsigned int nb_reachable_states;
+	unsigned int nb_reachable_states;// fixme: obsolete (only used in trim)
 	unsigned int nb_SCCs;
 	//int trimmable = 0; -- DO NOT USE THIS
 	// -- trimmable cost a loop over all states
 	// -- nb_reachable_states cost a single assignment
 private:
 	void build(Parser* parser, MapStd<std::string, Symbol*> sync_register);
+	Automaton(const Automaton* A, value_function_t f);
 	Automaton(const Automaton* A, const Automaton* B, aggregator_t aggregator);
 	Automaton(
 			std::string name,
@@ -66,9 +67,9 @@ private:
 			weight_t max_weight,
 			State* initial
 	);
-	void initialize_SCC_tree (State* state, int* spot, int* low, bool* stackMem, SCC_Tree* ancestor);
-	void initialize_SCC_tag (State* state, int* tag, int *time, int* spot, int* low, SetList<State*>* stack, bool* stackMem);
-	void initialize_SCC (void);
+	void compute_SCC_tree (State* state, int* spot, int* low, bool* stackMem, SCC_Tree* ancestor);
+	void compute_SCC_tag (State* state, int* tag, int *time, int* spot, int* low, SetList<State*>* stack, bool* stackMem);
+	void compute_SCC (void);
 
 	void top_reachably_scc (State* state, lol_t lol, bool* spot, weight_t* values) const;
 	void top_reachably_tree (SCC_Tree* tree, lol_t lol, bool* spot, weight_t* values, weight_t* top_values) const;
@@ -84,20 +85,20 @@ private:
 	void top_avg_tree (SCC_Tree* tree, weight_t* top_values) const;
 	weight_t top_LimAvg (weight_t* top_values) const;
 
-	weight_t computeTop (value_function_t value_function, weight_t* top_values) const;
+	weight_t compute_Top (value_function_t value_function, weight_t* top_values) const;
 
 	Automaton* toLimSup_helperLimInf () const;
 
 public:
 	Automaton (std::string filename, Automaton* other);
 	Automaton (std::string filename);
-	Automaton (const Automaton& to_copy);
+	//Automaton (const Automaton& to_copy);// fixme: obsolete
 	~Automaton ();
 	
 	Automaton* safetyClosure(value_function_t value_function) const;
-	Automaton* product(value_function_t value_function, const Automaton* B, aggregator_t product_weight) const;
-	Automaton* trim();
-	Automaton* complete(value_function_t value_function) const;
+	//Automaton* product(value_function_t value_function, const Automaton* B, aggregator_t product_weight) const;// fixme: obsolete
+	Automaton* trim();//fixme: to be removed!
+	//Automaton* complete(value_function_t value_function) const; // fixme: obsolete
 	Automaton* monotonize(value_function_t value_function) const;
 	Automaton* booleanize(Weight<weight_t> v) const;
 	Automaton* constantAutomaton (Weight<weight_t> v) const;
