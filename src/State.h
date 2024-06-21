@@ -10,7 +10,7 @@
 
 class State{
 private:
-	const int my_id;
+	const unsigned int my_id;
 	std::string name;
 	int my_scc;
 	weight_t min_weight;
@@ -27,7 +27,7 @@ public:
 	State (State* state);
 
 	std::string getName() const;
-	const int getId() const;
+	const unsigned int getId() const;
 	weight_t getMaxWeightValue() const;
 	weight_t getMinWeightValue() const;
 

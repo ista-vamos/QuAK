@@ -7,16 +7,16 @@
 
 class Symbol {
 private:
-	const int my_id;
+	const unsigned int my_id;
 	std::string name;
 public:
 	Symbol(std::string name);
 	Symbol(Symbol* symbol);
 	~Symbol();
 	std::string getName() const;
-	const int getId() const;
+	const unsigned int getId() const;
 	static void RESET();
-	static void RESET(int n);
+	static void RESET(unsigned int n);
 	static std::string toString(Symbol* symbol);
 	std::string toString() const;
 };

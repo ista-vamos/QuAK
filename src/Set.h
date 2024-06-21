@@ -8,7 +8,6 @@
 #include <set>
 #include <unordered_set>
 #include <list>
-#include <queue>
 
 
 template <typename T_element> class SetStd {

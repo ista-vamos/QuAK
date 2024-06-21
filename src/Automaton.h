@@ -5,12 +5,14 @@
 #include <string>
 #include "Map.h"
 #include "Set.h"
+#include "Parser.h"
 #include "Weight.h"
 #include "State.h"
 #include "Symbol.h"
 #include "Word.h"
 #include "FORQ/TargetOf.h"
 
+class SCC_Tree;
 
 typedef enum {
 	lol_in,
@@ -24,7 +26,7 @@ typedef enum {
 	Sup,
 	LimInf,
 	LimSup,
-	LimAvg,
+	LimAvg
 } value_function_t;
 
 typedef enum {
@@ -33,7 +35,8 @@ typedef enum {
 	Plus,
 	Minus,
 	Times
-} product_weight_t;
+} aggregator_t;
+
 
 class Automaton {
 private:
@@ -52,6 +55,8 @@ private:
 	// -- trimmable cost a loop over all states
 	// -- nb_reachable_states cost a single assignment
 private:
+	void build(Parser* parser, MapStd<std::string, Symbol*> sync_register);
+	Automaton(const Automaton* A, const Automaton* B, aggregator_t aggregator);
 	Automaton(
 			std::string name,
 			MapArray<Symbol*>* alphabet,
@@ -90,7 +95,7 @@ public:
 	~Automaton ();
 	
 	Automaton* safetyClosure(value_function_t value_function) const;
-	Automaton* product(value_function_t value_function, const Automaton* B, product_weight_t product_weight) const;
+	Automaton* product(value_function_t value_function, const Automaton* B, aggregator_t product_weight) const;
 	Automaton* trim();
 	Automaton* complete(value_function_t value_function) const;
 	Automaton* monotonize(value_function_t value_function) const;
@@ -130,23 +135,7 @@ public:
 
 	std::string getName() const;
 
-	void print_top() const;
 	void print () const;
-
-	/*
-	static std::string toString (Automaton* A);
-	std::string toString () const;
-	*/
-
-
-	weight_t iterable_final_product (State* loop, unsigned int j, weight_t accum, State* from, unsigned int i, Word* period, SetStd<std::pair<State*, unsigned int>>* P);
-	weight_t reachable_final_product (State* from, unsigned int i, Word* period, SetStd<std::pair<State*, unsigned int>>* S);
-	weight_t membership (TargetOf* U, Word* period);
-
-private:
-	bool fast_iterable_final_product (State* from, unsigned int i, Word* period, SetStd<std::pair<State*,std::pair<unsigned int, bool>>>* S, SetStd<State*>* P);
-	bool fast_reachable_final_product (State* from, unsigned int i, Word* period, SetStd<std::pair<State*,std::pair<unsigned int, bool>>>* S, SetStd<State*>* P, weight_t threshold);
-	bool fast_membership (TargetOf* U, Word* period, weight_t threshold);
 };
 
 #endif /* AUTOMATON_H_ */

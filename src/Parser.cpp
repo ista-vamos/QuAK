@@ -1,19 +1,24 @@
 #include <sstream>
-#include <cstring> // errno, atoi
+#include <cstring> // errno
 #include "utility.h"
 #include "Parser.h"
 
 
-void Parser::abort(std::string message) {
+
+std::string name = "";
+int line_counter = 0;
+
+
+void abort(std::string message) {
 	std::cerr << "@Error: parsing " << message.c_str() << std::endl;
-	std::cerr << "File: " << this->filename.c_str() << std::endl;
-	std::cerr << "Line: " << this->line_counter << std::endl;
+	std::cerr << "File: " << name.c_str() << std::endl;
+	std::cerr << "Line: " << line_counter << std::endl;
 	fflush(stdout);fflush(stderr);
 	exit(EXIT_FAILURE);
 }
 
 
-std::string Parser::readEdge (std::string line) {
+std::string readEdge (std::string line, Parser* parser) {
 	// -- expected shape: symbol : weight, from -> to #comment
 	size_t index;
 	if (line.empty()) return "";
@@ -43,7 +48,7 @@ std::string Parser::readEdge (std::string line) {
 	std::string symbolname;
 	buffer >> symbolname;
 	if (symbolname.empty()) abort("transition without symbol");
-	this->alphabet.insert(symbolname);
+	parser->alphabet.insert(symbolname);
 	parser_verbose("Parser: Symbol = '%s'\n", symbolname.c_str());
 
 	std::string weightname;
@@ -52,20 +57,20 @@ std::string Parser::readEdge (std::string line) {
 	std::istringstream string_to_weight(weightname);
 	weight_t weight;
 	string_to_weight >> weight;
-	this->weights.insert(weight);
+	parser->weights.insert(weight);
 	if (string_to_weight.eof() == false) abort("non-integer weight");
 	parser_verbose("Parser: Weight = '%s'\n", std::to_string(weight).c_str());
 
 	std::string fromname;
 	buffer >> fromname;
 	if (fromname.empty()) abort("transition without source state");
-	this->states.insert(fromname);
+	parser->states.insert(fromname);
 	parser_verbose("Parser: From = '%s'\n", fromname.c_str());
 
 	std::string toname;
 	buffer >> toname;
 	if (toname.empty()) abort("transition without destination state");
-	this->states.insert(toname);
+	parser->states.insert(toname);
 	parser_verbose("Parser: To = '%s'\n", toname.c_str());
 
 	std::pair<std::pair<std::string, weight_t>,std::pair<std::string, std::string>> edge;
@@ -73,21 +78,21 @@ std::string Parser::readEdge (std::string line) {
 	edge.first.second = weight;
 	edge.second.first = fromname;
 	edge.second.second = toname;
-	this->edges.insert(edge);
+	parser->edges.insert(edge);
 	parser_verbose("Parser: Edge: %s -- %s : %d --> %s\n", fromname.c_str(), symbolname.c_str(), weight, toname.c_str());
 
 	return fromname;
 }
 
 
-Parser::Parser(std::string filename) {
-	this->filename = filename;
-	this->line_counter = 0;
-	this->file.open(filename);
 
+void readFile (std::string filename, Parser* parser) {
+	name = filename;
+	line_counter = 0;
+	std::ifstream file(name);
 
-	if (this->file.is_open() == false) {
-		std::cerr << "@Error: opening file " << filename << std::endl;
+	if (file.is_open() == false) {
+		std::cerr << "@Error: opening file " << name << std::endl;
 		std::cerr << "Message: " << strerror(errno) << std::endl;
 		fflush(stdout);fflush(stderr);
 		exit(EXIT_FAILURE);
@@ -95,52 +100,34 @@ Parser::Parser(std::string filename) {
 
 
 	std::string line;
-	while (this->initial == "" && getline(this->file, line)) {
+	while (parser->initial == "" && getline(file, line)) {
 		line_counter++;
-		this->initial = readEdge(line);
+		parser->initial = readEdge(line, parser);
 	}
 
-	while (getline(this->file, line)) {
+	while (getline(file, line)) {
 		line_counter++;
-		readEdge(line);
+		readEdge(line, parser);
 	}
 
-	if (this->initial == "") abort("empty file");
-	this->file.close();
+	if (parser->initial == "") abort("empty file");
+	file.close();
 }
 
 
+Parser::Parser() {}
 
-Parser::Parser(std::string filename, MapStd<std::string, Symbol*>* symbol_register) {
-	this->filename = filename;
-	this->line_counter = 0;
-	this->file.open(filename);
 
+Parser::Parser(std::string filename) {
+	readFile(filename, this);
+}
+
+
+Parser::Parser(std::string path, MapStd<std::string, Symbol*>* symbol_register) {
 	for (std::pair<std::string, Symbol*> pair : *symbol_register) {
 		this->alphabet.insert(pair.first);
 	}
-
-	if (this->file.is_open() == false) {
-		std::cerr << "@Error: opening file " << filename << std::endl;
-		std::cerr << "Message: " << strerror(errno) << std::endl;
-		fflush(stdout);fflush(stderr);
-		exit(EXIT_FAILURE);
-	}
-
-
-	std::string line;
-	while (this->initial == "" && getline(this->file, line)) {
-		line_counter++;
-		this->initial = readEdge(line);
-	}
-
-	while (getline(this->file, line)) {
-		line_counter++;
-		readEdge(line);
-	}
-
-	if (this->initial == "") abort("empty file");
-	this->file.close();
+	readFile(path, this);
 }
 
 

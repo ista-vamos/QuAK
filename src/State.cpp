@@ -4,7 +4,7 @@
 #include "utility.h"
 
 
-int ID_of_States = 0;
+unsigned int ID_of_States = 0;
 void State::State::RESET() { ID_of_States = 0; }
 
 
@@ -114,7 +114,7 @@ weight_t State::getMinWeightValue() const {
 }
 
 
-const int State::getId() const {
+const unsigned int State::getId() const {
 	return this->my_id;
 }
 

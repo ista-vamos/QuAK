@@ -2,9 +2,9 @@
 #include "Symbol.h"
 #include "utility.h"
 
-int ID_of_Symbols = 0;
+unsigned int ID_of_Symbols = 0;
 void Symbol::Symbol::RESET() { ID_of_Symbols = 0; }
-void Symbol::Symbol::RESET(int n) { ID_of_Symbols = n; }
+void Symbol::Symbol::RESET(unsigned int n) { ID_of_Symbols = n; }
 
 
 Symbol::~Symbol() {
@@ -20,7 +20,7 @@ Symbol::Symbol(Symbol* symbol) : my_id(symbol->my_id), name(symbol->name) {}
 std::string Symbol::getName() const { return this->name; }
 
 
-const int Symbol::getId() const { return this->my_id; }
+const unsigned int Symbol::getId() const { return this->my_id; }
 
 
 std::string Symbol::Symbol::toString (Symbol* symbol) { return symbol->toString(); }

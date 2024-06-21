@@ -61,8 +61,6 @@ Automaton::~Automaton () {
 	delete weights;
 	delete_verbose("@Detail: %u SetList (SCC_tree) will be deleted (automaton %s)\n", this->SCCs_list->size(), this->name.c_str());
 	delete this->SCCs_tree;
-	//delete_verbose("@Detail: 1 SetList (SCCs_list) will be deleted (automaton %s)\n", this->name.c_str());
-	//delete this->SCCs_list;
 	delete_verbose("@Memory: Automaton deletion finished (%s)\n", this->name.c_str());
 }
 
@@ -98,96 +96,23 @@ Automaton::Automaton (
 
 
 
-
-Automaton::Automaton (std::string filename) :
-		name(filename),
-		alphabet(NULL),
-		states(NULL),
-		weights(NULL),
-		SCCs_tree(NULL),
-		initial(NULL)
-{
-	MapStd<weight_t, Weight<weight_t>*> weight_register;
-	MapStd<std::string, State*> state_register;
-	MapStd<std::string, Symbol*> symbol_register;
-
-	Parser parser(filename);
-	min_weight = *(parser.weights.begin());
-	max_weight = *(parser.weights.begin());
-
-	Weight<weight_t>::RESET();
-	this->weights = new MapArray<Weight<weight_t>*>(parser.weights.size());
-	Symbol::RESET();
-	this->alphabet = new MapArray<Symbol*>(parser.alphabet.size());
-	State::RESET();
-	this->states = new MapArray<State*>(parser.states.size());
-
-	for (weight_t value : parser.weights) {
-		Weight<weight_t>* weight = new Weight<weight_t>(value);
-		this->weights->insert(weight->getId(), weight);
-		weight_register.insert(weight->getValue(), weight);
-		this->min_weight = std::min(this->min_weight, value);
-		this->max_weight = std::max(this->max_weight, value);
-	}
-
-	for (std::string statename: parser.states) {
-		State* state = new State(statename, alphabet->size(), this->min_weight, this->max_weight);
-		this->states->insert(state->getId(), state);
-		state_register.insert(state->getName(), state);
-	}
-	this->initial = state_register.at(parser.initial);
-
-	for (std::string symbolname : parser.alphabet) {
-		Symbol* symbol = new Symbol(symbolname);
-		this->alphabet->insert(symbol->getId(), symbol);
-		symbol_register.insert(symbol->getName(), symbol);
-	}
-
-	for (auto tuple : parser.edges) {
-		Symbol* symbol = symbol_register.at(tuple.first.first);
-		Weight<weight_t>* weight = weight_register.at(tuple.first.second);
-		State* from = state_register.at(tuple.second.first);
-		State* to = state_register.at(tuple.second.second);
-		Edge *edge = new Edge(symbol, weight, from, to);
-		from->addEdge(edge);
-		from->addSuccessor(edge);
-		to->addPredecessor(edge);
-	}
-
-	initialize_SCC();
-	delete_verbose("@Detail: 3 MapStd will be deleted (automaton constructor registers)\n");
-}
-
-
-Automaton::Automaton (std::string filename, Automaton* other) :
-		name(filename),
-		alphabet(NULL),
-		states(NULL),
-		weights(NULL),
-		SCCs_tree(NULL),
-		initial(NULL)
-{
-	MapStd<weight_t, Weight<weight_t>*> weight_register;
-	MapStd<std::string, State*> state_register;
-	MapStd<std::string, Symbol*> sync_register;
-	MapStd<std::string, Symbol*> symbol_register;
-	for (unsigned int symbol_id = 0; symbol_id < other->alphabet->size(); ++symbol_id) {
-		other->alphabet->at(symbol_id);
-		sync_register.insert(other->alphabet->at(symbol_id)->getName(), other->alphabet->at(symbol_id));
-	}
-
-	Parser parser(filename, &sync_register);
-	min_weight = *(parser.weights.begin());
-	max_weight = *(parser.weights.begin());
-
-	Weight<weight_t>::RESET();
-	this->weights = new MapArray<Weight<weight_t>*>(parser.weights.size());
+void Automaton::build(Parser* parser, MapStd<std::string, Symbol*> sync_register) {
 	Symbol::RESET(sync_register.size());
-	this->alphabet = new MapArray<Symbol*>(parser.alphabet.size());
 	State::RESET();
-	this->states = new MapArray<State*>(parser.states.size());
+	Weight<weight_t>::RESET();
 
-	for (weight_t value : parser.weights) {
+	MapStd<weight_t, Weight<weight_t>*> weight_register;
+	MapStd<std::string, State*> state_register;
+	MapStd<std::string, Symbol*> symbol_register;
+
+	min_weight = *(parser->weights.begin());
+	max_weight = *(parser->weights.begin());
+
+	this->weights = new MapArray<Weight<weight_t>*>(parser->weights.size());
+	this->alphabet = new MapArray<Symbol*>(parser->alphabet.size());
+	this->states = new MapArray<State*>(parser->states.size());
+
+	for (weight_t value : parser->weights) {
 		Weight<weight_t>* weight = new Weight<weight_t>(value);
 		this->weights->insert(weight->getId(), weight);
 		weight_register.insert(weight->getValue(), weight);
@@ -195,15 +120,15 @@ Automaton::Automaton (std::string filename, Automaton* other) :
 		this->max_weight = std::max(this->max_weight, value);
 	}
 
-	for (std::string statename : parser.states) {
+	for (std::string statename : parser->states) {
 		State* state = new State(statename, alphabet->size(), this->min_weight, this->max_weight);
 		this->states->insert(state->getId(), state);
 		state_register.insert(state->getName(), state);
 	}
-	this->initial = state_register.at(parser.initial);
+	this->initial = state_register.at(parser->initial);
 
 
-	for (std::string symbolname : parser.alphabet) {
+	for (std::string symbolname : parser->alphabet) {
 		Symbol * symbol;
 		if (sync_register.contains(symbolname))
 			symbol = new Symbol(sync_register.at(symbolname));
@@ -213,7 +138,7 @@ Automaton::Automaton (std::string filename, Automaton* other) :
 		symbol_register.insert(symbol->getName(), symbol);
 	}
 
-	for (auto tuple : parser.edges) {
+	for (auto tuple : parser->edges) {
 		Symbol* symbol = symbol_register.at(tuple.first.first);
 		Weight<weight_t>* weight = weight_register.at(tuple.first.second);
 		State* from = state_register.at(tuple.second.first);
@@ -229,79 +154,97 @@ Automaton::Automaton (std::string filename, Automaton* other) :
 }
 
 
-
-// TODO: CHECK
-// fixme: check if it is necessary, remove otherwise -- i would keep it because copy constructors are useful in general
-// so far used in trim and complete
-Automaton::Automaton (const Automaton& to_copy) {
-	State::RESET();
-	Symbol::RESET();
-	Weight<weight_t>::RESET();
-
-	this->name = to_copy.name;
-
-	this->alphabet = new MapArray<Symbol*>(to_copy.alphabet->size());
-	for (unsigned int symbol_id = 0; symbol_id < to_copy.alphabet->size(); ++symbol_id) {
-		this->alphabet->insert(symbol_id, new Symbol(to_copy.alphabet->at(symbol_id)));
-	}
-	this->states = new MapArray<State*>(to_copy.states->size());
-	for (unsigned int state_id = 0; state_id < to_copy.states->size(); ++state_id) {
-		this->states->insert(state_id, new State(to_copy.states->at(state_id)));
-	}
-	this->initial = this->states->at(to_copy.initial->getId());
-	
-	this->weights = new MapArray<Weight<weight_t>*>(to_copy.weights->size());
-	this->min_weight = to_copy.min_weight;
-	this->max_weight = to_copy.max_weight;
-	for (unsigned int weight_id = 0; weight_id < to_copy.weights->size(); ++weight_id) {
-		this->weights->insert(weight_id, new Weight<weight_t>(to_copy.weights->at(weight_id)));
-	}
-
-	for (unsigned int state_id = 0; state_id < to_copy.states->size(); ++state_id) {
-		for (Edge* edge : *(to_copy.states->at(state_id)->getEdges())) {
-			Symbol* symbol = this->alphabet->at(edge->getSymbol()->getId());
-			State* from = this->states->at(edge->getFrom()->getId());
-			State* to = this->states->at(edge->getTo()->getId());
-			Weight<weight_t>* weight = to_copy.weights->at(edge->getWeight()->getId());
-			Edge* new_edge = new Edge(symbol, weight, from, to);
-			from->addEdge(new_edge);
-			from->addSuccessor(new_edge);
-			to->addPredecessor(new_edge);
-
-		}
-	}
-
-	this->initialize_SCC();
+Automaton::Automaton (std::string filename) : name(filename) {
+	MapStd<std::string, Symbol*> sync_register;
+	Parser parser(filename, &sync_register);
+	build(&parser, sync_register);
 }
 
 
-// TODO: fixme: update to construct only relevant states
-Automaton* Automaton::product(value_function_t value_function, const Automaton* B, product_weight_t product_weight) const {
+Automaton::Automaton (std::string filename, Automaton* other) : name(filename) {
+	MapStd<std::string, Symbol*> sync_register;
+	for (unsigned int symbol_id = 0; symbol_id < other->alphabet->size(); ++symbol_id) {
+		other->alphabet->at(symbol_id);
+		sync_register.insert(other->alphabet->at(symbol_id)->getName(), other->alphabet->at(symbol_id));
+	}
+	Parser parser(filename, &sync_register);
+	build(&parser, sync_register);
+}
+
+
+
+std::string aggregator_name (aggregator_t aggregator) {
+	switch (aggregator) {
+		case Max: return "Max";
+		case Min: return "Min";
+		case Plus: return "Plus";
+		case Minus: return "Minus";
+		case Times: return "Times";
+		default: fail("case aggregator_t");
+	}
+}
+
+weight_t aggregator_apply (aggregator_t aggregator, Weight<weight_t>* x, Weight<weight_t>* y) {
+	switch (aggregator) {
+		case Max: return std::max(x->getValue(), y->getValue());
+		case Min: return std::min(x->getValue(), y->getValue());
+		case Plus: return x->getValue() + y->getValue();
+		case Minus: return x->getValue() - y->getValue();
+		case Times: return x->getValue() * y->getValue();
+		default: fail("case aggregator_t");
+	}
+}
+
+
+Automaton::Automaton(const Automaton* A, const Automaton* B, aggregator_t aggregator) :
+	name(aggregator_name(aggregator) + "(" + this->getName() + "," + B->getName() + ")")
+{
+	MapStd<std::string, Symbol*> sync_register;
+	Parser parser;
+
+	for (unsigned int stateA_id = 0; stateA_id < A->states->size(); ++stateA_id) {
+		if (A->states->at(stateA_id)->getTag() == -1) continue;
+		for (unsigned int stateB_id = 0; stateB_id < B->states->size(); ++stateB_id) {
+			if (B->states->at(stateB_id)->getTag() == -1) continue;
+			for (Symbol* symbol : *(A->states->at(stateA_id)->getAlphabet())) {
+				if (B->alphabet->size() <= symbol->getId()) continue;
+				if (B->alphabet->at(symbol->getId())->getName() != symbol->getName()) fail("product with unsynchronized alphabet");
+
+				for (Edge* edgeA : *(A->states->at(stateA_id)->getSuccessors(symbol->getId()))) {
+					for (Edge* edgeB : *(B->states->at(stateB_id)->getSuccessors(symbol->getId()))) {
+						std::string symbolname = symbol->getName();
+						weight_t weight = aggregator_apply(aggregator, edgeA->getWeight(), edgeB->getWeight());
+						std::string fromname =  "(" + edgeA->getFrom()->getName() + "," + edgeB->getFrom()->getName() + ")";
+						std::string toname =  "(" + edgeA->getTo()->getName() + "," + edgeB->getTo()->getName() + ")";
+
+						parser.alphabet.insert(symbolname);
+						parser.weights.insert(weight);
+						parser.states.insert(fromname);
+						parser.states.insert(toname);
+
+						std::pair<std::pair<std::string, weight_t>,std::pair<std::string, std::string>> edge;
+						edge.first.first = symbolname;
+						edge.first.second = weight;
+						edge.second.first = fromname;
+						edge.second.second = toname;
+						parser.edges.insert(edge);
+					}
+				}
+			}
+		}
+	}
+
+	build(&parser, sync_register);
+}
+
+
+// TODO: remove and use Automaton(const Automaton* A, const Automaton* B, aggregator_t aggregator) instead
+Automaton* Automaton::product(value_function_t value_function, const Automaton* B, aggregator_t aggregator) const {
 	State::RESET();
 	Symbol::RESET();
 	Weight<weight_t>::RESET();
 
-	std::string type;
-	switch (product_weight) {
-		case Max:
-			type = "Max";
-			break;
-		case Min:
-			type = "Min";
-			break;
-		case Plus:
-			type = "Plus";
-			break;
-		case Minus:
-			type = "Minus";
-			break;
-		case Times:
-			type = "Times";
-			break;
-		default:
-			fail("automata product weight");
-	}
-	std::string name = type + "(" + this->getName() + "," + B->getName() + ")";
+	std::string name = aggregator_name(aggregator) + "(" + this->getName() + "," + B->getName() + ")";
 
 	MapArray<Symbol*>* alphabet = new MapArray<Symbol*>(this->alphabet->size());
 	for (unsigned int symbol_id = 0; symbol_id < this->alphabet->size(); ++symbol_id) {
@@ -331,27 +274,9 @@ Automaton* Automaton::product(value_function_t value_function, const Automaton* 
 			for (Edge* x : *(this->states->at(i)->getEdges())) {
 				for (Edge* y : *(B->states->at(j)->getEdges())) {
 					if (x->getSymbol()->getName() == y->getSymbol()->getName()) {
-						Weight<weight_t>* pairWeight;
-							switch (product_weight) {
-								case Max:
-									pairWeight = new Weight<weight_t>(std::max(x->getWeight()->getValue(), y->getWeight()->getValue()));
-									break;
-								case Min:
-									pairWeight = new Weight<weight_t>(std::min(x->getWeight()->getValue(), y->getWeight()->getValue()));
-									break;
-								case Plus:
-									pairWeight = new Weight<weight_t>(x->getWeight()->getValue() + y->getWeight()->getValue());
-									break;
-								case Minus:
-									pairWeight = new Weight<weight_t>(x->getWeight()->getValue() - y->getWeight()->getValue());
-									break;
-								case Times:
-									pairWeight = new Weight<weight_t>(x->getWeight()->getValue() * y->getWeight()->getValue());
-									break;
-								default:
-									fail("automata product weight");
-							}
-							counts[pairWeight->getValue()]++;
+						weight_t value = aggregator_apply(aggregator, x->getWeight(), y->getWeight());
+						Weight<weight_t>* pairWeight = new Weight<weight_t>(value);
+						counts[pairWeight->getValue()]++;
 
 						int ii = x->getTo()->getId();
 						int jj = y->getTo()->getId();
@@ -386,6 +311,65 @@ Automaton* Automaton::product(value_function_t value_function, const Automaton* 
 
 	return new Automaton(name, alphabet, states, weights, min_weight, max_weight, initial);
 }
+
+
+
+
+
+
+
+// TODO: CHECK
+// fixme: check if it is necessary, remove otherwise -- i would keep it because copy constructors are useful in general
+// so far used in trim and complete
+Automaton::Automaton (const Automaton& to_copy) {
+	State::RESET();
+	Symbol::RESET();
+	Weight<weight_t>::RESET();
+
+	this->name = to_copy.name;
+
+	this->alphabet = new MapArray<Symbol*>(to_copy.alphabet->size());
+	for (unsigned int symbol_id = 0; symbol_id < to_copy.alphabet->size(); ++symbol_id) {
+		this->alphabet->insert(symbol_id, new Symbol(to_copy.alphabet->at(symbol_id)));
+	}
+	this->states = new MapArray<State*>(to_copy.states->size());
+	for (unsigned int state_id = 0; state_id < to_copy.states->size(); ++state_id) {
+		this->states->insert(state_id, new State(to_copy.states->at(state_id)));
+	}
+	this->initial = this->states->at(to_copy.initial->getId());
+
+	this->weights = new MapArray<Weight<weight_t>*>(to_copy.weights->size());
+	this->min_weight = to_copy.min_weight;
+	this->max_weight = to_copy.max_weight;
+	for (unsigned int weight_id = 0; weight_id < to_copy.weights->size(); ++weight_id) {
+		this->weights->insert(weight_id, new Weight<weight_t>(to_copy.weights->at(weight_id)));
+	}
+
+	for (unsigned int state_id = 0; state_id < to_copy.states->size(); ++state_id) {
+		for (Edge* edge : *(to_copy.states->at(state_id)->getEdges())) {
+			Symbol* symbol = this->alphabet->at(edge->getSymbol()->getId());
+			State* from = this->states->at(edge->getFrom()->getId());
+			State* to = this->states->at(edge->getTo()->getId());
+			Weight<weight_t>* weight = to_copy.weights->at(edge->getWeight()->getId());
+			Edge* new_edge = new Edge(symbol, weight, from, to);
+			from->addEdge(new_edge);
+			from->addSuccessor(new_edge);
+			to->addPredecessor(new_edge);
+
+		}
+	}
+
+	this->initialize_SCC();
+}
+
+
+
+
+
+
+
+
+
 
 
 
@@ -498,6 +482,14 @@ State* Automaton::getInitial () const { return initial; }
 
 
 std::string Automaton::getName() const { return this->name; }
+
+
+
+
+
+
+
+
 
 
 // -------------------------------- Tranformations -------------------------------- //
@@ -1526,10 +1518,6 @@ weight_t Automaton::top_LimAvg (weight_t* top_values) const {
 	};
 	initialize_distances(this->SCCs_tree, distance[0], initialize_distances);
 
-	// -- OLD INITIALIZATION CODE
-	//for (auto iter = this->SCCs_list->cbegin(); iter != this->SCCs_list->cend(); ++iter) {
-	//	distance[0][(*iter)->getId()] = 0;
-	//}
 
 	// O(n.m)
 	for (unsigned int len = 1; len <= size; ++len) {
@@ -1607,7 +1595,7 @@ weight_t Automaton::computeTop (value_function_t value_function, weight_t* top_v
 
 // -------------------------------- toStrings -------------------------------- //
 
-
+/*
 void Automaton::print_top() const {
 	weight_t top_values[this->nb_SCCs];
 	weight_t x;
@@ -1633,7 +1621,7 @@ void Automaton::print_top() const {
 	std::cout << "\t\tLimAvg -> ";
 	std::cout << ((y < this->min_weight) ? "-infinity" : std::to_string(y)) << "\n";
 }
-
+*/
 
 void Automaton::print () const {
 	std::cout << "automaton (" << this->name << "):\n";
@@ -1661,7 +1649,6 @@ void Automaton::print () const {
 		}
 	}
 	std::cout << "\n";
-	print_top();
 }
 
 
@@ -1674,7 +1661,7 @@ void Automaton::print () const {
 
 // -------------------------------- Membership -------------------------------- //
 
-
+/*
 weight_t Automaton::iterable_final_product (State* origin, unsigned int base, weight_t accum, State* from, unsigned int i, Word* period, SetStd<std::pair<State*, unsigned int>>* P) {
 	weight_t value = this->min_weight - 1;
 	P->insert(std::pair<State*, unsigned int>(from, i));
@@ -1723,76 +1710,7 @@ weight_t Automaton::membership (TargetOf* U, Word* period) {
 	}
 	return value;
 }
-
-
-
-
-
-
-
-
-
-
-bool Automaton::fast_iterable_final_product (State* from, unsigned int i, Word* period, SetStd<std::pair<State*,std::pair<unsigned int, bool>>>* S, SetStd<State*>* P) {
-	S->insert(std::pair<State*,std::pair<unsigned int, bool>>(from, std::pair<unsigned int, bool>(i, true)));
-
-	for (Edge* edge : *(from->getSuccessors(period->at(i)->getId()))) {
-		unsigned int ii = (i+1 == period->getLength())?0:i+1;
-		if (P->contains(edge->getTo())) return true;
-		if (S->contains(std::pair<State*,std::pair<unsigned int, bool>>(edge->getTo(), std::pair<unsigned int, bool>(ii, true))) == false) {
-			if (fast_iterable_final_product(edge->getTo(), ii, period, S, P) == true) return true;
-		}
-	}
-
-	return false;
-}
-
-
-
-bool Automaton::fast_reachable_final_product (State* from, unsigned int i, Word* period, SetStd<std::pair<State*,std::pair<unsigned int, bool>>>* S, SetStd<State*>* P, weight_t threshold) {
-	S->insert(std::pair<State*,std::pair<unsigned int, bool>>(from, std::pair<unsigned int, bool>(i, false)));
-	P->insert(from);
-
-	for (Edge* edge : *(from->getSuccessors(period->at(i)->getId()))) {
-		unsigned int ii = (i+1 == period->getLength())?0:i+1;
-		if (S->contains(std::pair<State*,std::pair<unsigned int, bool>>(edge->getTo(), std::pair<unsigned int, bool>(ii, false))) == false) {
-			if (fast_reachable_final_product(edge->getTo(), ii, period, S, P, threshold) == true) return true;
-		}
-	}
-
-
-	for (Edge* edge : *(from->getSuccessors(period->at(i)->getId()))) {
-		if (edge->getWeight()->getValue() >= threshold) {
-			unsigned int ii = (i+1 == period->getLength())?0:i+1;
-			if (P->contains(edge->getTo())) return true;
-			if (S->contains(std::pair<State*,std::pair<unsigned int, bool>>(edge->getTo(), std::pair<unsigned int, bool>(ii, true))) == false) {
-				if (fast_iterable_final_product(edge->getTo(), ii, period, S, P) == true) return true;
-			}
-		}
-	}
-
-	P->erase(from);
-
-	return false;
-}
-
-
-bool Automaton::fast_membership (TargetOf* U, Word* period, weight_t threshold) {
-	SetStd<std::pair<State*,std::pair<unsigned int, bool>>>* S = new SetStd<std::pair<State*,std::pair<unsigned int, bool>>>();
-	SetStd<State*>* P = new SetStd<State*>();
-
-	for (State* start : *U) {
-		S->clear(); P->clear();
-		if (fast_reachable_final_product(start, 0, period, S, P, threshold) == true) return true;
-	}
-
-	delete P;
-	delete S;
-
-	return false;
-}
-
-
+*/
 
 
 
