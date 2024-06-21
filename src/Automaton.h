@@ -142,6 +142,11 @@ public:
 	weight_t iterable_final_product (State* loop, unsigned int j, weight_t accum, State* from, unsigned int i, Word* period, SetStd<std::pair<State*, unsigned int>>* P);
 	weight_t reachable_final_product (State* from, unsigned int i, Word* period, SetStd<std::pair<State*, unsigned int>>* S);
 	weight_t membership (TargetOf* U, Word* period);
+
+private:
+	bool fast_iterable_final_product (State* from, unsigned int i, Word* period, SetStd<std::pair<State*,std::pair<unsigned int, bool>>>* S, SetStd<State*>* P);
+	bool fast_reachable_final_product (State* from, unsigned int i, Word* period, SetStd<std::pair<State*,std::pair<unsigned int, bool>>>* S, SetStd<State*>* P, weight_t threshold);
+	bool fast_membership (TargetOf* U, Word* period, weight_t threshold);
 };
 
 #endif /* AUTOMATON_H_ */

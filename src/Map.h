@@ -12,9 +12,8 @@
 template <typename T_key, typename T_value>
 class MapStd {
 private:
+	//std::unordered_map<T_key, T_value> all;
 	std::map<T_key, T_value> all;
-protected:
-	void clear () { all.clear(); }
 public:
 	MapStd();
 	~MapStd();
@@ -24,30 +23,11 @@ public:
 	bool contains (T_key key) { return all.find(key) != all.end(); };
 	void update (T_key key, T_value value);
 	std::string toString(std::string (*f_key) (T_key key), std::string (*f_value) (T_value value)) const;
-	auto begin() {return  all.begin();};
-	auto end() {return all.end();};
-};
-
-
-
-template <typename T_key, typename T_value>
-class MapHash {
-private:
-	std::unordered_map<T_key, T_value> all;
-protected:
 	void clear () { all.clear(); }
-public:
-	MapHash();
-	~MapHash();
-	void insert(T_key key, T_value value);
-	unsigned int size () const;
-	T_value at (T_key key);
-	bool contains (T_key key) { return all.find(key) != all.end(); };
-	void update (T_key key, T_value value);
-	std::string toString(std::string (*f_key) (T_key key), std::string (*f_value) (T_value value)) const;
 	auto begin() {return  all.begin();};
 	auto end() {return all.end();};
 };
+
 
 
 
@@ -108,21 +88,20 @@ class Edge;
 template <class T> class SetStd;
 template <class T> class SetList;
 
-template class MapStd<std::string, Symbol*>;
-template class MapStd<weight_t, Weight<weight_t>*>;
-template class MapStd<std::string, State*>;
-template class MapStd<std::pair<std::string, std::string>,int>;
-template class MapStd<std::string, unsigned int>;
-template class MapStd<std::string, MapStd<std::string, unsigned int>*>;
-template class MapStd<State*,SetStd<std::pair<TargetOf*,Word*>>*>;
-template class MapStd<State*, TargetOf*>;
-template class MapStd<State*, SetStd<std::pair<ContextOf*,std::pair<Word*,weight_t>>>*>;
+
+template class MapStd<std::string, Symbol*>; // Automata
+template class MapStd<weight_t, Weight<weight_t>*>; // Automata
+template class MapStd<std::string, State*>; // Automata
+template class MapStd<State*, SetStd<std::pair<TargetOf*,Word*>>*>; // StateRelation
+template class MapStd<State*, TargetOf*>; // PostTargetVariable
+template class MapStd<State*, SetStd<std::pair<ContextOf*,std::pair<Word*,weight_t>>>*>; // PostContextVariable
+
 
 template class MapArray<Weight<weight_t>*>;
 template class MapArray<State*>;
 template class MapArray<SetList<Edge*>*>;
 template class MapArray<Symbol*>;
-template class MapArray<SetStd<Edge*>*>;
+template class MapArray<SetStd<Edge*>*>; // State
 template class MapArray<StateRelation*>;
 
 

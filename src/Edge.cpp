@@ -49,19 +49,4 @@ std::string Edge::toString() const {
 	return s;
 }
 
-/*
-int Edge::cmp (const Edge* other) const {
-	int value = this->weight - other->weight;
-	value += value==0 ? this->from->cmp(other->from) : 0;
-	value += value==0 ? this->to->cmp(other->to) : 0;
-	value += value==0 ? this->symbol->cmp(other->symbol) : 0;
-	return value;
-}
-bool Edge::operator< (const Edge* other) const { return this->cmp(other) < 0;}
-bool Edge::operator<= (const Edge* other) const { return this->cmp(other) <= 0;}
-bool Edge::operator> (const Edge* other) const { return this->cmp(other) > 0;}
-bool Edge::operator>= (const Edge* other) const { return this->cmp(other) >= 0;}
-bool Edge::operator== (const Edge* other) const { return this->cmp(other) == 0; }
-bool Edge::operator!= (const Edge* other) const { return this->cmp(other) != 0; }
-*/
 

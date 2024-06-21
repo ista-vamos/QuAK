@@ -29,13 +29,3 @@ std::string Symbol::Symbol::toString (Symbol* symbol) { return symbol->toString(
 std::string Symbol::toString() const { return this->name; }
 
 
-/*
-int Symbol::cmp (const Symbol* other) const { return this->id - other->id; }
-bool Symbol::operator< (const Symbol* other) const { return this->cmp(other) < 0;}
-bool Symbol::operator<= (const Symbol* other) const { return this->cmp(other) <= 0;}
-bool Symbol::operator> (const Symbol* other) const { return this->cmp(other) > 0;}
-bool Symbol::operator>= (const Symbol* other) const { return this->cmp(other) >= 0;}
-bool Symbol::operator== (const Symbol* other) const { return this->cmp(other) == 0; }
-bool Symbol::operator!= (const Symbol* other) const { return this->cmp(other) != 0; }
-*/
-

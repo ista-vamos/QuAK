@@ -25,14 +25,6 @@ public:
 
 	static std::string toString(Edge* edge);
 	std::string toString() const;
-/*
-	bool operator< (const Edge* other) const;
-	bool operator<= (const Edge* other) const;
-	bool operator> (const Edge* other) const;
-	bool operator>= (const Edge* other) const;
-	bool operator== (const Edge* other) const;
-	bool operator!= (const Edge* other) const;
-	int cmp (const Edge* other) const;*/
 };
 
 #endif /* EDGE_H_ */

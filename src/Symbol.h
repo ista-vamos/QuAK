@@ -6,28 +6,19 @@
 
 
 class Symbol {
-	private:
-		const int my_id;
-		std::string name;
-	public:
-		Symbol(std::string name);
-		Symbol(Symbol* symbol);
-		~Symbol();
-		std::string getName() const;
-		const int getId() const;
-		static void RESET();
-		static void RESET(int n);
-		static std::string toString(Symbol* symbol);
-		std::string toString() const;
-
-		/*
-		bool operator< (const Symbol* other) const;
-		bool operator<= (const Symbol* other) const;
-		bool operator> (const Symbol* other) const;
-		bool operator>= (const Symbol* other) const;
-		bool operator== (const Symbol* other) const;
-		bool operator!= (const Symbol* other) const;
-		int cmp (const Symbol* other) const;*/
+private:
+	const int my_id;
+	std::string name;
+public:
+	Symbol(std::string name);
+	Symbol(Symbol* symbol);
+	~Symbol();
+	std::string getName() const;
+	const int getId() const;
+	static void RESET();
+	static void RESET(int n);
+	static std::string toString(Symbol* symbol);
+	std::string toString() const;
 };
 
 

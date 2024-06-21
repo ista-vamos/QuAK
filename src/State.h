@@ -48,15 +48,6 @@ public:
 	static std::string toString (State *state);
 	std::string toString() const;
 	std::string toStringOnlyName() const;
-
-	/*
-	bool operator< (const State* other) const;
-	bool operator<= (const State* other) const;
-	bool operator> (const State* other) const;
-	bool operator>= (const State* other) const;
-	bool operator== (const State* other) const;
-	bool operator!= (const State* other) const;
-	int cmp (const State* other) const;*/
 };
 
 

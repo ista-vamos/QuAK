@@ -179,15 +179,3 @@ std::string State::toStringOnlyName() const {
 }
 
 
-
-/*
-int State::cmp (const State* other) const { return this->id - other->id; }
-bool State::operator< (const State* other) const { return this->cmp(other) < 0;}
-bool State::operator<= (const State* other) const { return this->cmp(other) <= 0;}
-bool State::operator> (const State* other) const { return this->cmp(other) > 0;}
-bool State::operator>= (const State* other) const { return this->cmp(other) >= 0;}
-bool State::operator== (const State* other) const { return this->cmp(other) == 0; }
-bool State::operator!= (const State* other) const { return this->cmp(other) != 0; }
-*/
-
-
