@@ -32,7 +32,6 @@ public:
 template <typename T_element> class SetList {
 private:
 	std::list<T_element> all;
-	//std::vector<T_element> all;
 public:
 	SetList();
 	~SetList();

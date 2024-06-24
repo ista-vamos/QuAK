@@ -3,6 +3,19 @@
 
 
 FixpointStem::~FixpointStem () {
+	this->buffer->clear();//fixme
+	this->content->clear();//fixme
+	this->updates->clear();//fixme
+
+	this->nb_deleted += this->buffer->nb_debug;//fixme
+	this->nb_deleted += this->content->nb_debug;//fixme
+	this->nb_deleted += this->updates->nb_debug;//fixme
+
+	printf("--------------------------> %u == %u\n",
+			this->nb_constructed,
+			this->nb_deleted
+	);fflush(stdout);//FIXME
+
 	delete this->buffer;
 	delete this->content;
 	delete this->updates;
@@ -15,6 +28,7 @@ FixpointStem::FixpointStem (State* initA, State* initB, bool rev) {
 	this->buffer = new PostTargetVariable();
 
 	TargetOf* init_setB = new TargetOf();
+	nb_constructed++;//fixme
 	Word* init_word = new Word();
 	init_setB->add(initB);
 	this->updates->add(initA, init_setB, init_word);
@@ -39,6 +53,7 @@ bool FixpointStem::addIfExtreme (State* stateA, TargetOf* setB, Word* word) {
 
 TargetOf* FixpointStem::post (TargetOf* currentB, Symbol* symbol) {
 	TargetOf* postB = new TargetOf();
+	nb_constructed++;//fixme
 	for (State* state: *currentB) {
 		for (Edge* edge : *(state->getSuccessors(symbol->getId())))  {
 			postB->add(edge->getTo());
@@ -66,6 +81,7 @@ bool FixpointStem::apply () {
 				if (postB->getRef() == 0) {
 					delete word;
 					delete postB;
+					nb_deleted++;//fixme
 				}
 			}
 		}

@@ -51,11 +51,12 @@ void PostContextVariable::erase (State* stateA, std::pair<ContextOf*, std::pair<
 	if (this->contains(stateA) == true) {
 		unsigned int n = this->at(stateA)->size();
 		this->at(stateA)->erase(pair);
-		if (n < this->at(stateA)->size()) {
+		if (n > this->at(stateA)->size()) {
 			pair.first->decreaseRef();
 			if(pair.first->getRef() == 0) {
 				delete pair.first;
 				delete pair.second.first;
+				nb_debug++;//fixme
 			}
 		}
 	}
@@ -70,6 +71,7 @@ void PostContextVariable::clear () {
 			if (pairset.first->getRef() == 0) {
 				delete pairset.first;
 				delete pairset.second.first;
+				nb_debug++;//fixme
 			}
 		}
 	}
@@ -89,7 +91,7 @@ bool PostContextVariable::addIfMin (State* stateA, ContextOf* setB, Word* word, 
 		if (setB->smaller_than(iter->first) == true) {
 			auto tmp = iter;
 			++iter;
-			this->at(stateA)->erase(*tmp);
+			this->erase(stateA, *tmp);
 		}
 		else {
 			++iter;
@@ -112,7 +114,7 @@ bool PostContextVariable::addIfMax (State* stateA, ContextOf* setB, Word* word, 
 		if (iter->first->smaller_than(setB) == true) {
 			auto tmp = iter;
 			++iter;
-			this->at(stateA)->erase(*tmp);
+			this->erase(stateA, *tmp);
 		}
 		else {
 			++iter;

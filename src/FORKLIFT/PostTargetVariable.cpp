@@ -50,11 +50,12 @@ void PostTargetVariable::erase (State* stateA, std::pair<TargetOf*, Word*> pair)
 	if (this->contains(stateA) == true) {
 		unsigned int n = this->at(stateA)->size();
 		this->at(stateA)->erase(pair);
-		if (n < this->at(stateA)->size()) {
+		if (n > this->at(stateA)->size()) {
 			pair.first->decreaseRef();
 			if(pair.first->getRef() == 0) {
 				delete pair.first;
 				delete pair.second;
+				nb_debug++;//fixme
 			}
 		}
 	}
@@ -68,6 +69,7 @@ void PostTargetVariable::clear () {
 			if (pairset.first->getRef() == 0) {
 				delete pairset.first;
 				delete pairset.second;
+				nb_debug++;//fixme
 			}
 		}
 	}
@@ -92,7 +94,7 @@ bool PostTargetVariable::addIfMin (State* stateA, TargetOf* setB, Word* word) {
 			NIC_verbose("%s : %s < %s\n", stateA->getName().c_str(), word->toString().c_str(), iter->second->toString().c_str());
 			auto tmp = iter;
 			++iter;
-			this->at(stateA)->erase(*tmp);
+			this->erase(stateA, *tmp);
 		}
 		else{
 			++iter;
@@ -120,7 +122,7 @@ bool PostTargetVariable::addIfMax (State* stateA, TargetOf* setB, Word* word) {
 			NIC_verbose("%s : %s < %s\n", stateA->getName().c_str(), iter->second->toString().c_str(), word->toString().c_str());
 			auto tmp = iter;
 			++iter;
-			this->at(stateA)->erase(*tmp);
+			this->erase(stateA, *tmp);
 		}
 		else{
 			++iter;

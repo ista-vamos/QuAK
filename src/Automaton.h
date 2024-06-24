@@ -132,6 +132,7 @@ public:
 	MapArray<Weight<weight_t>*>* getWeights() const;
 	weight_t getMinWeightValue () const;
 	weight_t getMaxWeightValue () const;
+	unsigned int getNbSCCs () const;
 
 
 	std::string getName() const;

@@ -17,6 +17,8 @@
 
 
 class PostContextVariable : protected MapStd<State*, SetStd<std::pair<ContextOf*,std::pair<Word*, weight_t>>>*> {
+public:
+	unsigned int nb_debug = 0;//fixme:remove
 private:
 	void erase (State* stateA, std::pair<ContextOf*, std::pair<Word*,weight_t>> pair);
 public:

@@ -5,6 +5,9 @@
 #include "PostContextVariable.h"
 
 class FixpointLoop {
+public://fixme
+	unsigned int nb_constructed = 0;
+	unsigned int nb_deleted = 0;
 private:
 	unsigned int capacity;
 	PostContextVariable* content;

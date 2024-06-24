@@ -543,6 +543,8 @@ State* Automaton::getInitial () const { return initial; }
 std::string Automaton::getName() const { return this->name; }
 
 
+unsigned int Automaton::getNbSCCs () const { return this->nb_SCCs; }
+
 
 
 

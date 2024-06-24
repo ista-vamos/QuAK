@@ -11,6 +11,7 @@ public:
 	StateRelation();
 	void add (State* fromB, State* toB);
 	bool smaller_than (StateRelation* other);
+	//unsigned int size () { return MapStd<State*,TargetOf*>::size(); }; //fixme: remove
 	auto begin() {return MapStd<State*,TargetOf*>::begin();};
 	auto end() {return MapStd<State*,TargetOf*>::end();};
 };

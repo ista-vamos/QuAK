@@ -17,6 +17,9 @@ public:
 	void increaseRef () { nb_ref = nb_ref + 1; }
 	int getRef () { return nb_ref; }
 
+	//unsigned int getCap () { return MapArray<StateRelation*>::size(); }; //fixme:remove
+	//unsigned int getSize () { return this->size(); }; // fixme:remove
+
 	void add (State* fromB, State* toB, unsigned int weight_id);
 	bool smaller_than (ContextOf* other);
 	StateRelation* at (unsigned int weight_id) const { return MapArray<StateRelation*>::at(weight_id); }

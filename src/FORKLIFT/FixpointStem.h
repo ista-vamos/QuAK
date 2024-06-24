@@ -7,6 +7,9 @@
 #include "../Word.h"
 
 class FixpointStem {
+public://fixme
+	unsigned int nb_constructed = 0;
+	unsigned int nb_deleted = 0;
 private:
 	bool reversed_inclusion;
 	PostTargetVariable* content;
