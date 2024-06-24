@@ -1,14 +1,14 @@
-a : 0,qI -> q1
-c : 0,qI -> q1
-a : 0,qI -> q2
-b : 0,qI -> q2
-a : 0,q1 -> qI
-c : 0,q1 -> qI
-a : 0,q1 -> q2
-b : 0,q1 -> qF
-a : 0,q2 -> qI
-b : 0,q2 -> qI
-c : 0,q2 -> qF
-a : 1,qF -> qI
-c : 1,qF -> q2
-b : 1,qF -> qF
+a : 0, qI -> q1
+c : 0, qI -> q1
+a : 0, qI -> q2
+b : 0, qI -> q2
+a : 0, q1 -> qI
+c : 0, q1 -> qI
+a : 0, q1 -> q2
+b : 0, q1 -> qF
+a : 0, q2 -> qI
+b : 0, q2 -> qI
+c : 0, q2 -> qF
+a : 1, qF -> qI
+c : 1, qF -> q2
+b : 1, qF -> qF

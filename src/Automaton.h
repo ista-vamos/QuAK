@@ -10,7 +10,7 @@
 #include "State.h"
 #include "Symbol.h"
 #include "Word.h"
-#include "FORQ/TargetOf.h"
+#include "FORKLIFT/TargetOf.h"
 
 class SCC_Tree;
 
@@ -57,7 +57,7 @@ private:
 private:
 	void build(Parser* parser, MapStd<std::string, Symbol*> sync_register);
 	Automaton(const Automaton* A, value_function_t f);
-	Automaton(const Automaton* A, const Automaton* B, aggregator_t aggregator);
+	Automaton(const Automaton* A, aggregator_t aggregator, const Automaton* B);
 	Automaton(
 			std::string name,
 			MapArray<Symbol*>* alphabet,
@@ -90,8 +90,8 @@ private:
 	Automaton* toLimSup_helperLimInf () const;
 
 public:
-	Automaton (std::string filename, Automaton* other);
 	Automaton (std::string filename);
+	Automaton (std::string filename, Automaton* other);
 	//Automaton (const Automaton& to_copy);// fixme: obsolete
 	~Automaton ();
 	

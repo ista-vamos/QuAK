@@ -53,11 +53,7 @@ template <typename T_element>
 void SetList<T_element>::push(T_element element) { all.push_front(element); }
 
 template <typename T_element>
-void SetList<T_element>::queue(T_element element) { all.push_back(element); }
-
-template <typename T_element>
 T_element SetList<T_element>::head() { return *(all.begin()); }
-
 
 template <typename T_element>
 void SetList<T_element>::pop() { all.erase(all.begin()); }
@@ -65,10 +61,6 @@ void SetList<T_element>::pop() { all.erase(all.begin()); }
 template <typename T_element>
 unsigned int SetList<T_element>::size() const { return all.size(); }
 
-template <typename T_element>
-std::string SetList<T_element>::toString (std::string (*f) (T_element element)) const {
-	fail("function not implemented");
-}
 
 
 

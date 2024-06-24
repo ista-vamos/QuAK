@@ -1,6 +1,6 @@
-a : 0,pI -> pI
-b : 0,pI -> pF
-c : 0,pI -> pF
-a : 1,pF -> pI
-b : 1,pF -> pF
-c : 1,pF -> pF
+a : 0, pI -> pI
+b : 0, pI -> pF
+c : 0, pI -> pF
+a : 1, pF -> pI
+b : 1, pF -> pF
+c : 1, pF -> pF

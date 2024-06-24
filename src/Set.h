@@ -32,15 +32,14 @@ public:
 template <typename T_element> class SetList {
 private:
 	std::list<T_element> all;
+	//std::vector<T_element> all;
 public:
 	SetList();
 	~SetList();
 	void push(T_element element);
-	void queue(T_element element);
 	void pop();
 	T_element head();
 	unsigned int size() const;
-	std::string toString (std::string (*f) (T_element element)) const;
 	auto begin() { return all.begin(); };
 	auto end() { return all.end(); };
 };

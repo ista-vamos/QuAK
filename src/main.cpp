@@ -1,6 +1,6 @@
 #include <iostream>
 
-#include "FORQ/inclusion.h"
+#include "FORKLIFT/inclusion.h"
 #include "Automaton.h"
 #include "Map.h"
 #include "Word.h"
@@ -23,6 +23,7 @@ int main(int argc, char **argv) {
 	// delete C;
 */
 
+	debug_test();
 
 
 

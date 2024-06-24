@@ -22,8 +22,9 @@ public:
 		s.append(offset);
 		s.append(this->origin->getName());
 		offset.append("\t");
-		for (auto iter = this->nexts->begin(); iter != this->nexts->end(); ++iter) {
-			s.append((*iter)->toString(offset));
+		//for (auto iter = this->nexts->begin(); iter != this->nexts->end(); ++iter) {
+		for (auto tree : *nexts) {
+			s.append(tree->toString(offset));
 		}
 		return s;
 	};
@@ -127,7 +128,6 @@ void Automaton::build(Parser* parser, MapStd<std::string, Symbol*> sync_register
 	}
 	this->initial = state_register.at(parser->initial);
 
-
 	for (std::string symbolname : parser->alphabet) {
 		Symbol * symbol;
 		if (sync_register.contains(symbolname))
@@ -196,7 +196,7 @@ weight_t aggregator_apply (aggregator_t aggregator, Weight<weight_t>* x, Weight<
 }
 
 
-Automaton::Automaton(const Automaton* A, const Automaton* B, aggregator_t f) :
+Automaton::Automaton(const Automaton* A, aggregator_t f, const Automaton* B) :
 	name(aggregator_name(f) + "(" + A->getName() + "," + B->getName() + ")")
 {
 	MapStd<std::string, Symbol*> sync_register;
@@ -261,16 +261,15 @@ Automaton::Automaton(const Automaton* A, value_function_t f) :
 		}
 	}
 
-	parser.states.insert("sink");
 	weight_t min_value = *(parser.weights.begin());
 	weight_t max_value = *(parser.weights.end());
-	weight_t weightvalue;
+	weight_t sinkvalue;
 	switch(f) {
 		case Inf: case LimInf : case LimAvg:
-			weightvalue = max_value + 1;
+			sinkvalue = max_value + 1;
 			break;
 		case Sup: case LimSup:
-			weightvalue = min_value - 1;
+			sinkvalue = min_value - 1;
 			break;
 		default: fail("case value function");
 	}
@@ -280,11 +279,13 @@ Automaton::Automaton(const Automaton* A, value_function_t f) :
 		for (unsigned int symbol_id = 0; symbol_id < A->states->size(); ++symbol_id) {
 			if (parser.alphabet.contains(A->alphabet->at(symbol_id)->getName()) == false) continue;
 			if (A->states->at(stateA_id)->getAlphabet()->contains(A->alphabet->at(symbol_id)) == true) continue;
+			parser.states.insert("#sink#");
+			parser.weights.insert(sinkvalue);
 			std::pair<std::pair<std::string, weight_t>,std::pair<std::string, std::string>> edge;
 			edge.first.first = A->alphabet->at(symbol_id)->getName();
-			edge.first.second = weightvalue;
+			edge.first.second = sinkvalue;
 			edge.second.first = A->states->at(stateA_id)->getName();
-			edge.second.second = "sink";
+			edge.second.second = "#sink#";
 			parser.edges.insert(edge);
 		}
 	}
@@ -292,9 +293,9 @@ Automaton::Automaton(const Automaton* A, value_function_t f) :
 	for (std::string symbolname: parser.alphabet) {
 		std::pair<std::pair<std::string, weight_t>,std::pair<std::string, std::string>> edge;
 		edge.first.first = symbolname;
-		edge.first.second = weightvalue;
-		edge.second.first = "sink";
-		edge.second.second = "sink";
+		edge.first.second = sinkvalue;
+		edge.second.first = "#sink#";
+		edge.second.second = "#sink#";
 		parser.edges.insert(edge);
 	}
 
@@ -814,13 +815,14 @@ Automaton* Automaton::safetyClosure(value_function_t value_function) const {
 	weight_t min_weight = this->max_weight;
 	weight_t max_weight = this->min_weight;
 	for (unsigned int weight_id = 0; weight_id < this->nb_SCCs; ++weight_id) {
+		//fixme: weights must be sorted
 		weights->insert(weight_id, new Weight<weight_t>(top_values[weight_id]));
 		min_weight = std::min(min_weight, top_values[weight_id]);
 		max_weight = std::max(max_weight, top_values[weight_id]);
 	}
 
 	for (unsigned int state_id = 0; state_id < this->states->size(); ++state_id) {
-		for (Edge* edge : *(this->states->at(state_id)->getEdges())) {
+		for (Edge* edge : *(this->states->at(state_id)->getEdges())) {// fixme:"don't use getEdges
 			Symbol* symbol = alphabet->at(edge->getSymbol()->getId());
 			State* from = states->at(edge->getFrom()->getId());
 			State* to = states->at(edge->getTo()->getId());
@@ -836,6 +838,8 @@ Automaton* Automaton::safetyClosure(value_function_t value_function) const {
 }
 
 
+//TODO: CHECK
+// This is useful for translating Inf and Sup to LimSup
 Automaton* Automaton::monotonize (value_function_t type) const {
 	if (type != Inf && type != Sup) {
 		fail("monotonize only possible for inf or sup automata");
@@ -984,7 +988,7 @@ Automaton* Automaton::livenessComponent (value_function_t type) const {
 }
 
 
-
+//TODO: CHECK
 Automaton* Automaton::constantAutomaton (Weight<weight_t> v) const {
 	State::RESET();
 	Symbol::RESET();
@@ -1207,27 +1211,21 @@ bool Automaton::isEmpty (value_function_t type, Weight<weight_t> v) const {
 
 
 
-// fixme: memory leak -- test with valgrind after isIncludedIn is done
-bool Automaton::isUniversal (value_function_t type, Weight<weight_t> v) const {
-	bool out = false;
-	Automaton* C = this->constantAutomaton(v);
-	
-	if (C->isIncludedIn(type, this)) {
-		out = true;
-	}
 
+bool Automaton::isUniversal (value_function_t type, Weight<weight_t> v) const {
+	Automaton* C = this->constantAutomaton(v);
+	bool flag = C->isIncludedIn(type, this);
 	delete C;
-	return out;
+	return flag;
 }
 
 
 // TODO: need to prove Bottom(A) = -Top(-A) for limavg (and dsum -- maybe also others)
-// fixme: memory leaks -- test with valgrind after computeTop is done
 bool Automaton::isUniversal_det (value_function_t type, Weight<weight_t> v) const {
 	Weight<weight_t>* minusOne = new Weight<weight_t>(-1);
 	Automaton* C = this->constantAutomaton(minusOne); // fixme: inefficient
 
-	Automaton* CC = new Automaton(this, C, Times); // trim product
+	Automaton* CC = new Automaton(this, Times, C); // trim product
 	//Automaton* CC = this->product(type, C, Times); // -- old implementation
 
 	weight_t top_values[CC->nb_SCCs];
@@ -1243,7 +1241,7 @@ bool Automaton::isUniversal_det (value_function_t type, Weight<weight_t> v) cons
 // fixme: update product, do not use trim, inline in isIncludedIn case Avg
 // fixme: memory leak -- test with valgrind after computeTop is done
 bool Automaton::isIncludedIn_det (value_function_t type, const Automaton* rhs) const {
-	Automaton* C = new Automaton(this, rhs, Minus); // trim product
+	Automaton* C = new Automaton(this, Minus, rhs); // trim product
 	//Automaton* C = this->product(type, rhs, Minus)->trim(); // old implementation
 	C->print();
 
