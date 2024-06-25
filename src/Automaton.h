@@ -112,10 +112,9 @@ public:
 	bool isEmpty (value_function_t type, Weight<weight_t> v) const; // checks if A(w) >= v for some w
 
 	bool isUniversal (value_function_t type, Weight<weight_t> v) const; // checks if A(w) >= v for all w
-	bool isUniversal_det (value_function_t type, Weight<weight_t> v) const; // checks if A(w) >= v for all w -- assuming deterministic (NEEDS TO BE PROVED)
+	bool isUniversal_det (value_function_t type, Weight<weight_t> v) const; // checks if A(w) >= v for all w -- assuming deterministic
 	
 	bool isIncludedIn (value_function_t type, const Automaton* rhs) const; // checks if A(w) <= B(w) for all w
-	bool isIncludedIn_det (value_function_t type, const Automaton* rhs) const; // checks if A(w) <= B(w) for all w -- assuming deterministic (this only works for limavg and dsum)
 	bool isIncludedIn_bool (value_function_t type, const Automaton* rhs) const;
 	
 	bool isEquivalent (value_function_t type, const Automaton* rhs) const; // checks if A(w) == B(w) for all w

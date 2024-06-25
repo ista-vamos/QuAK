@@ -304,141 +304,6 @@ Automaton::Automaton(const Automaton* A, value_function_t f) :
 
 
 
-/*
-// TODO: remove, use Automaton(const Automaton* A, const Automaton* B, aggregator_t aggregator) instead
-Automaton* Automaton::product(value_function_t value_function, const Automaton* B, aggregator_t aggregator) const {
-	State::RESET();
-	Symbol::RESET();
-	Weight<weight_t>::RESET();
-
-	std::string name = aggregator_name(aggregator) + "(" + this->getName() + "," + B->getName() + ")";
-
-	MapArray<Symbol*>* alphabet = new MapArray<Symbol*>(this->alphabet->size());
-	for (unsigned int symbol_id = 0; symbol_id < this->alphabet->size(); ++symbol_id) {
-		alphabet->insert(symbol_id, new Symbol(this->alphabet->at(symbol_id)));
-	}
-
-	int n = this->states->size();
-	int m = B->states->size();
-	// TODO: avoid constructing useless states
-	//		n = this->nb_reachable_states
-	//		m = B->nb_reachable_states
-	MapArray<State*>* states = new MapArray<State*>(n * m);
-
-	for (int i = 0; i < n; i++) {
-		for (int j = 0; j < m; j++) {
-			std::string stateName = "(" + this->states->at(i)->getName() + "," + B->states->at(j)->getName() + ")";
-			State* pairState = new State(stateName, alphabet->size());
-			states->insert(i * m + j, pairState);
-		}
-	}
-
-	State* initial = states->at(this->initial->getId() * n + B->initial->getId());
-
-	std::map<weight_t,int> counts;
-	for (int i = 0; i < n; i++) {
-		for (int j = 0; j < m; j++) {
-			for (Edge* x : *(this->states->at(i)->getEdges())) {
-				for (Edge* y : *(B->states->at(j)->getEdges())) {
-					if (x->getSymbol()->getName() == y->getSymbol()->getName()) {
-						weight_t value = aggregator_apply(aggregator, x->getWeight(), y->getWeight());
-						Weight<weight_t>* pairWeight = new Weight<weight_t>(value);
-						counts[pairWeight->getValue()]++;
-
-						int ii = x->getTo()->getId();
-						int jj = y->getTo()->getId();
-						Edge* pairEdge = new Edge(x->getSymbol(), pairWeight, states->at(i * m + j), states->at(ii * m + jj));
-
-						states->at(i * m + j)->addEdge(pairEdge);
-						states->at(i * m + j)->addSuccessor(pairEdge);
-						states->at(ii * m + jj)->addPredecessor(pairEdge);
-					}
-				}
-			}
-		}
-	}
-
-	MapArray<Weight<weight_t>*>* weights = new MapArray<Weight<weight_t>*>(counts.size());
-	weight_t min_weight;
-	weight_t max_weight;
-	long unsigned int counter = 0;
-	for (auto weightCount : counts) {
-		Weight<weight_t>* pairWeight = new Weight<weight_t>(weightCount.first);
-		weights->insert(counter, pairWeight);
-
-		if (counter == 0) {
-			min_weight = weightCount.first;
-		}
-		if (counter == counts.size() - 1) {
-			max_weight = weightCount.first;
-		}
-
-		counter++;
-	}
-
-	return new Automaton(name, alphabet, states, weights, min_weight, max_weight, initial);
-}
-*/
-
-
-/*
-//TODO: remove, use Automaton::Automaton(const Automaton* A, value_function_t f) instead
-Automaton::Automaton (const Automaton& to_copy) {
-	State::RESET();
-	Symbol::RESET();
-	Weight<weight_t>::RESET();
-
-	this->name = to_copy.name;
-
-	this->alphabet = new MapArray<Symbol*>(to_copy.alphabet->size());
-	for (unsigned int symbol_id = 0; symbol_id < to_copy.alphabet->size(); ++symbol_id) {
-		this->alphabet->insert(symbol_id, new Symbol(to_copy.alphabet->at(symbol_id)));
-	}
-	this->states = new MapArray<State*>(to_copy.states->size());
-	for (unsigned int state_id = 0; state_id < to_copy.states->size(); ++state_id) {
-		this->states->insert(state_id, new State(to_copy.states->at(state_id)));
-	}
-	this->initial = this->states->at(to_copy.initial->getId());
-
-	this->weights = new MapArray<Weight<weight_t>*>(to_copy.weights->size());
-	this->min_weight = to_copy.min_weight;
-	this->max_weight = to_copy.max_weight;
-	for (unsigned int weight_id = 0; weight_id < to_copy.weights->size(); ++weight_id) {
-		this->weights->insert(weight_id, new Weight<weight_t>(to_copy.weights->at(weight_id)));
-	}
-
-	for (unsigned int state_id = 0; state_id < to_copy.states->size(); ++state_id) {
-		for (Edge* edge : *(to_copy.states->at(state_id)->getEdges())) {
-			Symbol* symbol = this->alphabet->at(edge->getSymbol()->getId());
-			State* from = this->states->at(edge->getFrom()->getId());
-			State* to = this->states->at(edge->getTo()->getId());
-			Weight<weight_t>* weight = to_copy.weights->at(edge->getWeight()->getId());
-			Edge* new_edge = new Edge(symbol, weight, from, to);
-			from->addEdge(new_edge);
-			from->addSuccessor(new_edge);
-			to->addPredecessor(new_edge);
-
-		}
-	}
-
-	this->compute_SCC();
-}
-*/
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 // -------------------------------- SCCs -------------------------------- //
 
 
@@ -556,13 +421,6 @@ unsigned int Automaton::getNbSCCs () const { return this->nb_SCCs; }
 // -------------------------------- Tranformations -------------------------------- //
 
 
-// TODO: Keep until limsup inclusion not implemented, then remove
-// --> Inclusion for inf, sup, liminf, limsup done though limsup inclusion
-// easy for inf sup liminf limsup. only change the weights to 1 if >= thr, 0 otherwise
-// may be nonregular for limavg and dsum
-// fixme:
-//		booleanize should NOT complete NOR trim
-//		otherwise the comparizon with quantitative inclusion will be unfair!
 // TODO: rewrite a version that use build
 Automaton* Automaton::booleanize(Weight<weight_t> threshold) const {
 	State::RESET();
@@ -1192,7 +1050,6 @@ bool Automaton::isDeterministic () const {
 }
 
 
-// TODO: remove -- why? we don't have to use it ourselves but it is a useful function in general
 bool Automaton::isComplete () const {
 	for (unsigned int state_id = 0; state_id < this->states->size(); ++state_id) {
 		for (unsigned int symbol_id = 0; symbol_id < this->alphabet->size(); ++symbol_id) {
@@ -1222,7 +1079,6 @@ bool Automaton::isUniversal (value_function_t type, Weight<weight_t> v) const {
 }
 
 
-// TODO: need to prove Bottom(A) = -Top(-A) for limavg (and dsum -- maybe also others)
 bool Automaton::isUniversal_det (value_function_t type, Weight<weight_t> v) const {
 	Weight<weight_t>* minusOne = new Weight<weight_t>(-1);
 	Automaton* C = this->constantAutomaton(minusOne); // fixme: inefficient
@@ -1236,21 +1092,6 @@ bool Automaton::isUniversal_det (value_function_t type, Weight<weight_t> v) cons
 	delete C;
 	delete CC;
 	return (-CCtop >= v.getValue());
-}
-
-
-// this works only for limavg and dsum
-// fixme: update product, do not use trim, inline in isIncludedIn case Avg
-// fixme: memory leak -- test with valgrind after computeTop is done
-bool Automaton::isIncludedIn_det (value_function_t type, const Automaton* rhs) const {
-	Automaton* C = new Automaton(this, Minus, rhs); // trim product
-	//Automaton* C = this->product(type, rhs, Minus)->trim(); // old implementation
-	C->print();
-
-	weight_t top_values[C->nb_SCCs];
-	weight_t Ctop = C->compute_Top(type, top_values);
-	delete C;
-	return (Ctop < 0);
 }
 
 
@@ -1279,7 +1120,12 @@ bool Automaton::isIncludedIn(value_function_t type, const Automaton* rhs) const 
 	
 	if (type == LimAvg) { 
 		if (rhs->isDeterministic()) {
-			return this->isIncludedIn_det(type, rhs); // this also works for dsum
+			Automaton* C = new Automaton(this, Minus, rhs);
+			// C->print();
+			weight_t top_values[C->nb_SCCs];
+			weight_t Ctop = C->compute_Top(type, top_values);
+			delete C;
+			return (Ctop < 0);
 		}
 		else {
 			fail("automata inclusion undecidable for nondeterministic limavg");
@@ -1301,9 +1147,6 @@ bool Automaton::isIncludedIn(value_function_t type, const Automaton* rhs) const 
 }
 
 
-
-// TODO: remove? we only need inclusion test since equivalence are against safety closures
-// why? this is a useful function in general
 bool Automaton::isEquivalent (value_function_t type, const Automaton* rhs) const {
 	return rhs->isIncludedIn(type, this) && this->isIncludedIn(type, rhs);
 }
@@ -1312,9 +1155,7 @@ bool Automaton::isEquivalent (value_function_t type, const Automaton* rhs) const
 // fixme: memory leak
 bool Automaton::isSafe (value_function_t type) const {
 	if (this->isDeterministic() || type != LimAvg) {
-		return this->isEquivalent(type, this->safetyClosure(type));
-		// the safety closure ensure A <= clo(A)
-		// fixme: use only inclusion
+		return this->safetyClosure(type)->isIncludedIn(type, this);
 	}
 
 	// TODO: call constant check for nondet limavg
@@ -1326,7 +1167,7 @@ bool Automaton::isSafe (value_function_t type) const {
 }
 
 
-// TODO
+// TODO: check
 bool Automaton::isConstant (value_function_t type) const {
 	if (type == LimAvg) { 
 		if (this->isDeterministic()) {
@@ -1341,10 +1182,13 @@ bool Automaton::isConstant (value_function_t type) const {
 	}
 	else {
 		weight_t top_values[this->nb_SCCs];
-		Automaton* Top = this->constantAutomaton(this->compute_Top(type, top_values));
-		return this->isEquivalent(type, Top);
-		// fixme: do only what is necessary i.e. universality A <= Top
-		// the construction of a constant automaton is the design of isUniversal not isConstant
+		weight_t t = this->compute_Top(type, top_values);
+		if (this->isDeterministic()) {
+			return this->isUniversal_det(type, t);
+		}
+		else {
+			return this->isUniversal(type, t);
+		} 
 	}
 }
 
