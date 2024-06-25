@@ -266,10 +266,10 @@ Automaton::Automaton(const Automaton* A, value_function_t f) :
 	weight_t sinkvalue;
 	switch(f) {
 		case Inf: case LimInf : case LimAvg:
-			sinkvalue = max_value + 1;
+			sinkvalue = max_value;
 			break;
 		case Sup: case LimSup:
-			sinkvalue = min_value - 1;
+			sinkvalue = min_value;
 			break;
 		default: fail("case value function");
 	}
@@ -770,8 +770,8 @@ Automaton* Automaton::monotonize (value_function_t type) const {
 	}
 
 	MapArray<Weight<weight_t>*>* weights = new MapArray<Weight<weight_t>*>(newWeightSet.size());
-	weight_t min_weight;
-	weight_t max_weight;
+	weight_t min_weight = this->min_weight;
+	weight_t max_weight = this->max_weight;
 	unsigned long counter = 0;
 	for (auto weight : newWeightSet) {
 		weights->insert(counter, weight.second);
@@ -993,8 +993,8 @@ Automaton* Automaton::toLimSup_helperLimInf () const {
 	// }
 
 	MapArray<Weight<weight_t>*>* weights = new MapArray<Weight<weight_t>*>(newWeightSet.size());
-	weight_t min_weight;
-	weight_t max_weight;
+	weight_t min_weight = this->min_weight;
+	weight_t max_weight = this->max_weight;
 	unsigned long counter = 0;
 	for (auto weight : newWeightSet) {
 		weights->insert(counter, weight.second);
@@ -1132,15 +1132,19 @@ bool Automaton::isIncludedIn(value_function_t type, const Automaton* rhs) const 
 		}
 	}
 	else if (type == Inf || type == Sup || type == LimInf || type == LimSup) {
-		for (unsigned int weight_id = 0; weight_id < this->weights->size(); ++weight_id) {
-			Automaton* A_bool = this->booleanize(this->weights->at(weight_id));
-			Automaton* B_bool = rhs->booleanize(this->weights->at(weight_id));
+		// TODO
 
-			if (!A_bool->isIncludedIn_bool(type, B_bool)) {
-				return false;
-			}
-		}
-		return true;
+
+
+		// for (unsigned int weight_id = 0; weight_id < this->weights->size(); ++weight_id) {
+		// 	Automaton* A_bool = this->booleanize(this->weights->at(weight_id));
+		// 	Automaton* B_bool = rhs->booleanize(this->weights->at(weight_id));
+
+		// 	if (!A_bool->isIncludedIn_bool(type, B_bool)) {
+		// 		return false;
+		// 	}
+		// }
+		// return true;
 	}
 
 	fail("automata inclusion type");
@@ -1365,7 +1369,8 @@ weight_t Automaton::top_LimInf (weight_t* top_values) const {
 	top_safety_scc(values, true);
 
 	for (unsigned int scc_id = 0; scc_id < this->nb_SCCs; ++scc_id) {
-		top_values[scc_id] = this->min_weight - 1;
+		// top_values[scc_id] = this->min_weight - 1;
+		top_values[scc_id] = this->min_weight;
 	}
 
 	for (unsigned int state_id = 0; state_id < this->states->size(); ++state_id) {
@@ -1437,11 +1442,13 @@ weight_t Automaton::top_LimAvg (weight_t* top_values) const {
 
 	//O(n.m)
 	for (unsigned int scc_id = 0; scc_id < this->nb_SCCs; ++scc_id) {
-		top_values[scc_id] = this->min_weight - 1;
+		// top_values[scc_id] = this->min_weight - 1;
+		top_values[scc_id] = this->min_weight;
 	}
 
 	for (unsigned int state_id = 0; state_id < size; ++state_id) {
-		weight_t min_lenght_avg = this->max_weight + 1.0;
+		// weight_t min_lenght_avg = this->max_weight + 1.0;
+		weight_t min_lenght_avg = this->max_weight;
 		bool len_flag = false;
 		if (distance[size][state_id] != infinity) { // => id has an ongoing edge (inside its SCC)
 			for (unsigned int lenght = 0; lenght < size; ++lenght) { // hence the nested loop is call at most O(m) times
@@ -1462,6 +1469,60 @@ weight_t Automaton::top_LimAvg (weight_t* top_values) const {
 	return top_values[this->SCCs_tree->origin->getTag()];
 }
 
+weight_t Automaton::compute_Bot (value_function_t value_function, weight_t* bot_values) const {
+	if (this->isDeterministic()) {
+		Weight<weight_t>* minusOne = new Weight<weight_t>(-1);
+		Automaton* C = this->constantAutomaton(minusOne);
+		Automaton* CC = new Automaton(this, Times, C);
+		delete C;
+		weight_t bot;
+		if (value_function == Inf) {
+			bot = CC->top_Inf();
+		}
+		else if (value_function == Sup) {
+			bot = CC->top_Sup(bot_values);
+		}
+		else if (value_function == LimInf) {
+			bot = CC->top_LimInf(bot_values);
+		}
+		else if (value_function == LimSup) {
+			bot = CC->top_LimSup(bot_values);
+		}
+		else if (value_function == LimAvg) {
+			bot = CC->top_LimAvg(bot_values);
+		}
+		else {
+			delete CC;
+			fail("automata bot");
+		}
+
+		bot = bot * (-1);
+		for (unsigned int i = 0; i < CC->getNbSCCs(); i++) {
+			bot_values[i] = bot_values[i] * (-1);
+		}
+		
+		delete CC;
+		return bot;
+	}
+	else {
+		if (value_function == Inf || value_function == Sup || value_function == LimInf || value_function == LimSup) {
+			bool found = false;
+			unsigned int weight_id = this->getWeights()->size();
+			weight_t v = 0;
+
+			while (!found && weight_id > 0) {
+				weight_id--;
+				v = this->weights->at(weight_id)->getValue();
+				found = this->isUniversal(value_function, v);
+			}
+
+			return v;
+		}
+		else {
+			fail("automata bot");
+		}
+	}
+}
 
 weight_t Automaton::compute_Top (value_function_t value_function, weight_t* top_values) const {
 	switch (value_function) {

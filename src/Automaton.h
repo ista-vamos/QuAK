@@ -86,6 +86,7 @@ private:
 	weight_t top_LimAvg (weight_t* top_values) const;
 
 	weight_t compute_Top (value_function_t value_function, weight_t* top_values) const;
+	weight_t compute_Bot (value_function_t value_function, weight_t* bot_values) const;
 
 	Automaton* toLimSup_helperLimInf () const;
 
