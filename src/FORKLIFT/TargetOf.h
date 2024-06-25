@@ -11,15 +11,14 @@ private:
 public:
 	~TargetOf();
 	TargetOf();
+	//TargetOf(TargetOf* currentB, Symbol* symbol);
+
 	void decreaseRef () { nb_ref = nb_ref - 1; }
 	void increaseRef () { nb_ref = nb_ref + 1; }
 	int getRef () { return nb_ref; }
 
 	void add (State* stateB);
 	bool smaller_than (TargetOf* other);
-	//static std::string toString(TargetOf* tmp);
-	//std::string toString () const;
-	//unsigned int size () {return this->all.size(); };
 	auto begin() {return SetStd<State*>::begin();};
 	auto end() {return SetStd<State*>::end();};
 };

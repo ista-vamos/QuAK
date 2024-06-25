@@ -5,6 +5,7 @@
 #include "StateRelation.h"
 #include "../Map.h"
 #include "../State.h"
+#include "../Symbol.h"
 
 
 class ContextOf : protected MapArray<StateRelation*> {
@@ -13,12 +14,11 @@ private:
 public:
 	~ContextOf();
 	ContextOf(unsigned int capacity);
+	//ContextOf(ContextOf* currentB, Symbol* symbol);
+
 	void decreaseRef () { nb_ref = nb_ref - 1; }
 	void increaseRef () { nb_ref = nb_ref + 1; }
 	int getRef () { return nb_ref; }
-
-	//unsigned int getCap () { return MapArray<StateRelation*>::size(); }; //fixme:remove
-	//unsigned int getSize () { return this->size(); }; // fixme:remove
 
 	void add (State* fromB, State* toB, unsigned int weight_id);
 	bool smaller_than (ContextOf* other);

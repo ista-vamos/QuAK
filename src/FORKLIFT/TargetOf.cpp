@@ -6,7 +6,20 @@
 TargetOf::~TargetOf() {}
 
 
+
 TargetOf::TargetOf() : SetStd<State*>() {}
+
+
+/*
+TargetOf::TargetOf(TargetOf* currentB, Symbol* symbol) {
+	for (State* state: *currentB) {
+		for (Edge* edge : *(state->getSuccessors(symbol->getId())))  {
+			add(edge->getTo());
+		}
+	}
+}
+*/
+
 
 
 void TargetOf::add (State* stateB) {
@@ -14,16 +27,9 @@ void TargetOf::add (State* stateB) {
 }
 
 
+
 bool TargetOf::smaller_than (TargetOf* other){
 	return std::includes(other->begin(), other->end(), this->begin(), this->end());
 }
 
 
-/*
-std::string TargetOf::TargetOf::toString (TargetOf* tmp) {
-	return tmp->toString();
-}
-std::string TargetOf::toString () const {
-	return SetStd<State*>::toString(State::toString);
-}
-*/

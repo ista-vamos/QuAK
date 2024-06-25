@@ -1,6 +1,6 @@
 
 #include "FixpointStem.h"
-
+#include "../utility.h"
 
 FixpointStem::~FixpointStem () {
 	this->buffer->clear();//fixme
@@ -11,10 +11,8 @@ FixpointStem::~FixpointStem () {
 	this->nb_deleted += this->content->nb_debug;//fixme
 	this->nb_deleted += this->updates->nb_debug;//fixme
 
-	printf("--------------------------> %u == %u\n",
-			this->nb_constructed,
-			this->nb_deleted
-	);fflush(stdout);//FIXME
+	if (this->nb_constructed != this->nb_deleted)
+			fail("memory leak");
 
 	delete this->buffer;
 	delete this->content;
@@ -51,6 +49,7 @@ bool FixpointStem::addIfExtreme (State* stateA, TargetOf* setB, Word* word) {
 }
 
 
+
 TargetOf* FixpointStem::post (TargetOf* currentB, Symbol* symbol) {
 	TargetOf* postB = new TargetOf();
 	nb_constructed++;//fixme
@@ -68,7 +67,8 @@ bool FixpointStem::apply () {
 		for (Symbol* symbol : *(mapfromA.first->getAlphabet())) {
 			auto iter = mapfromA.second->begin();
 			while (iter != mapfromA.second->end()) {
-				TargetOf* postB = post(iter->first, symbol);
+				TargetOf* postB = post(iter->first, symbol); //fixme: old
+				//TargetOf* postB = new TargetOf(iter->first, symbol);nb_constructed++; // fixme
 				Word* word = new Word(iter->second, symbol);
 				++iter;
 

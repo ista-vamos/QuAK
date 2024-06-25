@@ -147,9 +147,9 @@ bool inclusion (Automaton* A, Automaton* B) {
 			max_counter++;
 
 			TargetOf* W = pairW.first;
-			//Word* word_of_W = pairW.second; // unused
+			Word* word_of_W = pairW.second; // unused
 			printf("\tMax Prefix: %s (%u/%u)\n",
-					pairW.second->toString().c_str(),
+					word_of_W->toString().c_str(),
 					max_counter,
 					setW->size()
 			);fflush(stdout);
@@ -167,7 +167,10 @@ bool inclusion (Automaton* A, Automaton* B) {
 			unsigned int period_counter = 0;
 			SetStd<std::pair<ContextOf*, std::pair<Word*,weight_t>>>* setV = postF->getSetOfContextsOrNULL(stateA);
 
-			if (setV == NULL) continue;
+			if (setV == NULL) {
+				delete postF;
+				continue;
+			}
 			for (std::pair<ContextOf*, std::pair<Word*,weight_t>> pairV : *setV) {
 				period_counter++;
 				ContextOf* V = pairV.first;
@@ -196,21 +199,7 @@ bool inclusion (Automaton* A, Automaton* B) {
 								pairW.second->toString().c_str()
 						);fflush(stdout);
 
-						bool belongs = fast_membership(U, word_of_V, valueA);
-
-						//debug
-//						TargetOf* tmp = new TargetOf();
-//						tmp->add(stateA);
-//						int value = A->membership(tmp, word_of_V);
-//						int valueB = B->membership(U, word_of_V);
-//						if (valueA != value) {
-//							printf("inconsistent values\n");
-//						}
-//						if ((valueB < valueA && mem == true) || (valueB >= valueA && mem == false)) {
-//							printf("inconsistent memberships\n");
-//						}
-						// debug end
-						if (belongs == false) {
+						if (fast_membership(U, word_of_V, valueA) == false) {
 							printf("witness: %s cycle{ %s }\n", word_of_U->toString().c_str(), word_of_V->toString().c_str());
 							delete postF;
 							delete postI;

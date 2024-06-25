@@ -1,5 +1,6 @@
 
 #include "FixpointLoop.h"
+#include "../utility.h"
 
 FixpointLoop::~FixpointLoop () {
 	this->buffer->clear();//fixme
@@ -10,10 +11,8 @@ FixpointLoop::~FixpointLoop () {
 	this->nb_deleted += this->content->nb_debug;//fixme
 	this->nb_deleted += this->updates->nb_debug;//fixme
 
-	printf("--------------------------> %u == %u\n",
-			this->nb_constructed,
-			this->nb_deleted
-	);fflush(stdout);//FIXME
+	if (this->nb_constructed != this->nb_deleted)
+		fail("../memory leak");
 
 	delete this->buffer;
 	delete this->content;
@@ -62,6 +61,7 @@ bool FixpointLoop::addIfExtreme (State* stateA, ContextOf* setB, Word* word, wei
 
 
 
+
 ContextOf* FixpointLoop::post (ContextOf* currentB, Symbol* symbol) {
 	ContextOf* postB = new ContextOf(this->capacity);
 	nb_constructed++;//fixme
@@ -84,6 +84,7 @@ ContextOf* FixpointLoop::post (ContextOf* currentB, Symbol* symbol) {
 
 
 
+
 bool FixpointLoop::apply () {
 	auto iterA = this->updates->begin();
 	for(; iterA != this->updates->end(); ++iterA) {
@@ -91,7 +92,8 @@ bool FixpointLoop::apply () {
 		for (; iter_symbol != iterA->first->getAlphabet()->end(); ++iter_symbol) {
 			auto iterB = iterA->second->begin();
 			while (iterB != iterA->second->end()) {
-				ContextOf* postB = post(iterB->first, *iter_symbol);
+				ContextOf* postB = post(iterB->first, *iter_symbol); //fixme:old
+				//ContextOf* postB = new ContextOf(iterB->first, *iter_symbol);nb_constructed++;//fixme
 				Word* word = new Word(iterB->second.first, *iter_symbol);
 				weight_t value = iterB->second.second;
 				++iterB;
