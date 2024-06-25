@@ -422,7 +422,7 @@ unsigned int Automaton::getNbSCCs () const { return this->nb_SCCs; }
 // -------------------------------- Tranformations -------------------------------- //
 
 
-// TODO: rewrite a version that use build
+// TODO: check
 Automaton* Automaton::booleanize(Weight<weight_t> threshold) const {
 	State::RESET();
 	Symbol::RESET();
@@ -442,17 +442,28 @@ Automaton* Automaton::booleanize(Weight<weight_t> threshold) const {
 
 	weight_t min_weight = 1;
 	weight_t max_weight = 0;
+	std::map<weight_t, Weight<weight_t>*> newWeightSet;
 	for (unsigned int state_id = 0; state_id < this->states->size(); ++state_id) {
 		for (Edge* x : *(this->states->at(state_id)->getEdges())) {
 			Weight<weight_t>* w;
+			weight_t val;
 			if (x->getWeight()->getValue() >= threshold.getValue()) {
-				w = new Weight<weight_t>(1);
+				val = 1;
 				max_weight = 1;
 			}
 			else {
-				w = new Weight<weight_t>(0);
+				val = 0;
 				min_weight = 0;
 			}
+			
+			auto search = newWeightSet.find(val);
+			if (search == newWeightSet.end()) {
+				w = new Weight<weight_t>(val);
+			}
+			else {
+				w = newWeightSet[val];
+			}
+
 			Edge* e = new Edge(x->getSymbol(), w, states->at(x->getFrom()->getId()), states->at(x->getTo()->getId()));
 			states->at(state_id)->addEdge(e);
 			states->at(state_id)->addSuccessor(e);
@@ -651,7 +662,7 @@ Automaton* Automaton::complete(value_function_t value_function) const {
 }
 */
 
-
+// TODO: check
 Automaton* Automaton::safetyClosure(value_function_t value_function) const {
 	State::RESET();
 	Symbol::RESET();
@@ -675,23 +686,36 @@ Automaton* Automaton::safetyClosure(value_function_t value_function) const {
 	MapArray<Weight<weight_t>*>* weights = new MapArray<Weight<weight_t>*>(this->nb_SCCs);
 	weight_t min_weight = this->max_weight;
 	weight_t max_weight = this->min_weight;
+	std::map<weight_t, Weight<weight_t>*> newWeightSet;
+	
 	for (unsigned int weight_id = 0; weight_id < this->nb_SCCs; ++weight_id) {
-		//fixme: weights must be sorted
-		weights->insert(weight_id, new Weight<weight_t>(top_values[weight_id]));
+		Weight<weight_t>* w;
+		auto search = newWeightSet.find(top_values[weight_id]);
+		if (search == newWeightSet.end()) {
+			w = new Weight<weight_t>(top_values[weight_id]);
+			newWeightSet[top_values[weight_id]] = w;
+		}
+		else{
+			w = newWeightSet[top_values[weight_id]];
+		}
+		
+		weights->insert(weight_id, w);
 		min_weight = std::min(min_weight, top_values[weight_id]);
 		max_weight = std::max(max_weight, top_values[weight_id]);
 	}
 
 	for (unsigned int state_id = 0; state_id < this->states->size(); ++state_id) {
-		for (Edge* edge : *(this->states->at(state_id)->getEdges())) {// fixme:"don't use getEdges
-			Symbol* symbol = alphabet->at(edge->getSymbol()->getId());
-			State* from = states->at(edge->getFrom()->getId());
-			State* to = states->at(edge->getTo()->getId());
-			Weight<weight_t>* weight = weights->at(edge->getFrom()->getTag());
-			Edge* top_edge = new Edge(symbol, weight, from, to);
-			from->addEdge(top_edge);
-			from->addSuccessor(top_edge);
-			to->addPredecessor(top_edge);
+		for (unsigned int symbol_id = 0; symbol_id < this->alphabet->size(); ++symbol_id) {
+			for (Edge* edge : *(this->states->at(state_id)->getSuccessors(symbol_id))) {
+				Symbol* symbol = alphabet->at(edge->getSymbol()->getId());
+				State* from = states->at(edge->getFrom()->getId());
+				State* to = states->at(edge->getTo()->getId());
+				Weight<weight_t>* weight = weights->at(edge->getFrom()->getTag());
+				Edge* top_edge = new Edge(symbol, weight, from, to);
+				from->addEdge(top_edge);
+				from->addSuccessor(top_edge);
+				to->addPredecessor(top_edge);
+			}
 		}
 	}
 
@@ -699,8 +723,7 @@ Automaton* Automaton::safetyClosure(value_function_t value_function) const {
 }
 
 
-//TODO: CHECK
-// This is useful for translating Inf and Sup to LimSup
+// TODO: CHECK
 Automaton* Automaton::monotonize (value_function_t type) const {
 	if (type != Inf && type != Sup) {
 		fail("monotonize only possible for inf or sup automata");
@@ -791,11 +814,7 @@ Automaton* Automaton::monotonize (value_function_t type) const {
 }
 
 
-// TODO: CHECK
-// "this" needs to be monotone and deterministic
-// fixme: I don't understand, the liveness component is the copy of the original automaton where
-// --> all transitions with the local-top value takes the original min_weight_value -- no they need to take a large value, e.g., the top value
-// --> all transitions with NOT the local-top value takes the original max_weight_value -- no they need to take the original weight
+// TODO: CHECK AND FIX
 Automaton* Automaton::livenessComponent (value_function_t type) const {
 	State::RESET();
 	Symbol::RESET();
