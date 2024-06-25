@@ -75,6 +75,7 @@ void PostContextVariable::clear () {
 				nb_debug++;//fixme
 			}
 		}
+		delete pairmap.second;
 	}
 
 	MapStd<State*, SetStd<std::pair<ContextOf*,std::pair<Word*, weight_t>>>*>::clear();

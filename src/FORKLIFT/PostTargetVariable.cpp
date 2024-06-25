@@ -73,6 +73,7 @@ void PostTargetVariable::clear () {
 				nb_debug++;//fixme
 			}
 		}
+		delete pairmap.second;
 	}
 
 	MapStd<State*,SetStd<std::pair<TargetOf*,Word*>>*>::clear();
