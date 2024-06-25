@@ -116,7 +116,6 @@ public:
 	bool isUniversal_det (value_function_t type, Weight<weight_t> v) const; // checks if A(w) >= v for all w -- assuming deterministic
 	
 	bool isIncludedIn (value_function_t type, const Automaton* rhs) const; // checks if A(w) <= B(w) for all w
-	bool isIncludedIn_bool (value_function_t type, const Automaton* rhs) const;
 	
 	bool isEquivalent (value_function_t type, const Automaton* rhs) const; // checks if A(w) == B(w) for all w
 	

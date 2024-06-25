@@ -1070,8 +1070,6 @@ bool Automaton::isEmpty (value_function_t type, Weight<weight_t> v) const {
 }
 
 
-
-
 bool Automaton::isUniversal (value_function_t type, Weight<weight_t> v) const {
 	Automaton* C = this->constantAutomaton(v);
 	bool flag = C->isIncludedIn(type, this);
@@ -1081,43 +1079,11 @@ bool Automaton::isUniversal (value_function_t type, Weight<weight_t> v) const {
 
 
 bool Automaton::isUniversal_det (value_function_t type, Weight<weight_t> v) const {
-	// Weight<weight_t>* minusOne = new Weight<weight_t>(-1);
-	// Automaton* C = this->constantAutomaton(minusOne); // fixme: inefficient
-
-	// Automaton* CC = new Automaton(this, Times, C); // trim product
-	// //Automaton* CC = this->product(type, C, Times); // -- old implementation
-
-	// weight_t top_values[CC->nb_SCCs];
-	// weight_t CCtop = CC->compute_Top(type, top_values);
-
-	// delete C;
-	// delete CC;
-	// return (-CCtop >= v.getValue());
-
 	weight_t bot_values[this->nb_SCCs];
 	if (this->compute_Bot(type, bot_values) >= v.getValue()) {
 		return true;
 	}
 	return false;
-}
-
-
-// TODO
-//		(1) implement translation from inf, sup, liminf to limsup
-//		(2) remove
-bool Automaton::isIncludedIn_bool(value_function_t type, const Automaton* rhs) const {
-	switch (type) {
-		case Inf:
-			// TODO: safety automata inclusion check (adapt from some tool?)
-		case Sup:
-			// TODO: reachability automata inclusion check (adapt from some tool?)
-		case LimInf:
-			// TODO: cobuchi automata inclusion check (adapt from some tool?)
-		case LimSup:
-			// TODO: buchi automata inclusion check (adapt from some tool?)
-		default:
-			fail("automata inclusion bool type");
-	}
 }
 
 
