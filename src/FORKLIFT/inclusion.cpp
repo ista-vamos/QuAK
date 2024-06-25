@@ -18,7 +18,7 @@ SetStd<State*> P;
 
 
 
-bool relevance_test (TargetOf* W, ContextOf* V, Automaton* B) {
+bool relevance_test (TargetOf* W, ContextOf* V, const Automaton* B) {
 	for (auto iter = V->at(0)->begin(); iter != V->at(0)->end(); ++iter) {
 		if (iter->second->smaller_than(W) == false) return false;
 	}
@@ -81,7 +81,7 @@ bool fast_membership (TargetOf* U, Word* period, weight_t threshold) {
 
 
 
-bool inclusion (Automaton* A, Automaton* B) {
+bool inclusion (const Automaton* A, const Automaton* B)  {
 
 	unsigned int iter_W = 1;
 	printf("MAX prefixes fix-point: computing ... ( %u iterations )\r", iter_W);fflush(stdout);

@@ -3,6 +3,7 @@
 #include "Parser.h"
 #include "Edge.h"
 #include "utility.h"
+#include "FORKLIFT/inclusion.h"
 #include <map>
 #include <set>
 #include <unordered_map>
@@ -60,7 +61,7 @@ Automaton::~Automaton () {
 	}
 	delete_verbose("@Detail: 1 MapVec (weights) will be deleted (automaton %s)\n", this->name.c_str());
 	delete weights;
-	delete_verbose("@Detail: %u SetList (SCC_tree) will be deleted (automaton %s)\n", this->SCCs_list->size(), this->name.c_str());
+	// delete_verbose("@Detail: %u SetList (SCC_tree) will be deleted (automaton %s)\n", this->SCCs_list->size(), this->name.c_str());
 	delete this->SCCs_tree;
 	delete_verbose("@Memory: Automaton deletion finished (%s)\n", this->name.c_str());
 }
@@ -420,8 +421,7 @@ unsigned int Automaton::getNbSCCs () const { return this->nb_SCCs; }
 
 // -------------------------------- Tranformations -------------------------------- //
 
-
-// TODO: rewrite a version that use build
+// todo later: unify with "build"
 Automaton* Automaton::booleanize(Weight<weight_t> threshold) const {
 	State::RESET();
 	Symbol::RESET();
@@ -441,18 +441,30 @@ Automaton* Automaton::booleanize(Weight<weight_t> threshold) const {
 
 	weight_t min_weight = 1;
 	weight_t max_weight = 0;
+	std::map<weight_t, Weight<weight_t>*> newWeightSet;
 	for (unsigned int state_id = 0; state_id < this->states->size(); ++state_id) {
 		for (Edge* x : *(this->states->at(state_id)->getEdges())) {
 			Weight<weight_t>* w;
+			weight_t val;
 			if (x->getWeight()->getValue() >= threshold.getValue()) {
-				w = new Weight<weight_t>(1);
+				val = 1;
 				max_weight = 1;
 			}
 			else {
-				w = new Weight<weight_t>(0);
+				val = 0;
 				min_weight = 0;
 			}
-			Edge* e = new Edge(x->getSymbol(), w, states->at(x->getFrom()->getId()), states->at(x->getTo()->getId()));
+			
+			auto search = newWeightSet.find(val);
+			if (search == newWeightSet.end()) {
+				w = new Weight<weight_t>(val);
+				newWeightSet[val] = w;
+			}
+			else {
+				w = newWeightSet[val];
+			}
+
+			Edge* e = new Edge(alphabet->at(x->getSymbol()->getId()), w, states->at(x->getFrom()->getId()), states->at(x->getTo()->getId()));
 			states->at(state_id)->addEdge(e);
 			states->at(state_id)->addSuccessor(e);
 			states->at(x->getTo()->getId())->addPredecessor(e);
@@ -460,10 +472,10 @@ Automaton* Automaton::booleanize(Weight<weight_t> threshold) const {
 	}
 
 	MapArray<Weight<weight_t>*>* weights = new MapArray<Weight<weight_t>*>(max_weight - min_weight + 1);
-
-	for (int i = min_weight; i <= max_weight; i++) {
-		Weight<weight_t>* w = new Weight<weight_t>(i);
-		weights->insert(i - min_weight, w);
+	int i = 0;
+	for (auto it : newWeightSet) {
+		weights->insert(i, it.second);
+		i++;
 	}
 
 	return new Automaton(name, alphabet, states, weights, min_weight, max_weight, initial);
@@ -471,9 +483,7 @@ Automaton* Automaton::booleanize(Weight<weight_t> threshold) const {
 
 
 
-//fixme: this function is obsolete
-//	Automaton(const Automaton* A, value_function_t f) trim and complete
-//	remove once all depenpendencies will be treated (i.e., no called anymore)
+// todo later: remove after everything is unified with "build"
 Automaton* Automaton::trim() {
 	if (this->nb_reachable_states == this->states->size()) {
 		return this;
@@ -547,110 +557,7 @@ Automaton* Automaton::trim() {
 }
 
 
-
-/*
-// TODO: remove, use Automaton::Automaton(const Automaton* A, value_function_t f) instead
-Automaton* Automaton::complete(value_function_t value_function) const {
-	if (this->isComplete()) {
-		return new Automaton(*this);// fixme: complete should complete the automaton not crating one
-		// i agree, but same thing as trim()
-	}
-
-	// State::RESET();
-	// Symbol::RESET();
-	// Weight<weight_t>::RESET();
-
-	unsigned int n = this->states->size();
-	unsigned int m = this->alphabet->size();
-
-	bool* outgoing = new bool[n * m];
-	for (unsigned int i = 0; i < n * m; i++) {
-		outgoing[i] = false;
-	}
-
-	std::string name = "Complete(" + this->name + ")";
-
-	MapArray<Symbol*>* alphabet = new MapArray<Symbol*>(this->alphabet->size());
-	for (unsigned int symbol_id = 0; symbol_id < this->alphabet->size(); ++symbol_id) {
-		alphabet->insert(symbol_id, new Symbol(this->alphabet->at(symbol_id)));
-	}
-	MapArray<State*>* states = new MapArray<State*>(this->states->size() + 1);
-	for (unsigned int state_id = 0; state_id < this->states->size(); ++state_id) {
-		states->insert(state_id, new State(this->states->at(state_id)));
-	}
-	State* initial = states->at(this->initial->getId());
-	
-	State* sink_state = new State("sink", alphabet->size());
-	states->insert(this->states->size(), sink_state);
-
-	MapArray<Weight<weight_t>*>* weights = new MapArray<Weight<weight_t>*>(this->weights->size() + 1);
-	weight_t min_weight = this->max_weight;
-	weight_t max_weight = this->min_weight;
-	for (unsigned int weight_id = 0; weight_id < this->weights->size(); ++weight_id) {
-		weights->insert(weight_id, new Weight<weight_t>(this->weights->at(weight_id)));
-		min_weight = std::min(min_weight, this->weights->at(weight_id)->getValue());
-		max_weight = std::max(max_weight, this->weights->at(weight_id)->getValue());
-	}
-
-	// TODO: I assume LimInfAvg, so I guess the undefined values would be +infinity
-	weight_t undef;
-	if (value_function == Inf || value_function == LimInf || value_function == LimAvg) {
-		undef = max_weight + 1;
-	}
-	else if (value_function == Sup || value_function == LimSup) {
-		undef = min_weight - 1;
-	}
-	else {
-		fail("make complete value function");
-	}
-	Weight<weight_t>* sink_weight = new Weight<weight_t>(undef);
-	weights->insert(this->weights->size(), sink_weight);
-
-
-	for (unsigned int state_id = 0; state_id < this->states->size(); ++state_id) {
-		for (Edge* edge : *(this->states->at(state_id)->getEdges())) {
-			outgoing[state_id * m + edge->getSymbol()->getId()] = true;
-			Symbol* symbol = alphabet->at(edge->getSymbol()->getId());
-			State* from = states->at(edge->getFrom()->getId());
-			State* to = states->at(edge->getTo()->getId());
-			Weight<weight_t>* weight = weights->at(edge->getWeight()->getId());
-			Edge* new_edge = new Edge(symbol, weight, from, to);
-			from->addEdge(new_edge);
-			from->addSuccessor(new_edge);
-			to->addPredecessor(new_edge);
-
-		}
-	}
-
-	for (unsigned int state_id = 0; state_id < this->states->size(); ++state_id) {
-		for (unsigned int symbol_id = 0; symbol_id < this->alphabet->size(); ++symbol_id) {
-			if (outgoing[state_id * m + symbol_id] == false) {
-				Symbol* symbol = alphabet->at(symbol_id);
-				State* from = states->at(state_id);
-				Edge* sink_edge = new Edge(symbol, sink_weight, from, sink_state);
-				from->addEdge(sink_edge);
-				from->addSuccessor(sink_edge);
-				sink_state->addPredecessor(sink_edge);
-				outgoing[state_id * m + symbol_id] = true;
-			}
-		}
-	}
-
-	for (unsigned int symbol_id = 0; symbol_id < this->alphabet->size(); ++symbol_id) {
-		Symbol* symbol = alphabet->at(symbol_id);
-		Edge* sink_edge = new Edge(symbol, sink_weight, sink_state, sink_state);
-		sink_state->addEdge(sink_edge);
-		sink_state->addSuccessor(sink_edge);
-		sink_state->addPredecessor(sink_edge);
-	}
-
-	delete[] outgoing;
-
-	return new Automaton(name, alphabet, states, weights, min_weight, max_weight, initial);
-}
-*/
-
-
+// todo later: unify with "build"
 Automaton* Automaton::safetyClosure(value_function_t value_function) const {
 	State::RESET();
 	Symbol::RESET();
@@ -668,29 +575,52 @@ Automaton* Automaton::safetyClosure(value_function_t value_function) const {
 	}
 	State* initial = states->at(this->initial->getId());
 
-
 	weight_t top_values[this->nb_SCCs];
 	compute_Top(value_function, top_values);
-	MapArray<Weight<weight_t>*>* weights = new MapArray<Weight<weight_t>*>(this->nb_SCCs);
+
 	weight_t min_weight = this->max_weight;
 	weight_t max_weight = this->min_weight;
-	for (unsigned int weight_id = 0; weight_id < this->nb_SCCs; ++weight_id) {
-		//fixme: weights must be sorted
-		weights->insert(weight_id, new Weight<weight_t>(top_values[weight_id]));
-		min_weight = std::min(min_weight, top_values[weight_id]);
-		max_weight = std::max(max_weight, top_values[weight_id]);
+	std::map<weight_t, Weight<weight_t>*> newWeightSet;
+	std::unordered_map<unsigned int, unsigned int> sccId2WeightId;
+	
+	int weight_ctr = 0;
+	for (unsigned int scc_id = 0; scc_id < this->nb_SCCs; ++scc_id) {
+		Weight<weight_t>* w;
+		auto search = newWeightSet.find(top_values[scc_id]);
+		if (search == newWeightSet.end()) {
+			w = new Weight<weight_t>(top_values[scc_id]);
+			newWeightSet[top_values[scc_id]] = w;
+			weight_ctr++;
+		}
+		else{
+			w = newWeightSet[top_values[scc_id]];
+		}
+		
+		sccId2WeightId[scc_id] = w->getId();
+		min_weight = std::min(min_weight, top_values[scc_id]);
+		max_weight = std::max(max_weight, top_values[scc_id]);
 	}
 
+	MapArray<Weight<weight_t>*>* weights = new MapArray<Weight<weight_t>*>(newWeightSet.size());
+	int i = 0;
+	for (auto it : newWeightSet) {
+		weights->insert(i, it.second);
+		i++;
+	}
+
+
 	for (unsigned int state_id = 0; state_id < this->states->size(); ++state_id) {
-		for (Edge* edge : *(this->states->at(state_id)->getEdges())) {// fixme:"don't use getEdges
-			Symbol* symbol = alphabet->at(edge->getSymbol()->getId());
-			State* from = states->at(edge->getFrom()->getId());
-			State* to = states->at(edge->getTo()->getId());
-			Weight<weight_t>* weight = weights->at(edge->getFrom()->getTag());
-			Edge* top_edge = new Edge(symbol, weight, from, to);
-			from->addEdge(top_edge);
-			from->addSuccessor(top_edge);
-			to->addPredecessor(top_edge);
+		for (unsigned int symbol_id = 0; symbol_id < this->alphabet->size(); ++symbol_id) {
+			for (Edge* edge : *(this->states->at(state_id)->getSuccessors(symbol_id))) {
+				Symbol* symbol = alphabet->at(edge->getSymbol()->getId());
+				State* from = states->at(edge->getFrom()->getId());
+				State* to = states->at(edge->getTo()->getId());
+				Weight<weight_t>* weight = weights->at(sccId2WeightId[edge->getFrom()->getTag()]);
+				Edge* top_edge = new Edge(symbol, weight, from, to);
+				from->addEdge(top_edge);
+				from->addSuccessor(top_edge);
+				to->addPredecessor(top_edge);
+			}
 		}
 	}
 
@@ -698,8 +628,7 @@ Automaton* Automaton::safetyClosure(value_function_t value_function) const {
 }
 
 
-//TODO: CHECK
-// This is useful for translating Inf and Sup to LimSup
+// todo later: unify with "build"
 Automaton* Automaton::monotonize (value_function_t type) const {
 	if (type != Inf && type != Sup) {
 		fail("monotonize only possible for inf or sup automata");
@@ -736,7 +665,6 @@ Automaton* Automaton::monotonize (value_function_t type) const {
 		initial = states->at(this->initial->getId() * m);
 	}
 
-	// std::map<weight_t, Weight<weight_t>*, decltype(weightComparator)> newWeightSet(weightComparator);
 	std::map<weight_t, Weight<weight_t>*> newWeightSet;
 	for (unsigned int state_id = 0; state_id < n; ++state_id) {
 		for (Edge* edge : *(this->states->at(state_id)->getEdges())) {
@@ -751,8 +679,8 @@ Automaton* Automaton::monotonize (value_function_t type) const {
 				State* from = states->at(edge->getFrom()->getId() * m + state_weight->getId());
 				State* to = states->at(edge->getTo()->getId() * m + new_weight->getId());
 
-				Weight<weight_t>* w; // TODO: CHECK HERE
-				auto search = newWeightSet.find(weights->at(weight_id)->getValue()); 
+				Weight<weight_t>* w;
+				auto search = newWeightSet.find(transition_weight->getValue()); 
 				if (search == newWeightSet.end()) {
 					w = new Weight<weight_t>(transition_weight);
 					newWeightSet[transition_weight->getValue()] = w;
@@ -786,21 +714,20 @@ Automaton* Automaton::monotonize (value_function_t type) const {
 		counter++;
 	}
 
-	return (new Automaton(name, alphabet, states, weights, min_weight, max_weight, initial))->trim();
+	Automaton* temp = new Automaton(name, alphabet, states, weights, min_weight, max_weight, initial);
+	Automaton* temptrim = temp->trim();
+	delete temp;
+
+	return temptrim;
 }
 
 
-// TODO: CHECK
-// "this" needs to be monotone and deterministic
-// fixme: I don't understand, the liveness component is the copy of the original automaton where
-// --> all transitions with the local-top value takes the original min_weight_value -- no they need to take a large value, e.g., the top value
-// --> all transitions with NOT the local-top value takes the original max_weight_value -- no they need to take the original weight
-Automaton* Automaton::livenessComponent (value_function_t type) const {
+Automaton* Automaton::livenessComponent_det (value_function_t type) const {
 	State::RESET();
 	Symbol::RESET();
 	Weight<weight_t>::RESET();
 
-	std::string name = "LivenessComponent(" + this->getName() + ")";
+	std::string name = "LivenessComponent_det(" + this->getName() + ")";
 
 	MapArray<Symbol*>* alphabet = new MapArray<Symbol*>(this->alphabet->size());
 	for (unsigned int symbol_id = 0; symbol_id < this->alphabet->size(); ++symbol_id) {
@@ -814,41 +741,54 @@ Automaton* Automaton::livenessComponent (value_function_t type) const {
 
 	weight_t top_values[this->nb_SCCs];
 	compute_Top(type, top_values);
-	MapArray<Weight<weight_t>*>* weights = new MapArray<Weight<weight_t>*>(this->weights->size());
-	weight_t min_weight = this->max_weight;
-	weight_t max_weight = this->min_weight;
-	for (unsigned int weight_id = 0; weight_id < this->weights->size(); ++weight_id) {
-		if (top_values[weight_id] == this->weights->at(weight_id)->getValue()) { // need something like top_values[this->weights->at(weight_id)->getTag()] here
-			// if the original transition agrees with the safety closure, liveness component takes a large value (top value of the automaton here)
-			weights->insert(weight_id, new Weight<weight_t>(top_values[initial->getId()]));
-		}
-		else {
-			// otherwise, it takes the original transition's weight
-			weights->insert(weight_id, new Weight<weight_t>(this->weights->at(weight_id)->getValue()));
-		}
-		// fixme: min & max are computed with weights that may never occur
-		min_weight = std::min(min_weight, weights->at(weight_id)->getValue());
-		max_weight = std::max(max_weight, weights->at(weight_id)->getValue());
-	}
 
+	std::map<weight_t, Weight<weight_t>*> newWeightSet;
 	for (unsigned int state_id = 0; state_id < this->states->size(); ++state_id) {
 		for (Edge* edge : *(this->states->at(state_id)->getEdges())) {
 			Symbol* symbol = alphabet->at(edge->getSymbol()->getId());
 			State* from = states->at(edge->getFrom()->getId());
 			State* to = states->at(edge->getTo()->getId());
-			Weight<weight_t>* weight = weights->at(edge->getWeight()->getId());
-			Edge* new_edge = new Edge(symbol, weight, from, to);
+
+			weight_t value;
+			if (edge->getWeight()->getValue() == top_values[from->getTag()]) {
+				value = top_values[this->initial->getTag()];
+
+			}
+			else {
+				value = edge->getWeight()->getValue();
+			}
+
+			Weight<weight_t>* w;
+			auto search = newWeightSet.find(value);
+			if (search == newWeightSet.end()) {
+				w = new Weight<weight_t>(value);
+				newWeightSet[value] = w;
+			}
+			else {
+				w = newWeightSet[value];
+			}
+
+			Edge* new_edge = new Edge(symbol, w, from, to);
 			from->addEdge(new_edge);
 			from->addSuccessor(new_edge);
 			to->addPredecessor(new_edge);
 		}
 	}
 
+	weight_t min_weight = this->max_weight;
+	weight_t max_weight = this->min_weight;
+	unsigned int i = 0;
+	MapArray<Weight<weight_t>*>* weights = new MapArray<Weight<weight_t>*>(newWeightSet.size());
+	for (auto it : newWeightSet) {
+		weights->insert(i, it.second);
+		i++;
+	}
+
 	return new Automaton(name, alphabet, states, weights, min_weight, max_weight, initial);
 }
 
 
-//TODO: CHECK
+// todo later: unify with "build"
 Automaton* Automaton::constantAutomaton (Weight<weight_t> v) const {
 	State::RESET();
 	Symbol::RESET();
@@ -877,12 +817,12 @@ Automaton* Automaton::constantAutomaton (Weight<weight_t> v) const {
 	}
 
 	MapArray<Weight<weight_t>*>* weights = new MapArray<Weight<weight_t>*>(1);
-	weights->insert(0, new Weight<weight_t>(v.getValue()));
+	weights->insert(0, weight);
 
 	return new Automaton(name, alphabet, states, weights, v.getValue(), v.getValue(), initial);
 }
 
-// TODO: CHECK
+
 Automaton* Automaton::toLimSup_helperLimInf () const {
 	State::RESET();
 	Symbol::RESET();
@@ -910,8 +850,7 @@ Automaton* Automaton::toLimSup_helperLimInf () const {
 
 	State* initial = states->at(this->initial->getId() * m);
 
-	// std::map<weight_t, Weight<weight_t>*, decltype(weightComparator)> newWeightSet(weightComparator); // TODO: check if this works as intended, also for monotonize
-	std::map<weight_t, Weight<weight_t>*> newWeightSet; // TODO: check if this works as intended, also for monotonize
+	std::map<weight_t, Weight<weight_t>*> newWeightSet;
 
 	// make copies with allowed transitions
 	for (unsigned int weight_id = 0; weight_id < m; ++weight_id) {
@@ -974,24 +913,6 @@ Automaton* Automaton::toLimSup_helperLimInf () const {
 		sink->addPredecessor(new_edge);
 	}
 
-	// // add transitions between copies -- handled above
-	// for (unsigned int weight_id = 0; weight_id < m; ++weight_id) {
-	// 	for (unsigned int larger_id = weight_id + 1; larger_id < m; ++larger_id) {
-	// 		for (unsigned int state_id = 0; state_id < n; ++state_id) {
-	// 			Weight<weight_t>* transition_weight = this->weights->at(larger_id);
-	// 			State* from = states->at(state_id * m + weight_id);
-	// 			Symbol* symbol = alphabet->at(edge->getSymbol()->getId());
-
-	// 			State* to;
-	// 			Weight<weight_t>* w;
-	// 			Edge* new_edge = new Edge(symbol, w, from, to);
-	// 			from->addEdge(new_edge);
-	// 			from->addSuccessor(new_edge);
-	// 			to->addPredecessor(new_edge);
-	// 		}
-	// 	}
-	// }
-
 	MapArray<Weight<weight_t>*>* weights = new MapArray<Weight<weight_t>*>(newWeightSet.size());
 	weight_t min_weight = this->min_weight;
 	weight_t max_weight = this->max_weight;
@@ -1009,7 +930,11 @@ Automaton* Automaton::toLimSup_helperLimInf () const {
 		counter++;
 	}
 
-	return (new Automaton(name, alphabet, states, weights, min_weight, max_weight, initial))->trim();
+	Automaton* temp = new Automaton(name, alphabet, states, weights, min_weight, max_weight, initial);
+	Automaton* temptrim = temp->trim();
+	delete temp;
+
+	return temptrim;
 }
 
 Automaton* Automaton::toLimSup (value_function_t type) const {
@@ -1069,8 +994,6 @@ bool Automaton::isEmpty (value_function_t type, Weight<weight_t> v) const {
 }
 
 
-
-
 bool Automaton::isUniversal (value_function_t type, Weight<weight_t> v) const {
 	Automaton* C = this->constantAutomaton(v);
 	bool flag = C->isIncludedIn(type, this);
@@ -1080,19 +1003,6 @@ bool Automaton::isUniversal (value_function_t type, Weight<weight_t> v) const {
 
 
 bool Automaton::isUniversal_det (value_function_t type, Weight<weight_t> v) const {
-	// Weight<weight_t>* minusOne = new Weight<weight_t>(-1);
-	// Automaton* C = this->constantAutomaton(minusOne); // fixme: inefficient
-
-	// Automaton* CC = new Automaton(this, Times, C); // trim product
-	// //Automaton* CC = this->product(type, C, Times); // -- old implementation
-
-	// weight_t top_values[CC->nb_SCCs];
-	// weight_t CCtop = CC->compute_Top(type, top_values);
-
-	// delete C;
-	// delete CC;
-	// return (-CCtop >= v.getValue());
-
 	weight_t bot_values[this->nb_SCCs];
 	if (this->compute_Bot(type, bot_values) >= v.getValue()) {
 		return true;
@@ -1101,29 +1011,8 @@ bool Automaton::isUniversal_det (value_function_t type, Weight<weight_t> v) cons
 }
 
 
-// TODO
-//		(1) implement translation from inf, sup, liminf to limsup
-//		(2) remove
-bool Automaton::isIncludedIn_bool(value_function_t type, const Automaton* rhs) const {
-	switch (type) {
-		case Inf:
-			// TODO: safety automata inclusion check (adapt from some tool?)
-		case Sup:
-			// TODO: reachability automata inclusion check (adapt from some tool?)
-		case LimInf:
-			// TODO: cobuchi automata inclusion check (adapt from some tool?)
-		case LimSup:
-			// TODO: buchi automata inclusion check (adapt from some tool?)
-		default:
-			fail("automata inclusion bool type");
-	}
-}
-
-
-// TODO: once limsup inclusion implemented, update to handle all inclusion decisions
 // fixme: memory leaks -- test with valgrind after this is updated
 bool Automaton::isIncludedIn(value_function_t type, const Automaton* rhs) const {
-	
 	if (type == LimAvg) { 
 		if (rhs->isDeterministic()) {
 			Automaton* C = new Automaton(this, Minus, rhs);
@@ -1138,22 +1027,24 @@ bool Automaton::isIncludedIn(value_function_t type, const Automaton* rhs) const 
 		}
 	}
 	else if (type == Inf || type == Sup || type == LimInf || type == LimSup) {
-		// TODO
+		bool flag;
 
+		if (type == LimSup) {
+			flag = inclusion(this, rhs);
+		}
+		else {
+			Automaton* A = this->toLimSup(type);
+			Automaton* B = rhs->toLimSup(type);
+			flag = inclusion(A, B);
+			delete A;
+			delete B;
+		}
 
-
-		// for (unsigned int weight_id = 0; weight_id < this->weights->size(); ++weight_id) {
-		// 	Automaton* A_bool = this->booleanize(this->weights->at(weight_id));
-		// 	Automaton* B_bool = rhs->booleanize(this->weights->at(weight_id));
-
-		// 	if (!A_bool->isIncludedIn_bool(type, B_bool)) {
-		// 		return false;
-		// 	}
-		// }
-		// return true;
+		return flag;
 	}
-
-	fail("automata inclusion type");
+	else {
+		fail("automata inclusion type");
+	}
 }
 
 

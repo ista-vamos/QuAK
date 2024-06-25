@@ -103,7 +103,7 @@ public:
 	Automaton* monotonize(value_function_t value_function) const;
 	Automaton* booleanize(Weight<weight_t> v) const;
 	Automaton* constantAutomaton (Weight<weight_t> v) const;
-	Automaton* livenessComponent (value_function_t type) const;
+	Automaton* livenessComponent_det (value_function_t type) const;
 	Automaton* toLimSup (value_function_t type) const;
 
 
@@ -116,7 +116,6 @@ public:
 	bool isUniversal_det (value_function_t type, Weight<weight_t> v) const; // checks if A(w) >= v for all w -- assuming deterministic
 	
 	bool isIncludedIn (value_function_t type, const Automaton* rhs) const; // checks if A(w) <= B(w) for all w
-	bool isIncludedIn_bool (value_function_t type, const Automaton* rhs) const;
 	
 	bool isEquivalent (value_function_t type, const Automaton* rhs) const; // checks if A(w) == B(w) for all w
 	

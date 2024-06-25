@@ -1,477 +1,130 @@
-==18412== Memcheck, a memory error detector
-==18412== Copyright (C) 2002-2017, and GNU GPL'd, by Julian Seward et al.
-==18412== Using Valgrind-3.13.0 and LibVEX; rerun with -h for copyright info
-==18412== Command: ./chasm.out
-==18412== Parent PID: 15607
-==18412== 
---18412-- 
---18412-- Valgrind options:
---18412--    --leak-check=full
---18412--    --show-leak-kinds=all
---18412--    --track-origins=yes
---18412--    --verbose
---18412--    --log-file=valgrind-out.txt
---18412-- Contents of /proc/version:
---18412--   Linux version 4.15.0-213-generic (buildd@lcy02-amd64-079) (gcc version 7.5.0 (Ubuntu 7.5.0-3ubuntu1~18.04)) #224-Ubuntu SMP Mon Jun 19 13:30:12 UTC 2023
---18412-- 
---18412-- Arch and hwcaps: AMD64, LittleEndian, amd64-cx16-lzcnt-rdtscp-sse3-avx-avx2-bmi
---18412-- Page sizes: currently 4096, max supported 4096
---18412-- Valgrind library directory: /usr/lib/valgrind
---18412-- Reading syms from /home/esarac/repo/CHASM/program/bin/chasm.out
---18412-- Reading syms from /lib/x86_64-linux-gnu/ld-2.27.so
---18412--   Considering /lib/x86_64-linux-gnu/ld-2.27.so ..
---18412--   .. CRC mismatch (computed 2977d8b2 wanted c64f09ed)
---18412--   Considering /usr/lib/debug/lib/x86_64-linux-gnu/ld-2.27.so ..
---18412--   .. CRC is valid
---18412-- Reading syms from /usr/lib/valgrind/memcheck-amd64-linux
---18412--   Considering /usr/lib/valgrind/memcheck-amd64-linux ..
---18412--   .. CRC mismatch (computed 41ddb025 wanted 9972f546)
---18412--    object doesn't have a symbol table
---18412--    object doesn't have a dynamic symbol table
---18412-- Scheduler: using generic scheduler lock implementation.
---18412-- Reading suppressions file: /usr/lib/valgrind/default.supp
-==18412== embedded gdbserver: reading from /tmp/vgdb-pipe-from-vgdb-to-18412-by-esarac-on-???
-==18412== embedded gdbserver: writing to   /tmp/vgdb-pipe-to-vgdb-from-18412-by-esarac-on-???
-==18412== embedded gdbserver: shared mem   /tmp/vgdb-pipe-shared-mem-vgdb-18412-by-esarac-on-???
-==18412== 
-==18412== TO CONTROL THIS PROCESS USING vgdb (which you probably
-==18412== don't want to do, unless you know exactly what you're doing,
-==18412== or are doing some strange experiment):
-==18412==   /usr/lib/valgrind/../../bin/vgdb --pid=18412 ...command...
-==18412== 
-==18412== TO DEBUG THIS PROCESS USING GDB: start GDB like this
-==18412==   /path/to/gdb ./chasm.out
-==18412== and then give GDB the following command
-==18412==   target remote | /usr/lib/valgrind/../../bin/vgdb --pid=18412
-==18412== --pid is optional if only one valgrind process is running
-==18412== 
---18412-- REDIR: 0x4020d20 (ld-linux-x86-64.so.2:strlen) redirected to 0x580608c1 (???)
---18412-- REDIR: 0x4020b00 (ld-linux-x86-64.so.2:index) redirected to 0x580608db (???)
---18412-- Reading syms from /usr/lib/valgrind/vgpreload_core-amd64-linux.so
---18412--   Considering /usr/lib/valgrind/vgpreload_core-amd64-linux.so ..
---18412--   .. CRC mismatch (computed 50df1b30 wanted 4800a4cf)
---18412--    object doesn't have a symbol table
---18412-- Reading syms from /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so
---18412--   Considering /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so ..
---18412--   .. CRC mismatch (computed f893b962 wanted 95ee359e)
---18412--    object doesn't have a symbol table
-==18412== WARNING: new redirection conflicts with existing -- ignoring it
---18412--     old: 0x04020d20 (strlen              ) R-> (0000.0) 0x580608c1 ???
---18412--     new: 0x04020d20 (strlen              ) R-> (2007.0) 0x04c34db0 strlen
---18412-- REDIR: 0x401d540 (ld-linux-x86-64.so.2:strcmp) redirected to 0x4c35ee0 (strcmp)
---18412-- REDIR: 0x4021260 (ld-linux-x86-64.so.2:mempcpy) redirected to 0x4c394f0 (mempcpy)
---18412-- Reading syms from /usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.25
---18412--    object doesn't have a symbol table
---18412-- Reading syms from /lib/x86_64-linux-gnu/libgcc_s.so.1
---18412--    object doesn't have a symbol table
---18412-- Reading syms from /lib/x86_64-linux-gnu/libc-2.27.so
---18412--   Considering /lib/x86_64-linux-gnu/libc-2.27.so ..
---18412--   .. CRC mismatch (computed f250d419 wanted 4aacab51)
---18412--   Considering /usr/lib/debug/lib/x86_64-linux-gnu/libc-2.27.so ..
---18412--   .. CRC is valid
---18412-- Reading syms from /lib/x86_64-linux-gnu/libm-2.27.so
---18412--   Considering /lib/x86_64-linux-gnu/libm-2.27.so ..
---18412--   .. CRC mismatch (computed 4e7cf542 wanted 8d27f134)
---18412--   Considering /usr/lib/debug/lib/x86_64-linux-gnu/libm-2.27.so ..
---18412--   .. CRC is valid
---18412-- REDIR: 0x547da50 (libc.so.6:memmove) redirected to 0x4a2c6e0 (_vgnU_ifunc_wrapper)
---18412-- REDIR: 0x547cd60 (libc.so.6:strncpy) redirected to 0x4a2c6e0 (_vgnU_ifunc_wrapper)
---18412-- REDIR: 0x547dd30 (libc.so.6:strcasecmp) redirected to 0x4a2c6e0 (_vgnU_ifunc_wrapper)
---18412-- REDIR: 0x547c7b0 (libc.so.6:strcat) redirected to 0x4a2c6e0 (_vgnU_ifunc_wrapper)
---18412-- REDIR: 0x547cd90 (libc.so.6:rindex) redirected to 0x4a2c6e0 (_vgnU_ifunc_wrapper)
---18412-- REDIR: 0x547f480 (libc.so.6:rawmemchr) redirected to 0x4a2c6e0 (_vgnU_ifunc_wrapper)
---18412-- REDIR: 0x547dbc0 (libc.so.6:mempcpy) redirected to 0x4a2c6e0 (_vgnU_ifunc_wrapper)
---18412-- REDIR: 0x547d9f0 (libc.so.6:bcmp) redirected to 0x4a2c6e0 (_vgnU_ifunc_wrapper)
---18412-- REDIR: 0x547cd20 (libc.so.6:strncmp) redirected to 0x4a2c6e0 (_vgnU_ifunc_wrapper)
---18412-- REDIR: 0x547c820 (libc.so.6:strcmp) redirected to 0x4a2c6e0 (_vgnU_ifunc_wrapper)
---18412-- REDIR: 0x547db20 (libc.so.6:memset) redirected to 0x4a2c6e0 (_vgnU_ifunc_wrapper)
---18412-- REDIR: 0x549adb0 (libc.so.6:wcschr) redirected to 0x4a2c6e0 (_vgnU_ifunc_wrapper)
---18412-- REDIR: 0x547ccc0 (libc.so.6:strnlen) redirected to 0x4a2c6e0 (_vgnU_ifunc_wrapper)
---18412-- REDIR: 0x547c890 (libc.so.6:strcspn) redirected to 0x4a2c6e0 (_vgnU_ifunc_wrapper)
---18412-- REDIR: 0x547dd80 (libc.so.6:strncasecmp) redirected to 0x4a2c6e0 (_vgnU_ifunc_wrapper)
---18412-- REDIR: 0x547c860 (libc.so.6:strcpy) redirected to 0x4a2c6e0 (_vgnU_ifunc_wrapper)
---18412-- REDIR: 0x547dec0 (libc.so.6:memcpy@@GLIBC_2.14) redirected to 0x4a2c6e0 (_vgnU_ifunc_wrapper)
---18412-- REDIR: 0x547cdc0 (libc.so.6:strpbrk) redirected to 0x4a2c6e0 (_vgnU_ifunc_wrapper)
---18412-- REDIR: 0x547c7e0 (libc.so.6:index) redirected to 0x4a2c6e0 (_vgnU_ifunc_wrapper)
---18412-- REDIR: 0x547cc90 (libc.so.6:strlen) redirected to 0x4a2c6e0 (_vgnU_ifunc_wrapper)
---18412-- REDIR: 0x5487380 (libc.so.6:memrchr) redirected to 0x4a2c6e0 (_vgnU_ifunc_wrapper)
---18412-- REDIR: 0x547ddd0 (libc.so.6:strcasecmp_l) redirected to 0x4a2c6e0 (_vgnU_ifunc_wrapper)
---18412-- REDIR: 0x547d9c0 (libc.so.6:memchr) redirected to 0x4a2c6e0 (_vgnU_ifunc_wrapper)
---18412-- REDIR: 0x549bb70 (libc.so.6:wcslen) redirected to 0x4a2c6e0 (_vgnU_ifunc_wrapper)
---18412-- REDIR: 0x547d070 (libc.so.6:strspn) redirected to 0x4a2c6e0 (_vgnU_ifunc_wrapper)
---18412-- REDIR: 0x547dd00 (libc.so.6:stpncpy) redirected to 0x4a2c6e0 (_vgnU_ifunc_wrapper)
---18412-- REDIR: 0x547dcd0 (libc.so.6:stpcpy) redirected to 0x4a2c6e0 (_vgnU_ifunc_wrapper)
---18412-- REDIR: 0x547f4b0 (libc.so.6:strchrnul) redirected to 0x4a2c6e0 (_vgnU_ifunc_wrapper)
---18412-- REDIR: 0x547de20 (libc.so.6:strncasecmp_l) redirected to 0x4a2c6e0 (_vgnU_ifunc_wrapper)
---18412-- REDIR: 0x556d280 (libc.so.6:__strrchr_avx2) redirected to 0x4c34730 (rindex)
---18412-- REDIR: 0x5476020 (libc.so.6:malloc) redirected to 0x4c31aa0 (malloc)
---18412-- REDIR: 0x556d450 (libc.so.6:__strlen_avx2) redirected to 0x4c34cf0 (strlen)
---18412-- REDIR: 0x5569a60 (libc.so.6:__memcmp_avx2_movbe) redirected to 0x4c37e00 (bcmp)
---18412-- REDIR: 0x5488b30 (libc.so.6:__strcmp_sse2_unaligned) redirected to 0x4c35da0 (strcmp)
---18412-- REDIR: 0x556d970 (libc.so.6:__mempcpy_avx_unaligned_erms) redirected to 0x4c39130 (mempcpy)
---18412-- REDIR: 0x4ed1280 (libstdc++.so.6:operator new(unsigned long)) redirected to 0x4c32110 (operator new(unsigned long))
---18412-- REDIR: 0x556d990 (libc.so.6:__memcpy_avx_unaligned_erms) redirected to 0x4c386e0 (memmove)
---18412-- REDIR: 0x547d5a0 (libc.so.6:__GI_strstr) redirected to 0x4c39760 (__strstr_sse2)
---18412-- REDIR: 0x4ed1330 (libstdc++.so.6:operator new[](unsigned long)) redirected to 0x4c32830 (operator new[](unsigned long))
---18412-- REDIR: 0x55692e0 (libc.so.6:__memchr_avx2) redirected to 0x4c35f80 (memchr)
---18412-- REDIR: 0x4ecf390 (libstdc++.so.6:operator delete(void*)) redirected to 0x4c331d0 (operator delete(void*))
---18412-- REDIR: 0x4ecf3c0 (libstdc++.so.6:operator delete[](void*)) redirected to 0x4c336d0 (operator delete[](void*))
---18412-- REDIR: 0x5476910 (libc.so.6:free) redirected to 0x4c32cd0 (free)
---18412-- REDIR: 0x556de10 (libc.so.6:__memset_avx2_unaligned_erms) redirected to 0x4c385d0 (memset)
---18412-- REDIR: 0x556d090 (libc.so.6:__strchrnul_avx2) redirected to 0x4c39020 (strchrnul)
-==18412== 
-==18412== HEAP SUMMARY:
-==18412==     in use at exit: 11,568 bytes in 238 blocks
-==18412==   total heap usage: 5,731 allocs, 5,493 frees, 342,633 bytes allocated
-==18412== 
-==18412== Searching for pointers to 238 not-freed blocks
-==18412== Checked 111,480 bytes
-==18412== 
-==18412== 48 bytes in 1 blocks are indirectly lost in loss record 1 of 26
-==18412==    at 0x4C3217F: operator new(unsigned long) (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
-==18412==    by 0x112CDA: allocate (new_allocator.h:111)
-==18412==    by 0x112CDA: allocate (alloc_traits.h:436)
-==18412==    by 0x112CDA: _M_get_node (stl_tree.h:588)
-==18412==    by 0x112CDA: _M_create_node<const std::pair<TargetOf*, Word*>&> (stl_tree.h:642)
-==18412==    by 0x112CDA: operator()<const std::pair<TargetOf*, Word*>&> (stl_tree.h:556)
-==18412==    by 0x112CDA: _M_insert_<const std::pair<TargetOf*, Word*>&, std::_Rb_tree<std::pair<TargetOf*, Word*>, std::pair<TargetOf*, Word*>, std::_Identity<std::pair<TargetOf*, Word*> >, std::less<std::pair<TargetOf*, Word*> >, std::allocator<std::pair<TargetOf*, Word*> > >::_Alloc_node> (stl_tree.h:1753)
-==18412==    by 0x112CDA: _M_insert_unique<const std::pair<TargetOf*, Word*>&> (stl_tree.h:2096)
-==18412==    by 0x112CDA: insert (stl_set.h:501)
-==18412==    by 0x112CDA: SetStd<std::pair<TargetOf*, Word*> >::insert(std::pair<TargetOf*, Word*>) (Set.cpp:15)
-==18412==    by 0x12A0A1: PostTargetVariable::add(State*, TargetOf*, Word*) (PostTargetVariable.cpp:37)
-==18412==    by 0x12B83F: FixpointStem::FixpointStem(State*, State*, bool) (FixpointStem.cpp:32)
-==18412==    by 0x12C5A9: inclusion(Automaton*, Automaton*) (inclusion.cpp:88)
-==18412==    by 0x12D129: debug_test() (inclusion.cpp:234)
-==18412==    by 0x10B6A8: main (main.cpp:26)
-==18412== 
-==18412== 48 bytes in 1 blocks are indirectly lost in loss record 2 of 26
-==18412==    at 0x4C3217F: operator new(unsigned long) (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
-==18412==    by 0x112CDA: allocate (new_allocator.h:111)
-==18412==    by 0x112CDA: allocate (alloc_traits.h:436)
-==18412==    by 0x112CDA: _M_get_node (stl_tree.h:588)
-==18412==    by 0x112CDA: _M_create_node<const std::pair<TargetOf*, Word*>&> (stl_tree.h:642)
-==18412==    by 0x112CDA: operator()<const std::pair<TargetOf*, Word*>&> (stl_tree.h:556)
-==18412==    by 0x112CDA: _M_insert_<const std::pair<TargetOf*, Word*>&, std::_Rb_tree<std::pair<TargetOf*, Word*>, std::pair<TargetOf*, Word*>, std::_Identity<std::pair<TargetOf*, Word*> >, std::less<std::pair<TargetOf*, Word*> >, std::allocator<std::pair<TargetOf*, Word*> > >::_Alloc_node> (stl_tree.h:1753)
-==18412==    by 0x112CDA: _M_insert_unique<const std::pair<TargetOf*, Word*>&> (stl_tree.h:2096)
-==18412==    by 0x112CDA: insert (stl_set.h:501)
-==18412==    by 0x112CDA: SetStd<std::pair<TargetOf*, Word*> >::insert(std::pair<TargetOf*, Word*>) (Set.cpp:15)
-==18412==    by 0x12A0A1: PostTargetVariable::add(State*, TargetOf*, Word*) (PostTargetVariable.cpp:37)
-==18412==    by 0x12C5A9: inclusion(Automaton*, Automaton*) (inclusion.cpp:88)
-==18412==    by 0x12D129: debug_test() (inclusion.cpp:234)
-==18412==    by 0x10B6A8: main (main.cpp:26)
-==18412== 
-==18412== 48 bytes in 1 blocks are indirectly lost in loss record 3 of 26
-==18412==    at 0x4C3217F: operator new(unsigned long) (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
-==18412==    by 0x112CDA: allocate (new_allocator.h:111)
-==18412==    by 0x112CDA: allocate (alloc_traits.h:436)
-==18412==    by 0x112CDA: _M_get_node (stl_tree.h:588)
-==18412==    by 0x112CDA: _M_create_node<const std::pair<TargetOf*, Word*>&> (stl_tree.h:642)
-==18412==    by 0x112CDA: operator()<const std::pair<TargetOf*, Word*>&> (stl_tree.h:556)
-==18412==    by 0x112CDA: _M_insert_<const std::pair<TargetOf*, Word*>&, std::_Rb_tree<std::pair<TargetOf*, Word*>, std::pair<TargetOf*, Word*>, std::_Identity<std::pair<TargetOf*, Word*> >, std::less<std::pair<TargetOf*, Word*> >, std::allocator<std::pair<TargetOf*, Word*> > >::_Alloc_node> (stl_tree.h:1753)
-==18412==    by 0x112CDA: _M_insert_unique<const std::pair<TargetOf*, Word*>&> (stl_tree.h:2096)
-==18412==    by 0x112CDA: insert (stl_set.h:501)
-==18412==    by 0x112CDA: SetStd<std::pair<TargetOf*, Word*> >::insert(std::pair<TargetOf*, Word*>) (Set.cpp:15)
-==18412==    by 0x12A0A1: PostTargetVariable::add(State*, TargetOf*, Word*) (PostTargetVariable.cpp:37)
-==18412==    by 0x12B83F: FixpointStem::FixpointStem(State*, State*, bool) (FixpointStem.cpp:32)
-==18412==    by 0x12C675: inclusion(Automaton*, Automaton*) (inclusion.cpp:108)
-==18412==    by 0x12D129: debug_test() (inclusion.cpp:234)
-==18412==    by 0x10B6A8: main (main.cpp:26)
-==18412== 
-==18412== 48 bytes in 1 blocks are indirectly lost in loss record 4 of 26
-==18412==    at 0x4C3217F: operator new(unsigned long) (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
-==18412==    by 0x112CDA: allocate (new_allocator.h:111)
-==18412==    by 0x112CDA: allocate (alloc_traits.h:436)
-==18412==    by 0x112CDA: _M_get_node (stl_tree.h:588)
-==18412==    by 0x112CDA: _M_create_node<const std::pair<TargetOf*, Word*>&> (stl_tree.h:642)
-==18412==    by 0x112CDA: operator()<const std::pair<TargetOf*, Word*>&> (stl_tree.h:556)
-==18412==    by 0x112CDA: _M_insert_<const std::pair<TargetOf*, Word*>&, std::_Rb_tree<std::pair<TargetOf*, Word*>, std::pair<TargetOf*, Word*>, std::_Identity<std::pair<TargetOf*, Word*> >, std::less<std::pair<TargetOf*, Word*> >, std::allocator<std::pair<TargetOf*, Word*> > >::_Alloc_node> (stl_tree.h:1753)
-==18412==    by 0x112CDA: _M_insert_unique<const std::pair<TargetOf*, Word*>&> (stl_tree.h:2096)
-==18412==    by 0x112CDA: insert (stl_set.h:501)
-==18412==    by 0x112CDA: SetStd<std::pair<TargetOf*, Word*> >::insert(std::pair<TargetOf*, Word*>) (Set.cpp:15)
-==18412==    by 0x12A0A1: PostTargetVariable::add(State*, TargetOf*, Word*) (PostTargetVariable.cpp:37)
-==18412==    by 0x12C675: inclusion(Automaton*, Automaton*) (inclusion.cpp:108)
-==18412==    by 0x12D129: debug_test() (inclusion.cpp:234)
-==18412==    by 0x10B6A8: main (main.cpp:26)
-==18412== 
-==18412== 96 (48 direct, 48 indirect) bytes in 1 blocks are definitely lost in loss record 5 of 26
-==18412==    at 0x4C3217F: operator new(unsigned long) (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
-==18412==    by 0x12A06F: PostTargetVariable::add(State*, TargetOf*, Word*) (PostTargetVariable.cpp:36)
-==18412==    by 0x12B83F: FixpointStem::FixpointStem(State*, State*, bool) (FixpointStem.cpp:32)
-==18412==    by 0x12C5A9: inclusion(Automaton*, Automaton*) (inclusion.cpp:88)
-==18412==    by 0x12D129: debug_test() (inclusion.cpp:234)
-==18412==    by 0x10B6A8: main (main.cpp:26)
-==18412== 
-==18412== 96 (48 direct, 48 indirect) bytes in 1 blocks are definitely lost in loss record 6 of 26
-==18412==    at 0x4C3217F: operator new(unsigned long) (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
-==18412==    by 0x12A06F: PostTargetVariable::add(State*, TargetOf*, Word*) (PostTargetVariable.cpp:36)
-==18412==    by 0x12C5A9: inclusion(Automaton*, Automaton*) (inclusion.cpp:88)
-==18412==    by 0x12D129: debug_test() (inclusion.cpp:234)
-==18412==    by 0x10B6A8: main (main.cpp:26)
-==18412== 
-==18412== 96 (48 direct, 48 indirect) bytes in 1 blocks are definitely lost in loss record 7 of 26
-==18412==    at 0x4C3217F: operator new(unsigned long) (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
-==18412==    by 0x12A06F: PostTargetVariable::add(State*, TargetOf*, Word*) (PostTargetVariable.cpp:36)
-==18412==    by 0x12B83F: FixpointStem::FixpointStem(State*, State*, bool) (FixpointStem.cpp:32)
-==18412==    by 0x12C675: inclusion(Automaton*, Automaton*) (inclusion.cpp:108)
-==18412==    by 0x12D129: debug_test() (inclusion.cpp:234)
-==18412==    by 0x10B6A8: main (main.cpp:26)
-==18412== 
-==18412== 96 (48 direct, 48 indirect) bytes in 1 blocks are definitely lost in loss record 8 of 26
-==18412==    at 0x4C3217F: operator new(unsigned long) (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
-==18412==    by 0x12A06F: PostTargetVariable::add(State*, TargetOf*, Word*) (PostTargetVariable.cpp:36)
-==18412==    by 0x12C675: inclusion(Automaton*, Automaton*) (inclusion.cpp:108)
-==18412==    by 0x12D129: debug_test() (inclusion.cpp:234)
-==18412==    by 0x10B6A8: main (main.cpp:26)
-==18412== 
-==18412== 192 bytes in 4 blocks are indirectly lost in loss record 9 of 26
-==18412==    at 0x4C3217F: operator new(unsigned long) (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
-==18412==    by 0x112CDA: allocate (new_allocator.h:111)
-==18412==    by 0x112CDA: allocate (alloc_traits.h:436)
-==18412==    by 0x112CDA: _M_get_node (stl_tree.h:588)
-==18412==    by 0x112CDA: _M_create_node<const std::pair<TargetOf*, Word*>&> (stl_tree.h:642)
-==18412==    by 0x112CDA: operator()<const std::pair<TargetOf*, Word*>&> (stl_tree.h:556)
-==18412==    by 0x112CDA: _M_insert_<const std::pair<TargetOf*, Word*>&, std::_Rb_tree<std::pair<TargetOf*, Word*>, std::pair<TargetOf*, Word*>, std::_Identity<std::pair<TargetOf*, Word*> >, std::less<std::pair<TargetOf*, Word*> >, std::allocator<std::pair<TargetOf*, Word*> > >::_Alloc_node> (stl_tree.h:1753)
-==18412==    by 0x112CDA: _M_insert_unique<const std::pair<TargetOf*, Word*>&> (stl_tree.h:2096)
-==18412==    by 0x112CDA: insert (stl_set.h:501)
-==18412==    by 0x112CDA: SetStd<std::pair<TargetOf*, Word*> >::insert(std::pair<TargetOf*, Word*>) (Set.cpp:15)
-==18412==    by 0x12A0E6: PostTargetVariable::add(State*, TargetOf*, Word*) (PostTargetVariable.cpp:42)
-==18412==    by 0x12BB88: FixpointStem::apply() (FixpointStem.cpp:77)
-==18412==    by 0x12C6AF: inclusion(Automaton*, Automaton*) (inclusion.cpp:109)
-==18412==    by 0x12D129: debug_test() (inclusion.cpp:234)
-==18412==    by 0x10B6A8: main (main.cpp:26)
-==18412== 
-==18412== 224 bytes in 4 blocks are indirectly lost in loss record 10 of 26
-==18412==    at 0x4C3217F: operator new(unsigned long) (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
-==18412==    by 0x112F9C: allocate (new_allocator.h:111)
-==18412==    by 0x112F9C: allocate (alloc_traits.h:436)
-==18412==    by 0x112F9C: _M_get_node (stl_tree.h:588)
-==18412==    by 0x112F9C: _M_create_node<const std::pair<ContextOf*, std::pair<Word*, int> >&> (stl_tree.h:642)
-==18412==    by 0x112F9C: operator()<const std::pair<ContextOf*, std::pair<Word*, int> >&> (stl_tree.h:556)
-==18412==    by 0x112F9C: _M_insert_<const std::pair<ContextOf*, std::pair<Word*, int> >&, std::_Rb_tree<std::pair<ContextOf*, std::pair<Word*, int> >, std::pair<ContextOf*, std::pair<Word*, int> >, std::_Identity<std::pair<ContextOf*, std::pair<Word*, int> > >, std::less<std::pair<ContextOf*, std::pair<Word*, int> > >, std::allocator<std::pair<ContextOf*, std::pair<Word*, int> > > >::_Alloc_node> (stl_tree.h:1753)
-==18412==    by 0x112F9C: _M_insert_unique<const std::pair<ContextOf*, std::pair<Word*, int> >&> (stl_tree.h:2096)
-==18412==    by 0x112F9C: insert (stl_set.h:501)
-==18412==    by 0x112F9C: SetStd<std::pair<ContextOf*, std::pair<Word*, int> > >::insert(std::pair<ContextOf*, std::pair<Word*, int> >) (Set.cpp:15)
-==18412==    by 0x12B041: PostContextVariable::add(State*, ContextOf*, Word*, int) (PostContextVariable.cpp:38)
-==18412==    by 0x12A949: FixpointLoop::FixpointLoop(State*, TargetOf*, unsigned int) (FixpointLoop.cpp:44)
-==18412==    by 0x12C913: inclusion(Automaton*, Automaton*) (inclusion.cpp:160)
-==18412==    by 0x12D129: debug_test() (inclusion.cpp:234)
-==18412==    by 0x10B6A8: main (main.cpp:26)
-==18412== 
-==18412== 224 bytes in 4 blocks are indirectly lost in loss record 11 of 26
-==18412==    at 0x4C3217F: operator new(unsigned long) (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
-==18412==    by 0x112F9C: allocate (new_allocator.h:111)
-==18412==    by 0x112F9C: allocate (alloc_traits.h:436)
-==18412==    by 0x112F9C: _M_get_node (stl_tree.h:588)
-==18412==    by 0x112F9C: _M_create_node<const std::pair<ContextOf*, std::pair<Word*, int> >&> (stl_tree.h:642)
-==18412==    by 0x112F9C: operator()<const std::pair<ContextOf*, std::pair<Word*, int> >&> (stl_tree.h:556)
-==18412==    by 0x112F9C: _M_insert_<const std::pair<ContextOf*, std::pair<Word*, int> >&, std::_Rb_tree<std::pair<ContextOf*, std::pair<Word*, int> >, std::pair<ContextOf*, std::pair<Word*, int> >, std::_Identity<std::pair<ContextOf*, std::pair<Word*, int> > >, std::less<std::pair<ContextOf*, std::pair<Word*, int> > >, std::allocator<std::pair<ContextOf*, std::pair<Word*, int> > > >::_Alloc_node> (stl_tree.h:1753)
-==18412==    by 0x112F9C: _M_insert_unique<const std::pair<ContextOf*, std::pair<Word*, int> >&> (stl_tree.h:2096)
-==18412==    by 0x112F9C: insert (stl_set.h:501)
-==18412==    by 0x112F9C: SetStd<std::pair<ContextOf*, std::pair<Word*, int> > >::insert(std::pair<ContextOf*, std::pair<Word*, int> >) (Set.cpp:15)
-==18412==    by 0x12B041: PostContextVariable::add(State*, ContextOf*, Word*, int) (PostContextVariable.cpp:38)
-==18412==    by 0x12A97F: FixpointLoop::FixpointLoop(State*, TargetOf*, unsigned int) (FixpointLoop.cpp:45)
-==18412==    by 0x12C913: inclusion(Automaton*, Automaton*) (inclusion.cpp:160)
-==18412==    by 0x12D129: debug_test() (inclusion.cpp:234)
-==18412==    by 0x10B6A8: main (main.cpp:26)
-==18412== 
-==18412== 240 bytes in 5 blocks are indirectly lost in loss record 12 of 26
-==18412==    at 0x4C3217F: operator new(unsigned long) (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
-==18412==    by 0x112CDA: allocate (new_allocator.h:111)
-==18412==    by 0x112CDA: allocate (alloc_traits.h:436)
-==18412==    by 0x112CDA: _M_get_node (stl_tree.h:588)
-==18412==    by 0x112CDA: _M_create_node<const std::pair<TargetOf*, Word*>&> (stl_tree.h:642)
-==18412==    by 0x112CDA: operator()<const std::pair<TargetOf*, Word*>&> (stl_tree.h:556)
-==18412==    by 0x112CDA: _M_insert_<const std::pair<TargetOf*, Word*>&, std::_Rb_tree<std::pair<TargetOf*, Word*>, std::pair<TargetOf*, Word*>, std::_Identity<std::pair<TargetOf*, Word*> >, std::less<std::pair<TargetOf*, Word*> >, std::allocator<std::pair<TargetOf*, Word*> > >::_Alloc_node> (stl_tree.h:1753)
-==18412==    by 0x112CDA: _M_insert_unique<const std::pair<TargetOf*, Word*>&> (stl_tree.h:2096)
-==18412==    by 0x112CDA: insert (stl_set.h:501)
-==18412==    by 0x112CDA: SetStd<std::pair<TargetOf*, Word*> >::insert(std::pair<TargetOf*, Word*>) (Set.cpp:15)
-==18412==    by 0x12A0E6: PostTargetVariable::add(State*, TargetOf*, Word*) (PostTargetVariable.cpp:42)
-==18412==    by 0x12BB88: FixpointStem::apply() (FixpointStem.cpp:77)
-==18412==    by 0x12C5E7: inclusion(Automaton*, Automaton*) (inclusion.cpp:89)
-==18412==    by 0x12D129: debug_test() (inclusion.cpp:234)
-==18412==    by 0x10B6A8: main (main.cpp:26)
-==18412== 
-==18412== 264 (96 direct, 168 indirect) bytes in 2 blocks are definitely lost in loss record 13 of 26
-==18412==    at 0x4C3217F: operator new(unsigned long) (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
-==18412==    by 0x12B359: PostContextVariable::addIfMin(State*, ContextOf*, Word*, int) (PostContextVariable.cpp:86)
-==18412==    by 0x12AD0F: addIfExtreme (FixpointLoop.cpp:59)
-==18412==    by 0x12AD0F: FixpointLoop::apply() (FixpointLoop.cpp:103)
-==18412==    by 0x12C94F: inclusion(Automaton*, Automaton*) (inclusion.cpp:161)
-==18412==    by 0x12D129: debug_test() (inclusion.cpp:234)
-==18412==    by 0x10B6A8: main (main.cpp:26)
-==18412== 
-==18412== 280 bytes in 5 blocks are indirectly lost in loss record 14 of 26
-==18412==    at 0x4C3217F: operator new(unsigned long) (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
-==18412==    by 0x112F9C: allocate (new_allocator.h:111)
-==18412==    by 0x112F9C: allocate (alloc_traits.h:436)
-==18412==    by 0x112F9C: _M_get_node (stl_tree.h:588)
-==18412==    by 0x112F9C: _M_create_node<const std::pair<ContextOf*, std::pair<Word*, int> >&> (stl_tree.h:642)
-==18412==    by 0x112F9C: operator()<const std::pair<ContextOf*, std::pair<Word*, int> >&> (stl_tree.h:556)
-==18412==    by 0x112F9C: _M_insert_<const std::pair<ContextOf*, std::pair<Word*, int> >&, std::_Rb_tree<std::pair<ContextOf*, std::pair<Word*, int> >, std::pair<ContextOf*, std::pair<Word*, int> >, std::_Identity<std::pair<ContextOf*, std::pair<Word*, int> > >, std::less<std::pair<ContextOf*, std::pair<Word*, int> > >, std::allocator<std::pair<ContextOf*, std::pair<Word*, int> > > >::_Alloc_node> (stl_tree.h:1753)
-==18412==    by 0x112F9C: _M_insert_unique<const std::pair<ContextOf*, std::pair<Word*, int> >&> (stl_tree.h:2096)
-==18412==    by 0x112F9C: insert (stl_set.h:501)
-==18412==    by 0x112F9C: SetStd<std::pair<ContextOf*, std::pair<Word*, int> > >::insert(std::pair<ContextOf*, std::pair<Word*, int> >) (Set.cpp:15)
-==18412==    by 0x12B0BA: PostContextVariable::add(State*, ContextOf*, Word*, int) (PostContextVariable.cpp:43)
-==18412==    by 0x12B335: PostContextVariable::addIfMin(State*, ContextOf*, Word*, int) (PostContextVariable.cpp:101)
-==18412==    by 0x12AD0F: addIfExtreme (FixpointLoop.cpp:59)
-==18412==    by 0x12AD0F: FixpointLoop::apply() (FixpointLoop.cpp:103)
-==18412==    by 0x12C94F: inclusion(Automaton*, Automaton*) (inclusion.cpp:161)
-==18412==    by 0x12D129: debug_test() (inclusion.cpp:234)
-==18412==    by 0x10B6A8: main (main.cpp:26)
-==18412== 
-==18412== 280 bytes in 5 blocks are indirectly lost in loss record 15 of 26
-==18412==    at 0x4C3217F: operator new(unsigned long) (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
-==18412==    by 0x112F9C: allocate (new_allocator.h:111)
-==18412==    by 0x112F9C: allocate (alloc_traits.h:436)
-==18412==    by 0x112F9C: _M_get_node (stl_tree.h:588)
-==18412==    by 0x112F9C: _M_create_node<const std::pair<ContextOf*, std::pair<Word*, int> >&> (stl_tree.h:642)
-==18412==    by 0x112F9C: operator()<const std::pair<ContextOf*, std::pair<Word*, int> >&> (stl_tree.h:556)
-==18412==    by 0x112F9C: _M_insert_<const std::pair<ContextOf*, std::pair<Word*, int> >&, std::_Rb_tree<std::pair<ContextOf*, std::pair<Word*, int> >, std::pair<ContextOf*, std::pair<Word*, int> >, std::_Identity<std::pair<ContextOf*, std::pair<Word*, int> > >, std::less<std::pair<ContextOf*, std::pair<Word*, int> > >, std::allocator<std::pair<ContextOf*, std::pair<Word*, int> > > >::_Alloc_node> (stl_tree.h:1753)
-==18412==    by 0x112F9C: _M_insert_unique<const std::pair<ContextOf*, std::pair<Word*, int> >&> (stl_tree.h:2096)
-==18412==    by 0x112F9C: insert (stl_set.h:501)
-==18412==    by 0x112F9C: SetStd<std::pair<ContextOf*, std::pair<Word*, int> > >::insert(std::pair<ContextOf*, std::pair<Word*, int> >) (Set.cpp:15)
-==18412==    by 0x12B041: PostContextVariable::add(State*, ContextOf*, Word*, int) (PostContextVariable.cpp:38)
-==18412==    by 0x12AD53: FixpointLoop::apply() (FixpointLoop.cpp:104)
-==18412==    by 0x12C94F: inclusion(Automaton*, Automaton*) (inclusion.cpp:161)
-==18412==    by 0x12D129: debug_test() (inclusion.cpp:234)
-==18412==    by 0x10B6A8: main (main.cpp:26)
-==18412== 
-==18412== 416 (192 direct, 224 indirect) bytes in 4 blocks are definitely lost in loss record 16 of 26
-==18412==    at 0x4C3217F: operator new(unsigned long) (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
-==18412==    by 0x12AFE3: PostContextVariable::add(State*, ContextOf*, Word*, int) (PostContextVariable.cpp:37)
-==18412==    by 0x12A97F: FixpointLoop::FixpointLoop(State*, TargetOf*, unsigned int) (FixpointLoop.cpp:45)
-==18412==    by 0x12C913: inclusion(Automaton*, Automaton*) (inclusion.cpp:160)
-==18412==    by 0x12D129: debug_test() (inclusion.cpp:234)
-==18412==    by 0x10B6A8: main (main.cpp:26)
-==18412== 
-==18412== 520 (240 direct, 280 indirect) bytes in 5 blocks are definitely lost in loss record 17 of 26
-==18412==    at 0x4C3217F: operator new(unsigned long) (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
-==18412==    by 0x12AFE3: PostContextVariable::add(State*, ContextOf*, Word*, int) (PostContextVariable.cpp:37)
-==18412==    by 0x12AD53: FixpointLoop::apply() (FixpointLoop.cpp:104)
-==18412==    by 0x12C94F: inclusion(Automaton*, Automaton*) (inclusion.cpp:161)
-==18412==    by 0x12D129: debug_test() (inclusion.cpp:234)
-==18412==    by 0x10B6A8: main (main.cpp:26)
-==18412== 
-==18412== 528 (192 direct, 336 indirect) bytes in 4 blocks are definitely lost in loss record 18 of 26
-==18412==    at 0x4C3217F: operator new(unsigned long) (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
-==18412==    by 0x12AFE3: PostContextVariable::add(State*, ContextOf*, Word*, int) (PostContextVariable.cpp:37)
-==18412==    by 0x12A949: FixpointLoop::FixpointLoop(State*, TargetOf*, unsigned int) (FixpointLoop.cpp:44)
-==18412==    by 0x12C913: inclusion(Automaton*, Automaton*) (inclusion.cpp:160)
-==18412==    by 0x12D129: debug_test() (inclusion.cpp:234)
-==18412==    by 0x10B6A8: main (main.cpp:26)
-==18412== 
-==18412== 1,344 bytes in 28 blocks are indirectly lost in loss record 19 of 26
-==18412==    at 0x4C3217F: operator new(unsigned long) (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
-==18412==    by 0x112CDA: allocate (new_allocator.h:111)
-==18412==    by 0x112CDA: allocate (alloc_traits.h:436)
-==18412==    by 0x112CDA: _M_get_node (stl_tree.h:588)
-==18412==    by 0x112CDA: _M_create_node<const std::pair<TargetOf*, Word*>&> (stl_tree.h:642)
-==18412==    by 0x112CDA: operator()<const std::pair<TargetOf*, Word*>&> (stl_tree.h:556)
-==18412==    by 0x112CDA: _M_insert_<const std::pair<TargetOf*, Word*>&, std::_Rb_tree<std::pair<TargetOf*, Word*>, std::pair<TargetOf*, Word*>, std::_Identity<std::pair<TargetOf*, Word*> >, std::less<std::pair<TargetOf*, Word*> >, std::allocator<std::pair<TargetOf*, Word*> > >::_Alloc_node> (stl_tree.h:1753)
-==18412==    by 0x112CDA: _M_insert_unique<const std::pair<TargetOf*, Word*>&> (stl_tree.h:2096)
-==18412==    by 0x112CDA: insert (stl_set.h:501)
-==18412==    by 0x112CDA: SetStd<std::pair<TargetOf*, Word*> >::insert(std::pair<TargetOf*, Word*>) (Set.cpp:15)
-==18412==    by 0x12A0E6: PostTargetVariable::add(State*, TargetOf*, Word*) (PostTargetVariable.cpp:42)
-==18412==    by 0x12A480: PostTargetVariable::addIfMax(State*, TargetOf*, Word*) (PostTargetVariable.cpp:132)
-==18412==    by 0x12BB5F: addIfExtreme (FixpointStem.cpp:44)
-==18412==    by 0x12BB5F: FixpointStem::apply() (FixpointStem.cpp:76)
-==18412==    by 0x12C5E7: inclusion(Automaton*, Automaton*) (inclusion.cpp:89)
-==18412==    by 0x12D129: debug_test() (inclusion.cpp:234)
-==18412==    by 0x10B6A8: main (main.cpp:26)
-==18412== 
-==18412== 1,344 bytes in 28 blocks are indirectly lost in loss record 20 of 26
-==18412==    at 0x4C3217F: operator new(unsigned long) (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
-==18412==    by 0x112CDA: allocate (new_allocator.h:111)
-==18412==    by 0x112CDA: allocate (alloc_traits.h:436)
-==18412==    by 0x112CDA: _M_get_node (stl_tree.h:588)
-==18412==    by 0x112CDA: _M_create_node<const std::pair<TargetOf*, Word*>&> (stl_tree.h:642)
-==18412==    by 0x112CDA: operator()<const std::pair<TargetOf*, Word*>&> (stl_tree.h:556)
-==18412==    by 0x112CDA: _M_insert_<const std::pair<TargetOf*, Word*>&, std::_Rb_tree<std::pair<TargetOf*, Word*>, std::pair<TargetOf*, Word*>, std::_Identity<std::pair<TargetOf*, Word*> >, std::less<std::pair<TargetOf*, Word*> >, std::allocator<std::pair<TargetOf*, Word*> > >::_Alloc_node> (stl_tree.h:1753)
-==18412==    by 0x112CDA: _M_insert_unique<const std::pair<TargetOf*, Word*>&> (stl_tree.h:2096)
-==18412==    by 0x112CDA: insert (stl_set.h:501)
-==18412==    by 0x112CDA: SetStd<std::pair<TargetOf*, Word*> >::insert(std::pair<TargetOf*, Word*>) (Set.cpp:15)
-==18412==    by 0x12A0A1: PostTargetVariable::add(State*, TargetOf*, Word*) (PostTargetVariable.cpp:37)
-==18412==    by 0x12BB88: FixpointStem::apply() (FixpointStem.cpp:77)
-==18412==    by 0x12C5E7: inclusion(Automaton*, Automaton*) (inclusion.cpp:89)
-==18412==    by 0x12D129: debug_test() (inclusion.cpp:234)
-==18412==    by 0x10B6A8: main (main.cpp:26)
-==18412== 
-==18412== 1,344 bytes in 28 blocks are indirectly lost in loss record 21 of 26
-==18412==    at 0x4C3217F: operator new(unsigned long) (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
-==18412==    by 0x112CDA: allocate (new_allocator.h:111)
-==18412==    by 0x112CDA: allocate (alloc_traits.h:436)
-==18412==    by 0x112CDA: _M_get_node (stl_tree.h:588)
-==18412==    by 0x112CDA: _M_create_node<const std::pair<TargetOf*, Word*>&> (stl_tree.h:642)
-==18412==    by 0x112CDA: operator()<const std::pair<TargetOf*, Word*>&> (stl_tree.h:556)
-==18412==    by 0x112CDA: _M_insert_<const std::pair<TargetOf*, Word*>&, std::_Rb_tree<std::pair<TargetOf*, Word*>, std::pair<TargetOf*, Word*>, std::_Identity<std::pair<TargetOf*, Word*> >, std::less<std::pair<TargetOf*, Word*> >, std::allocator<std::pair<TargetOf*, Word*> > >::_Alloc_node> (stl_tree.h:1753)
-==18412==    by 0x112CDA: _M_insert_unique<const std::pair<TargetOf*, Word*>&> (stl_tree.h:2096)
-==18412==    by 0x112CDA: insert (stl_set.h:501)
-==18412==    by 0x112CDA: SetStd<std::pair<TargetOf*, Word*> >::insert(std::pair<TargetOf*, Word*>) (Set.cpp:15)
-==18412==    by 0x12A0E6: PostTargetVariable::add(State*, TargetOf*, Word*) (PostTargetVariable.cpp:42)
-==18412==    by 0x12A320: PostTargetVariable::addIfMin(State*, TargetOf*, Word*) (PostTargetVariable.cpp:104)
-==18412==    by 0x12BB24: addIfExtreme (FixpointStem.cpp:47)
-==18412==    by 0x12BB24: FixpointStem::apply() (FixpointStem.cpp:76)
-==18412==    by 0x12C6AF: inclusion(Automaton*, Automaton*) (inclusion.cpp:109)
-==18412==    by 0x12D129: debug_test() (inclusion.cpp:234)
-==18412==    by 0x10B6A8: main (main.cpp:26)
-==18412== 
-==18412== 1,344 bytes in 28 blocks are indirectly lost in loss record 22 of 26
-==18412==    at 0x4C3217F: operator new(unsigned long) (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
-==18412==    by 0x112CDA: allocate (new_allocator.h:111)
-==18412==    by 0x112CDA: allocate (alloc_traits.h:436)
-==18412==    by 0x112CDA: _M_get_node (stl_tree.h:588)
-==18412==    by 0x112CDA: _M_create_node<const std::pair<TargetOf*, Word*>&> (stl_tree.h:642)
-==18412==    by 0x112CDA: operator()<const std::pair<TargetOf*, Word*>&> (stl_tree.h:556)
-==18412==    by 0x112CDA: _M_insert_<const std::pair<TargetOf*, Word*>&, std::_Rb_tree<std::pair<TargetOf*, Word*>, std::pair<TargetOf*, Word*>, std::_Identity<std::pair<TargetOf*, Word*> >, std::less<std::pair<TargetOf*, Word*> >, std::allocator<std::pair<TargetOf*, Word*> > >::_Alloc_node> (stl_tree.h:1753)
-==18412==    by 0x112CDA: _M_insert_unique<const std::pair<TargetOf*, Word*>&> (stl_tree.h:2096)
-==18412==    by 0x112CDA: insert (stl_set.h:501)
-==18412==    by 0x112CDA: SetStd<std::pair<TargetOf*, Word*> >::insert(std::pair<TargetOf*, Word*>) (Set.cpp:15)
-==18412==    by 0x12A0A1: PostTargetVariable::add(State*, TargetOf*, Word*) (PostTargetVariable.cpp:37)
-==18412==    by 0x12BB88: FixpointStem::apply() (FixpointStem.cpp:77)
-==18412==    by 0x12C6AF: inclusion(Automaton*, Automaton*) (inclusion.cpp:109)
-==18412==    by 0x12D129: debug_test() (inclusion.cpp:234)
-==18412==    by 0x10B6A8: main (main.cpp:26)
-==18412== 
-==18412== 1,824 (480 direct, 1,344 indirect) bytes in 10 blocks are definitely lost in loss record 23 of 26
-==18412==    at 0x4C3217F: operator new(unsigned long) (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
-==18412==    by 0x12A4A1: PostTargetVariable::addIfMax(State*, TargetOf*, Word*) (PostTargetVariable.cpp:113)
-==18412==    by 0x12BB5F: addIfExtreme (FixpointStem.cpp:44)
-==18412==    by 0x12BB5F: FixpointStem::apply() (FixpointStem.cpp:76)
-==18412==    by 0x12C5E7: inclusion(Automaton*, Automaton*) (inclusion.cpp:89)
-==18412==    by 0x12D129: debug_test() (inclusion.cpp:234)
-==18412==    by 0x10B6A8: main (main.cpp:26)
-==18412== 
-==18412== 1,824 (480 direct, 1,344 indirect) bytes in 10 blocks are definitely lost in loss record 24 of 26
-==18412==    at 0x4C3217F: operator new(unsigned long) (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
-==18412==    by 0x12A341: PostTargetVariable::addIfMin(State*, TargetOf*, Word*) (PostTargetVariable.cpp:84)
-==18412==    by 0x12BB24: addIfExtreme (FixpointStem.cpp:47)
-==18412==    by 0x12BB24: FixpointStem::apply() (FixpointStem.cpp:76)
-==18412==    by 0x12C6AF: inclusion(Automaton*, Automaton*) (inclusion.cpp:109)
-==18412==    by 0x12D129: debug_test() (inclusion.cpp:234)
-==18412==    by 0x10B6A8: main (main.cpp:26)
-==18412== 
-==18412== 2,880 (1,344 direct, 1,536 indirect) bytes in 28 blocks are definitely lost in loss record 25 of 26
-==18412==    at 0x4C3217F: operator new(unsigned long) (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
-==18412==    by 0x12A06F: PostTargetVariable::add(State*, TargetOf*, Word*) (PostTargetVariable.cpp:36)
-==18412==    by 0x12BB88: FixpointStem::apply() (FixpointStem.cpp:77)
-==18412==    by 0x12C6AF: inclusion(Automaton*, Automaton*) (inclusion.cpp:109)
-==18412==    by 0x12D129: debug_test() (inclusion.cpp:234)
-==18412==    by 0x10B6A8: main (main.cpp:26)
-==18412== 
-==18412== 2,928 (1,344 direct, 1,584 indirect) bytes in 28 blocks are definitely lost in loss record 26 of 26
-==18412==    at 0x4C3217F: operator new(unsigned long) (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
-==18412==    by 0x12A06F: PostTargetVariable::add(State*, TargetOf*, Word*) (PostTargetVariable.cpp:36)
-==18412==    by 0x12BB88: FixpointStem::apply() (FixpointStem.cpp:77)
-==18412==    by 0x12C5E7: inclusion(Automaton*, Automaton*) (inclusion.cpp:89)
-==18412==    by 0x12D129: debug_test() (inclusion.cpp:234)
-==18412==    by 0x10B6A8: main (main.cpp:26)
-==18412== 
-==18412== LEAK SUMMARY:
-==18412==    definitely lost: 4,560 bytes in 95 blocks
-==18412==    indirectly lost: 7,008 bytes in 143 blocks
-==18412==      possibly lost: 0 bytes in 0 blocks
-==18412==    still reachable: 0 bytes in 0 blocks
-==18412==         suppressed: 0 bytes in 0 blocks
-==18412== 
-==18412== ERROR SUMMARY: 12 errors from 12 contexts (suppressed: 0 from 0)
-==18412== ERROR SUMMARY: 12 errors from 12 contexts (suppressed: 0 from 0)
+==28942== Memcheck, a memory error detector
+==28942== Copyright (C) 2002-2017, and GNU GPL'd, by Julian Seward et al.
+==28942== Using Valgrind-3.13.0 and LibVEX; rerun with -h for copyright info
+==28942== Command: ./chasm.out
+==28942== Parent PID: 15607
+==28942== 
+--28942-- 
+--28942-- Valgrind options:
+--28942--    --leak-check=full
+--28942--    --show-leak-kinds=all
+--28942--    --track-origins=yes
+--28942--    --verbose
+--28942--    --log-file=valgrind-out.txt
+--28942-- Contents of /proc/version:
+--28942--   Linux version 4.15.0-213-generic (buildd@lcy02-amd64-079) (gcc version 7.5.0 (Ubuntu 7.5.0-3ubuntu1~18.04)) #224-Ubuntu SMP Mon Jun 19 13:30:12 UTC 2023
+--28942-- 
+--28942-- Arch and hwcaps: AMD64, LittleEndian, amd64-cx16-lzcnt-rdtscp-sse3-avx-avx2-bmi
+--28942-- Page sizes: currently 4096, max supported 4096
+--28942-- Valgrind library directory: /usr/lib/valgrind
+--28942-- Reading syms from /home/esarac/repo/CHASM/program/bin/chasm.out
+--28942-- Reading syms from /lib/x86_64-linux-gnu/ld-2.27.so
+--28942--   Considering /lib/x86_64-linux-gnu/ld-2.27.so ..
+--28942--   .. CRC mismatch (computed 2977d8b2 wanted c64f09ed)
+--28942--   Considering /usr/lib/debug/lib/x86_64-linux-gnu/ld-2.27.so ..
+--28942--   .. CRC is valid
+--28942-- Reading syms from /usr/lib/valgrind/memcheck-amd64-linux
+--28942--   Considering /usr/lib/valgrind/memcheck-amd64-linux ..
+--28942--   .. CRC mismatch (computed 41ddb025 wanted 9972f546)
+--28942--    object doesn't have a symbol table
+--28942--    object doesn't have a dynamic symbol table
+--28942-- Scheduler: using generic scheduler lock implementation.
+--28942-- Reading suppressions file: /usr/lib/valgrind/default.supp
+==28942== embedded gdbserver: reading from /tmp/vgdb-pipe-from-vgdb-to-28942-by-esarac-on-???
+==28942== embedded gdbserver: writing to   /tmp/vgdb-pipe-to-vgdb-from-28942-by-esarac-on-???
+==28942== embedded gdbserver: shared mem   /tmp/vgdb-pipe-shared-mem-vgdb-28942-by-esarac-on-???
+==28942== 
+==28942== TO CONTROL THIS PROCESS USING vgdb (which you probably
+==28942== don't want to do, unless you know exactly what you're doing,
+==28942== or are doing some strange experiment):
+==28942==   /usr/lib/valgrind/../../bin/vgdb --pid=28942 ...command...
+==28942== 
+==28942== TO DEBUG THIS PROCESS USING GDB: start GDB like this
+==28942==   /path/to/gdb ./chasm.out
+==28942== and then give GDB the following command
+==28942==   target remote | /usr/lib/valgrind/../../bin/vgdb --pid=28942
+==28942== --pid is optional if only one valgrind process is running
+==28942== 
+--28942-- REDIR: 0x4020d20 (ld-linux-x86-64.so.2:strlen) redirected to 0x580608c1 (???)
+--28942-- REDIR: 0x4020b00 (ld-linux-x86-64.so.2:index) redirected to 0x580608db (???)
+--28942-- Reading syms from /usr/lib/valgrind/vgpreload_core-amd64-linux.so
+--28942--   Considering /usr/lib/valgrind/vgpreload_core-amd64-linux.so ..
+--28942--   .. CRC mismatch (computed 50df1b30 wanted 4800a4cf)
+--28942--    object doesn't have a symbol table
+--28942-- Reading syms from /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so
+--28942--   Considering /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so ..
+--28942--   .. CRC mismatch (computed f893b962 wanted 95ee359e)
+--28942--    object doesn't have a symbol table
+==28942== WARNING: new redirection conflicts with existing -- ignoring it
+--28942--     old: 0x04020d20 (strlen              ) R-> (0000.0) 0x580608c1 ???
+--28942--     new: 0x04020d20 (strlen              ) R-> (2007.0) 0x04c34db0 strlen
+--28942-- REDIR: 0x401d540 (ld-linux-x86-64.so.2:strcmp) redirected to 0x4c35ee0 (strcmp)
+--28942-- REDIR: 0x4021260 (ld-linux-x86-64.so.2:mempcpy) redirected to 0x4c394f0 (mempcpy)
+--28942-- Reading syms from /usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.25
+--28942--    object doesn't have a symbol table
+--28942-- Reading syms from /lib/x86_64-linux-gnu/libgcc_s.so.1
+--28942--    object doesn't have a symbol table
+--28942-- Reading syms from /lib/x86_64-linux-gnu/libc-2.27.so
+--28942--   Considering /lib/x86_64-linux-gnu/libc-2.27.so ..
+--28942--   .. CRC mismatch (computed f250d419 wanted 4aacab51)
+--28942--   Considering /usr/lib/debug/lib/x86_64-linux-gnu/libc-2.27.so ..
+--28942--   .. CRC is valid
+--28942-- Reading syms from /lib/x86_64-linux-gnu/libm-2.27.so
+--28942--   Considering /lib/x86_64-linux-gnu/libm-2.27.so ..
+--28942--   .. CRC mismatch (computed 4e7cf542 wanted 8d27f134)
+--28942--   Considering /usr/lib/debug/lib/x86_64-linux-gnu/libm-2.27.so ..
+--28942--   .. CRC is valid
+--28942-- REDIR: 0x547da50 (libc.so.6:memmove) redirected to 0x4a2c6e0 (_vgnU_ifunc_wrapper)
+--28942-- REDIR: 0x547cd60 (libc.so.6:strncpy) redirected to 0x4a2c6e0 (_vgnU_ifunc_wrapper)
+--28942-- REDIR: 0x547dd30 (libc.so.6:strcasecmp) redirected to 0x4a2c6e0 (_vgnU_ifunc_wrapper)
+--28942-- REDIR: 0x547c7b0 (libc.so.6:strcat) redirected to 0x4a2c6e0 (_vgnU_ifunc_wrapper)
+--28942-- REDIR: 0x547cd90 (libc.so.6:rindex) redirected to 0x4a2c6e0 (_vgnU_ifunc_wrapper)
+--28942-- REDIR: 0x547f480 (libc.so.6:rawmemchr) redirected to 0x4a2c6e0 (_vgnU_ifunc_wrapper)
+--28942-- REDIR: 0x547dbc0 (libc.so.6:mempcpy) redirected to 0x4a2c6e0 (_vgnU_ifunc_wrapper)
+--28942-- REDIR: 0x547d9f0 (libc.so.6:bcmp) redirected to 0x4a2c6e0 (_vgnU_ifunc_wrapper)
+--28942-- REDIR: 0x547cd20 (libc.so.6:strncmp) redirected to 0x4a2c6e0 (_vgnU_ifunc_wrapper)
+--28942-- REDIR: 0x547c820 (libc.so.6:strcmp) redirected to 0x4a2c6e0 (_vgnU_ifunc_wrapper)
+--28942-- REDIR: 0x547db20 (libc.so.6:memset) redirected to 0x4a2c6e0 (_vgnU_ifunc_wrapper)
+--28942-- REDIR: 0x549adb0 (libc.so.6:wcschr) redirected to 0x4a2c6e0 (_vgnU_ifunc_wrapper)
+--28942-- REDIR: 0x547ccc0 (libc.so.6:strnlen) redirected to 0x4a2c6e0 (_vgnU_ifunc_wrapper)
+--28942-- REDIR: 0x547c890 (libc.so.6:strcspn) redirected to 0x4a2c6e0 (_vgnU_ifunc_wrapper)
+--28942-- REDIR: 0x547dd80 (libc.so.6:strncasecmp) redirected to 0x4a2c6e0 (_vgnU_ifunc_wrapper)
+--28942-- REDIR: 0x547c860 (libc.so.6:strcpy) redirected to 0x4a2c6e0 (_vgnU_ifunc_wrapper)
+--28942-- REDIR: 0x547dec0 (libc.so.6:memcpy@@GLIBC_2.14) redirected to 0x4a2c6e0 (_vgnU_ifunc_wrapper)
+--28942-- REDIR: 0x547cdc0 (libc.so.6:strpbrk) redirected to 0x4a2c6e0 (_vgnU_ifunc_wrapper)
+--28942-- REDIR: 0x547c7e0 (libc.so.6:index) redirected to 0x4a2c6e0 (_vgnU_ifunc_wrapper)
+--28942-- REDIR: 0x547cc90 (libc.so.6:strlen) redirected to 0x4a2c6e0 (_vgnU_ifunc_wrapper)
+--28942-- REDIR: 0x5487380 (libc.so.6:memrchr) redirected to 0x4a2c6e0 (_vgnU_ifunc_wrapper)
+--28942-- REDIR: 0x547ddd0 (libc.so.6:strcasecmp_l) redirected to 0x4a2c6e0 (_vgnU_ifunc_wrapper)
+--28942-- REDIR: 0x547d9c0 (libc.so.6:memchr) redirected to 0x4a2c6e0 (_vgnU_ifunc_wrapper)
+--28942-- REDIR: 0x549bb70 (libc.so.6:wcslen) redirected to 0x4a2c6e0 (_vgnU_ifunc_wrapper)
+--28942-- REDIR: 0x547d070 (libc.so.6:strspn) redirected to 0x4a2c6e0 (_vgnU_ifunc_wrapper)
+--28942-- REDIR: 0x547dd00 (libc.so.6:stpncpy) redirected to 0x4a2c6e0 (_vgnU_ifunc_wrapper)
+--28942-- REDIR: 0x547dcd0 (libc.so.6:stpcpy) redirected to 0x4a2c6e0 (_vgnU_ifunc_wrapper)
+--28942-- REDIR: 0x547f4b0 (libc.so.6:strchrnul) redirected to 0x4a2c6e0 (_vgnU_ifunc_wrapper)
+--28942-- REDIR: 0x547de20 (libc.so.6:strncasecmp_l) redirected to 0x4a2c6e0 (_vgnU_ifunc_wrapper)
+--28942-- REDIR: 0x556d280 (libc.so.6:__strrchr_avx2) redirected to 0x4c34730 (rindex)
+--28942-- REDIR: 0x5476020 (libc.so.6:malloc) redirected to 0x4c31aa0 (malloc)
+--28942-- REDIR: 0x556d450 (libc.so.6:__strlen_avx2) redirected to 0x4c34cf0 (strlen)
+--28942-- REDIR: 0x5569a60 (libc.so.6:__memcmp_avx2_movbe) redirected to 0x4c37e00 (bcmp)
+--28942-- REDIR: 0x5488b30 (libc.so.6:__strcmp_sse2_unaligned) redirected to 0x4c35da0 (strcmp)
+--28942-- REDIR: 0x4ed1280 (libstdc++.so.6:operator new(unsigned long)) redirected to 0x4c32110 (operator new(unsigned long))
+--28942-- REDIR: 0x556d990 (libc.so.6:__memcpy_avx_unaligned_erms) redirected to 0x4c386e0 (memmove)
+--28942-- REDIR: 0x547d5a0 (libc.so.6:__GI_strstr) redirected to 0x4c39760 (__strstr_sse2)
+--28942-- REDIR: 0x4ed1330 (libstdc++.so.6:operator new[](unsigned long)) redirected to 0x4c32830 (operator new[](unsigned long))
+--28942-- REDIR: 0x55692e0 (libc.so.6:__memchr_avx2) redirected to 0x4c35f80 (memchr)
+--28942-- REDIR: 0x4ecf390 (libstdc++.so.6:operator delete(void*)) redirected to 0x4c331d0 (operator delete(void*))
+--28942-- REDIR: 0x4ecf3c0 (libstdc++.so.6:operator delete[](void*)) redirected to 0x4c336d0 (operator delete[](void*))
+--28942-- REDIR: 0x5476910 (libc.so.6:free) redirected to 0x4c32cd0 (free)
+--28942-- REDIR: 0x556de10 (libc.so.6:__memset_avx2_unaligned_erms) redirected to 0x4c385d0 (memset)
+--28942-- REDIR: 0x556d970 (libc.so.6:__mempcpy_avx_unaligned_erms) redirected to 0x4c39130 (mempcpy)
+--28942-- REDIR: 0x556d090 (libc.so.6:__strchrnul_avx2) redirected to 0x4c39020 (strchrnul)
+==28942== 
+==28942== HEAP SUMMARY:
+==28942==     in use at exit: 0 bytes in 0 blocks
+==28942==   total heap usage: 311 allocs, 311 frees, 94,485 bytes allocated
+==28942== 
+==28942== All heap blocks were freed -- no leaks are possible
+==28942== 
+==28942== ERROR SUMMARY: 0 errors from 0 contexts (suppressed: 0 from 0)
+==28942== ERROR SUMMARY: 0 errors from 0 contexts (suppressed: 0 from 0)
