@@ -6,24 +6,21 @@
 #include "Word.h"
 
 int main(int argc, char **argv) {
-/*
-	printf("--------------------------------------------\n");
 
-	Automaton* A = new Automaton("./samples/test3.txt");
-	// bool flag = A->isLive(Sup);
-	Automaton* B = A->toLimSup(LimInf);
-	// Automaton* C = B->trim();
-
+	Automaton* A = new Automaton("samples/test3.txt");
 	A->print();
-	B->print();
-	// C->print();
 
+	Automaton* B = A->safetyClosure(LimSup);
+	B->print();
+
+	Automaton* C = A->livenessComponent_det(LimSup);
+	C->print();
+	
 	delete A;
 	delete B;
-	// delete C;
-*/
+	delete C;
 
-	debug_test();
+	// debug_test();
 
 
 

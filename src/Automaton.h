@@ -103,7 +103,7 @@ public:
 	Automaton* monotonize(value_function_t value_function) const;
 	Automaton* booleanize(Weight<weight_t> v) const;
 	Automaton* constantAutomaton (Weight<weight_t> v) const;
-	Automaton* livenessComponent (value_function_t type) const;
+	Automaton* livenessComponent_det (value_function_t type) const;
 	Automaton* toLimSup (value_function_t type) const;
 
 
