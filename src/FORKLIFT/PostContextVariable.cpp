@@ -11,6 +11,7 @@ PostContextVariable::~PostContextVariable () {
 				delete pairset.second.first;
 			}
 		}
+		delete pairmap.second;
 	}
 }
 
