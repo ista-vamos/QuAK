@@ -1080,18 +1080,24 @@ bool Automaton::isUniversal (value_function_t type, Weight<weight_t> v) const {
 
 
 bool Automaton::isUniversal_det (value_function_t type, Weight<weight_t> v) const {
-	Weight<weight_t>* minusOne = new Weight<weight_t>(-1);
-	Automaton* C = this->constantAutomaton(minusOne); // fixme: inefficient
+	// Weight<weight_t>* minusOne = new Weight<weight_t>(-1);
+	// Automaton* C = this->constantAutomaton(minusOne); // fixme: inefficient
 
-	Automaton* CC = new Automaton(this, Times, C); // trim product
-	//Automaton* CC = this->product(type, C, Times); // -- old implementation
+	// Automaton* CC = new Automaton(this, Times, C); // trim product
+	// //Automaton* CC = this->product(type, C, Times); // -- old implementation
 
-	weight_t top_values[CC->nb_SCCs];
-	weight_t CCtop = CC->compute_Top(type, top_values);
+	// weight_t top_values[CC->nb_SCCs];
+	// weight_t CCtop = CC->compute_Top(type, top_values);
 
-	delete C;
-	delete CC;
-	return (-CCtop >= v.getValue());
+	// delete C;
+	// delete CC;
+	// return (-CCtop >= v.getValue());
+
+	weight_t bot_values[this->nb_SCCs];
+	if (this->compute_Bot(type, bot_values) >= v.getValue()) {
+		return true;
+	}
+	return false;
 }
 
 
