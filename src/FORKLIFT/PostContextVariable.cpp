@@ -57,7 +57,6 @@ void PostContextVariable::erase (State* stateA, std::pair<ContextOf*, std::pair<
 			if(pair.first->getRef() == 0) {
 				delete pair.first;
 				delete pair.second.first;
-				nb_debug++;//fixme
 			}
 		}
 	}
@@ -72,7 +71,6 @@ void PostContextVariable::clear () {
 			if (pairset.first->getRef() == 0) {
 				delete pairset.first;
 				delete pairset.second.first;
-				nb_debug++;//fixme
 			}
 		}
 		delete pairmap.second;
@@ -105,7 +103,7 @@ bool PostContextVariable::addIfMin (State* stateA, ContextOf* setB, Word* word, 
 }
 
 
-
+/*
 bool PostContextVariable::addIfMax (State* stateA, ContextOf* setB, Word* word, weight_t value) {
 	if (this->contains(stateA) == false)
 		this->insert(stateA, new SetStd<std::pair<ContextOf*, std::pair<Word*,weight_t>>>());
@@ -126,5 +124,6 @@ bool PostContextVariable::addIfMax (State* stateA, ContextOf* setB, Word* word, 
 	this->add(stateA, setB, word, value);
 	return true;
 }
+*/
 
 

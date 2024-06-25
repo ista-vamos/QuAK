@@ -14,7 +14,7 @@ private:
 public:
 	~ContextOf();
 	ContextOf(unsigned int capacity);
-	//ContextOf(ContextOf* currentB, Symbol* symbol);
+	ContextOf(ContextOf* currentB, Symbol* symbol);
 
 	void decreaseRef () { nb_ref = nb_ref - 1; }
 	void increaseRef () { nb_ref = nb_ref + 1; }

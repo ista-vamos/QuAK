@@ -3,17 +3,6 @@
 #include "../utility.h"
 
 FixpointStem::~FixpointStem () {
-	this->buffer->clear();//fixme
-	this->content->clear();//fixme
-	this->updates->clear();//fixme
-
-	this->nb_deleted += this->buffer->nb_debug;//fixme
-	this->nb_deleted += this->content->nb_debug;//fixme
-	this->nb_deleted += this->updates->nb_debug;//fixme
-
-	if (this->nb_constructed != this->nb_deleted)
-			fail("memory leak");
-
 	delete this->buffer;
 	delete this->content;
 	delete this->updates;
@@ -26,7 +15,6 @@ FixpointStem::FixpointStem (State* initA, State* initB, bool rev) {
 	this->buffer = new PostTargetVariable();
 
 	TargetOf* init_setB = new TargetOf();
-	nb_constructed++;//fixme
 	Word* init_word = new Word();
 	init_setB->add(initB);
 	this->updates->add(initA, init_setB, init_word);
@@ -34,9 +22,11 @@ FixpointStem::FixpointStem (State* initA, State* initB, bool rev) {
 }
 
 
+
 SetStd<std::pair<TargetOf*,Word*>>* FixpointStem::getSetOfTargetsOrNULL (State* stateA) {
 	return this->content->getSetOfTargetsOrNULL(stateA);
 }
+
 
 
 bool FixpointStem::addIfExtreme (State* stateA, TargetOf* setB, Word* word) {
@@ -50,29 +40,17 @@ bool FixpointStem::addIfExtreme (State* stateA, TargetOf* setB, Word* word) {
 
 
 
-TargetOf* FixpointStem::post (TargetOf* currentB, Symbol* symbol) {
-	TargetOf* postB = new TargetOf();
-	nb_constructed++;//fixme
-	for (State* state: *currentB) {
-		for (Edge* edge : *(state->getSuccessors(symbol->getId())))  {
-			postB->add(edge->getTo());
-		}
-	}
-	return postB;
-}
-
-
 bool FixpointStem::apply () {
-	for (std::pair<State*, SetStd<std::pair<TargetOf*,Word*>>*> mapfromA : *(this->updates)) {
-		for (Symbol* symbol : *(mapfromA.first->getAlphabet())) {
-			auto iter = mapfromA.second->begin();
-			while (iter != mapfromA.second->end()) {
-				TargetOf* postB = post(iter->first, symbol); //fixme: old
-				//TargetOf* postB = new TargetOf(iter->first, symbol);nb_constructed++; // fixme
-				Word* word = new Word(iter->second, symbol);
-				++iter;
+	auto iterA = this->updates->begin();
+	for (; iterA != this->updates->end(); ++iterA) {
+		auto iter_symbol = iterA->first->getAlphabet()->begin();
+		for (; iter_symbol != iterA->first->getAlphabet()->end(); ++iter_symbol) {
+			auto iterB = iterA->second->begin();
+			for (; iterB != iterA->second->end(); ++iterB) {
+				TargetOf* postB = new TargetOf(iterB->first, *iter_symbol);
+				Word* word = new Word(iterB->second, *iter_symbol);
 
-				for (Edge* edgeA : *(mapfromA.first->getSuccessors(symbol->getId()))) {
+				for (Edge* edgeA : *(iterA->first->getSuccessors((*iter_symbol)->getId()))) {
 					if(addIfExtreme(edgeA->getTo(), postB, word)) {
 						buffer->add(edgeA->getTo(), postB, word);
 					}
@@ -81,7 +59,6 @@ bool FixpointStem::apply () {
 				if (postB->getRef() == 0) {
 					delete word;
 					delete postB;
-					nb_deleted++;//fixme
 				}
 			}
 		}

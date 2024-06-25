@@ -9,8 +9,6 @@
 #include "TargetOf.h"
 
 class PostTargetVariable : protected MapStd<State*,SetStd<std::pair<TargetOf*,Word*>>*> {
-public:
-	unsigned int nb_debug = 0;//fixme:remove
 private:
 	void erase (State* stateA, std::pair<TargetOf*, Word*> pair);
 public:

@@ -56,7 +56,6 @@ void PostTargetVariable::erase (State* stateA, std::pair<TargetOf*, Word*> pair)
 			if(pair.first->getRef() == 0) {
 				delete pair.first;
 				delete pair.second;
-				nb_debug++;//fixme
 			}
 		}
 	}
@@ -70,7 +69,6 @@ void PostTargetVariable::clear () {
 			if (pairset.first->getRef() == 0) {
 				delete pairset.first;
 				delete pairset.second;
-				nb_debug++;//fixme
 			}
 		}
 		delete pairmap.second;
@@ -88,12 +86,8 @@ bool PostTargetVariable::addIfMin (State* stateA, TargetOf* setB, Word* word) {
 
 	auto iter = this->at(stateA)->begin();
 	while (iter!= this->at(stateA)->end()) {
-		if (iter->first->smaller_than(setB) == true) {
-			NIC_verbose("%s : %s < %s\n", stateA->getName().c_str(), iter->second->toString().c_str(), word->toString().c_str());
-			return false;
-		}
+		if (iter->first->smaller_than(setB) == true) return false;
 		if (setB->smaller_than(iter->first) == true) {
-			NIC_verbose("%s : %s < %s\n", stateA->getName().c_str(), word->toString().c_str(), iter->second->toString().c_str());
 			auto tmp = iter;
 			++iter;
 			this->erase(stateA, *tmp);
@@ -116,12 +110,8 @@ bool PostTargetVariable::addIfMax (State* stateA, TargetOf* setB, Word* word) {
 
 	auto iter = this->at(stateA)->begin();
 	while (iter!= this->at(stateA)->end()) {
-		if (setB->smaller_than(iter->first) == true) {
-			NIC_verbose("%s : %s < %s\n", stateA->getName().c_str(), word->toString().c_str(), iter->second->toString().c_str());
-			return false;
-		}
+		if (setB->smaller_than(iter->first) == true) return false;
 		if (iter->first->smaller_than(setB) == true) {
-			NIC_verbose("%s : %s < %s\n", stateA->getName().c_str(), iter->second->toString().c_str(), word->toString().c_str());
 			auto tmp = iter;
 			++iter;
 			this->erase(stateA, *tmp);

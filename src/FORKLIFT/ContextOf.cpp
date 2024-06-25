@@ -16,8 +16,12 @@ ContextOf::ContextOf(unsigned int capacity) : MapArray<StateRelation*>(capacity)
 }
 
 
-/*
+
 ContextOf::ContextOf (ContextOf* currentB, Symbol* symbol) : MapArray<StateRelation*>(currentB->size()) {
+	for (unsigned int weight_id = 0; weight_id < this->size(); ++weight_id) {
+		this->insert(weight_id, new StateRelation());
+	}
+
 	for (unsigned int weight_id = 0; weight_id < this->size(); ++weight_id) {
 		for (std::pair<State*,TargetOf*> pairB : *(currentB->at(weight_id))) {
 			for (State* fromB: *(pairB.second)) {
@@ -32,7 +36,6 @@ ContextOf::ContextOf (ContextOf* currentB, Symbol* symbol) : MapArray<StateRelat
 		}
 	}
 }
-*/
 
 
 
