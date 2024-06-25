@@ -11,6 +11,7 @@ PostTargetVariable::~PostTargetVariable () {
 				delete pairset.second;
 			}
 		}
+		delete pairmap.second;
 	}
 }
 
