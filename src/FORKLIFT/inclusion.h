@@ -7,7 +7,7 @@
 #include "../Automaton.h"
 
 
-bool inclusion (Automaton* A, Automaton* B);
+bool inclusion (const Automaton* A, const Automaton* B);
 void debug_test();
 
 

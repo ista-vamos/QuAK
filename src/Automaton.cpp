@@ -3,6 +3,7 @@
 #include "Parser.h"
 #include "Edge.h"
 #include "utility.h"
+#include "FORKLIFT/inclusion.h"
 #include <map>
 #include <set>
 #include <unordered_map>
@@ -1120,10 +1121,8 @@ bool Automaton::isIncludedIn_bool(value_function_t type, const Automaton* rhs) c
 }
 
 
-// TODO: once limsup inclusion implemented, update to handle all inclusion decisions
 // fixme: memory leaks -- test with valgrind after this is updated
 bool Automaton::isIncludedIn(value_function_t type, const Automaton* rhs) const {
-	
 	if (type == LimAvg) { 
 		if (rhs->isDeterministic()) {
 			Automaton* C = new Automaton(this, Minus, rhs);
@@ -1138,22 +1137,24 @@ bool Automaton::isIncludedIn(value_function_t type, const Automaton* rhs) const 
 		}
 	}
 	else if (type == Inf || type == Sup || type == LimInf || type == LimSup) {
-		// TODO
+		bool flag;
 
+		if (type == LimSup) {
+			flag = inclusion(this, rhs);
+		}
+		else {
+			Automaton* A = this->toLimSup(type);
+			Automaton* B = rhs->toLimSup(type);
+			flag = inclusion(A, B);
+			delete A;
+			delete B;
+		}
 
-
-		// for (unsigned int weight_id = 0; weight_id < this->weights->size(); ++weight_id) {
-		// 	Automaton* A_bool = this->booleanize(this->weights->at(weight_id));
-		// 	Automaton* B_bool = rhs->booleanize(this->weights->at(weight_id));
-
-		// 	if (!A_bool->isIncludedIn_bool(type, B_bool)) {
-		// 		return false;
-		// 	}
-		// }
-		// return true;
+		return flag;
 	}
-
-	fail("automata inclusion type");
+	else {
+		fail("automata inclusion type");
+	}
 }
 
 
