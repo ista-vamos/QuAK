@@ -1,11 +1,5 @@
-Check the SCC algorithm [N]
---> SCC v1 only care about the reachable states
---> SCC v2 could care about the unreachable states but does not
-
-Decide how to handle sink states -- this is needed for product [E]
-
-Implement FORQ inclusion checks [N]
-(this concludes the basic decision problems for all basic value functions and deterministic limit average)
+TODO:
+	split determinization (also useful for isLive of LimAvg) and livenessComponent
 
 
 Plan next steps:

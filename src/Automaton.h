@@ -45,15 +45,11 @@ private:
 	MapArray<State*>* states;
 	MapArray<Weight<weight_t>*>* weights;
 	SCC_Tree* SCCs_tree;
-	//SetList<State*>* SCCs_list; -- NOT NECESSARY
 	weight_t min_weight;
 	weight_t max_weight;
 	State* initial;
 	unsigned int nb_reachable_states;// fixme: obsolete (only used in trim)
 	unsigned int nb_SCCs;
-	//int trimmable = 0; -- DO NOT USE THIS
-	// -- trimmable cost a loop over all states
-	// -- nb_reachable_states cost a single assignment
 private:
 	void build(Parser* parser, MapStd<std::string, Symbol*> sync_register);
 	Automaton(const Automaton* A, value_function_t f);
@@ -96,20 +92,24 @@ public:
 	//Automaton (const Automaton& to_copy);// fixme: obsolete
 	~Automaton ();
 	
-	Automaton* safetyClosure(value_function_t value_function) const;
 	//Automaton* product(value_function_t value_function, const Automaton* B, aggregator_t product_weight) const;// fixme: obsolete
 	Automaton* trim();//fixme: to be removed!
 	//Automaton* complete(value_function_t value_function) const; // fixme: obsolete
 	Automaton* monotonize(value_function_t value_function) const;
 	Automaton* booleanize(Weight<weight_t> v) const;
 	Automaton* constantAutomaton (Weight<weight_t> v) const;
-	Automaton* livenessComponent_det (value_function_t type) const;
 	Automaton* toLimSup (value_function_t type) const;
 
+	// TODO: move outside of this class, in file.cpp (not a class)
+	Automaton* safetyClosure(value_function_t value_function) const;
+	Automaton* livenessComponent_det (value_function_t type) const;
 
 
 	bool isDeterministic () const;
 	bool isComplete () const;
+	void print () const;
+
+	// TODO: move outside of this class, in file.cpp (not a class)
 	bool isEmpty (value_function_t type, Weight<weight_t> v) const; // checks if A(w) >= v for some w
 	bool isUniversal (value_function_t type, Weight<weight_t> v) const; // checks if A(w) >= v for all w
 	bool isUniversal_det (value_function_t type, Weight<weight_t> v) const; // checks if A(w) >= v for all w -- assuming deterministic
@@ -120,7 +120,7 @@ public:
 	bool isLive (value_function_t type) const; // checks if SafetyClosure(A) = Top_A
 	
 	
-
+	//TODO: later later later, clean up
 	State* getInitial () const;
 	MapArray<Symbol*>* getAlphabet() const;
 	MapArray<State*>* getStates() const;
@@ -129,10 +129,6 @@ public:
 	weight_t getMaxWeightValue () const;
 	unsigned int getNbSCCs () const;
 	std::string getName() const;
-
-
-
-	void print () const;
 };
 
 #endif /* AUTOMATON_H_ */
