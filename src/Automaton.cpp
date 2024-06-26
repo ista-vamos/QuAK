@@ -721,22 +721,6 @@ Automaton* Automaton::monotonize (value_function_t type) const {
 
 
 // TODO: split determinization (also useful for safetyClosure) and livenessComponent
-// TODO:
-// TODO
-// TODO
-// TODO
-// TODO
-// TODO
-// TODO
-// TODO
-// TODO
-// TODO
-// TODO
-// TODO
-// TODO
-// TODO
-// TODO
-// TODO
 // TODO :)
 Automaton* Automaton::livenessComponent_det (value_function_t type) const {
 	State::RESET();
