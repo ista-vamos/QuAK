@@ -107,24 +107,20 @@ public:
 	Automaton* toLimSup (value_function_t type) const;
 
 
+
 	bool isDeterministic () const;
 	bool isComplete () const;
-
 	bool isEmpty (value_function_t type, Weight<weight_t> v) const; // checks if A(w) >= v for some w
-
 	bool isUniversal (value_function_t type, Weight<weight_t> v) const; // checks if A(w) >= v for all w
 	bool isUniversal_det (value_function_t type, Weight<weight_t> v) const; // checks if A(w) >= v for all w -- assuming deterministic
-	
 	bool isIncludedIn (value_function_t type, const Automaton* rhs) const; // checks if A(w) <= B(w) for all w
-	
 	bool isEquivalent (value_function_t type, const Automaton* rhs) const; // checks if A(w) == B(w) for all w
-	
 	bool isSafe (value_function_t type) const; // checks if A = SafetyClosure(A)
-	
 	bool isConstant (value_function_t type) const; // checks if Universal(A, Top_A)
-	
 	bool isLive (value_function_t type) const; // checks if SafetyClosure(A) = Top_A
 	
+	
+
 	State* getInitial () const;
 	MapArray<Symbol*>* getAlphabet() const;
 	MapArray<State*>* getStates() const;
@@ -132,9 +128,9 @@ public:
 	weight_t getMinWeightValue () const;
 	weight_t getMaxWeightValue () const;
 	unsigned int getNbSCCs () const;
-
-
 	std::string getName() const;
+
+
 
 	void print () const;
 };

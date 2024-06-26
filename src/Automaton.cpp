@@ -993,6 +993,7 @@ bool Automaton::isEmpty (value_function_t type, Weight<weight_t> v) const {
 }
 
 
+// fixme: later update using "computeBottom"
 bool Automaton::isUniversal (value_function_t type, Weight<weight_t> v) const {
 	Automaton* C = this->constantAutomaton(v);
 	bool flag = C->isIncludedIn(type, this);
@@ -1001,6 +1002,7 @@ bool Automaton::isUniversal (value_function_t type, Weight<weight_t> v) const {
 }
 
 
+// fixme: later remove and include a "isDetermistic" test in "computeBottom"
 bool Automaton::isUniversal_det (value_function_t type, Weight<weight_t> v) const {
 	weight_t bot_values[this->nb_SCCs];
 	if (this->compute_Bot(type, bot_values) >= v.getValue()) {
@@ -1502,66 +1504,6 @@ void Automaton::print () const {
 	std::cout << "\n";
 }
 
-
-
-
-
-
-
-
-
-// -------------------------------- Membership -------------------------------- //
-
-/*
-weight_t Automaton::iterable_final_product (State* origin, unsigned int base, weight_t accum, State* from, unsigned int i, Word* period, SetStd<std::pair<State*, unsigned int>>* P) {
-	weight_t value = this->min_weight - 1;
-	P->insert(std::pair<State*, unsigned int>(from, i));
-
-	for (Edge* edge : *(from->getSuccessors(period->at(i)->getId()))) {
-		unsigned int ii = (i+1 == period->getLength())?0:i+1;
-		if (P->contains(std::pair<State*, unsigned int>(edge->getTo(), ii)) == false) {
-			weight_t x = iterable_final_product(origin, base, std::max(accum, edge->getWeight()->getValue()), edge->getTo(), ii, period, P);
-			value = std::max(x, value);
-		}
-		if (ii == base && origin == edge->getTo()) {
-			weight_t x = std::max(accum, edge->getWeight()->getValue());
-			value = std::max(x, value);
-		}
-	}
-
-	return value;
-}
-
-
-weight_t Automaton::reachable_final_product (State* from, unsigned int i, Word* period, SetStd<std::pair<State*, unsigned int>>* S) {
-	weight_t value = this->min_weight - 1;
-	S->insert(std::pair<State*, unsigned int>(from, i));
-
-	for (Edge* edge : *(from->getSuccessors(period->at(i)->getId()))) {
-		unsigned int ii = (i+1 == period->getLength())?0:i+1;
-		if (S->contains(std::pair<State*, unsigned int>(edge->getTo(), ii)) == false) {
-			value = std::max(reachable_final_product(edge->getTo(), ii, period, S), value);
-		}
-	}
-
-	SetStd<std::pair<State*, unsigned int>>* P = new SetStd<std::pair<State*, unsigned int>>();
-	value = std::max(iterable_final_product(from, i, this->min_weight-1, from, i, period, P), value);
-	delete P;
-	return value;
-}
-
-
-//O((nk+m).nk) -- we can do better, O(nk+m)
-weight_t Automaton::membership (TargetOf* U, Word* period) {
-	weight_t value = this->min_weight - 1;
-	for (State* start : *U) {
-		SetStd<std::pair<State*, unsigned int>>* S = new SetStd<std::pair<State*, unsigned int>>();
-		value = std::max(reachable_final_product(start, 0, period, S), value);
-		delete S;
-	}
-	return value;
-}
-*/
 
 
 
