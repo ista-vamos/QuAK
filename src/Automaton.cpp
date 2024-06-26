@@ -8,7 +8,8 @@
 #include <set>
 #include <unordered_map>
 
-auto weightComparator = [](Weight<weight_t>* a, Weight<weight_t>* b) { return a->getValue() < b->getValue(); };
+// TODO: remove
+//auto weightComparator = [](Weight<weight_t>* a, Weight<weight_t>* b) { return a->getValue() < b->getValue(); };
 
 class SCC_Tree {
 public:
@@ -23,10 +24,7 @@ public:
 		s.append(offset);
 		s.append(this->origin->getName());
 		offset.append("\t");
-		//for (auto iter = this->nexts->begin(); iter != this->nexts->end(); ++iter) {
-		for (auto tree : *nexts) {
-			s.append(tree->toString(offset));
-		}
+		for (auto tree : *nexts) s.append(tree->toString(offset));
 		return s;
 	};
 };
@@ -421,7 +419,7 @@ unsigned int Automaton::getNbSCCs () const { return this->nb_SCCs; }
 
 // -------------------------------- Tranformations -------------------------------- //
 
-// todo later: unify with "build"
+// todo later: unify with "build" (or with a similar function that handles string sets)
 Automaton* Automaton::booleanize(Weight<weight_t> threshold) const {
 	State::RESET();
 	Symbol::RESET();
@@ -483,7 +481,7 @@ Automaton* Automaton::booleanize(Weight<weight_t> threshold) const {
 
 
 
-// todo later: remove after everything is unified with "build"
+// todo later: remove after everything is unified with "build" (or with a similar function that handles string sets)
 Automaton* Automaton::trim() {
 	if (this->nb_reachable_states == this->states->size()) {
 		return this;
@@ -557,7 +555,7 @@ Automaton* Automaton::trim() {
 }
 
 
-// todo later: unify with "build"
+// todo later: unify with "build" (or with a similar function that handles string sets)
 Automaton* Automaton::safetyClosure(value_function_t value_function) const {
 	State::RESET();
 	Symbol::RESET();
@@ -628,7 +626,7 @@ Automaton* Automaton::safetyClosure(value_function_t value_function) const {
 }
 
 
-// todo later: unify with "build"
+// todo later: unify with "build" (or with a similar function that handles string sets)
 Automaton* Automaton::monotonize (value_function_t type) const {
 	if (type != Inf && type != Sup) {
 		fail("monotonize only possible for inf or sup automata");
@@ -788,7 +786,7 @@ Automaton* Automaton::livenessComponent_det (value_function_t type) const {
 }
 
 
-// todo later: unify with "build"
+// todo later: unify with "build" (or with a similar function that handles string sets)
 Automaton* Automaton::constantAutomaton (Weight<weight_t> v) const {
 	State::RESET();
 	Symbol::RESET();
@@ -936,6 +934,7 @@ Automaton* Automaton::toLimSup_helperLimInf () const {
 
 	return temptrim;
 }
+
 
 Automaton* Automaton::toLimSup (value_function_t type) const {
 	if (type == LimSup) {
@@ -1103,7 +1102,7 @@ bool Automaton::isLive (value_function_t type) const {
 }
 
 
-// 
+
 
 
 
