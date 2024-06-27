@@ -11,13 +11,16 @@ Weight::~Weight() {
 }
 
 
-Weight::Weight(weight_t value) : my_id(ID_of_Weights++), value(value) {}
+Weight::Weight (weight_t value) : my_id(ID_of_Weights++), value(value) {}
 
 
-Weight::Weight(Weight* weight) : my_id(weight->my_id), value(weight->value) {}
+Weight::Weight (Weight* weight) : my_id(weight->my_id), value(weight->value) {}
 
 
-weight_t Weight::getValue() const { return this->value; }
+weight_t Weight::getValue () const { return this->value; }
+
+
+void Weight::setValue (weight_t value) { this->value = value; }
 
 
 const unsigned int Weight::getId() const { return this->my_id; }
