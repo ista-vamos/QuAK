@@ -47,7 +47,7 @@ private:
 	unsigned int nb_SCCs;
 private:
 	static Automaton* build(std::string newname, Parser* parser, MapStd<std::string, Symbol*> sync_register);
-	bool lol() const;
+	bool isLimAvgConstant() const;
 	Automaton(
 			std::string name,
 			MapArray<Symbol*>* alphabet,

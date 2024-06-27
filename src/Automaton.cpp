@@ -1022,7 +1022,9 @@ bool Automaton::isUniversal (value_function_t f, weight_t x) const {
 
 
 
-bool Automaton::lol() const {
+bool Automaton::isLimAvgConstant() const {
+	weight_t top = getTopValue(LimAvg);
+
     int dist[this->getStates()->size()];
     for (unsigned int state_id = 0; state_id < this->getStates()->size(); ++state_id) {
         dist[state_id] = 0;
@@ -1033,7 +1035,8 @@ bool Automaton::lol() const {
         	for (Edge* edge : *(this->getStates()->at(state_id)->getSuccessors(symbol->getId()))) {
     			unsigned int u = edge->getFrom()->getId();
 				unsigned int v = edge->getTo()->getId();
-				weight_t value = -(edge->getWeight()->getValue());
+				//weights are inversed AND shifted by 'top': -(edge-top) = top-edge
+				weight_t value = top - edge->getWeight()->getValue();
 				if (dist[u] + value < dist[v]) {
 					dist[v] = dist[u] + value;
 				}
@@ -1068,11 +1071,10 @@ bool Automaton::lol() const {
 			for (Edge* edge : *(this->states->at(state_id)->getSuccessors(symbol->getId()))) {
 				unsigned int u = edge->getFrom()->getId();
 				unsigned int v = edge->getTo()->getId();
-				weight_t value;
-				if ((edge->getWeight()->getValue() - dist[u] + dist[v]) == 0)
-					value = 1;
-				else
-					value = 0;
+				//originally: -(edge-top) + from - to = 0
+				//inverted weights: (edge-top) - from + to = 0
+				//equivalently: edge - from + to = top
+				weight_t value = (((edge->getWeight()->getValue() - dist[u] + dist[v]) == top) ? 1 : 0);
 				Weight* weight = newweights->at(value);
 				State* from = newstates->at(edge->getFrom()->getId());
 				State* to = newstates->at(edge->getTo()->getId());
@@ -1092,12 +1094,7 @@ bool Automaton::lol() const {
 
 bool Automaton::isConstant (value_function_t f) const {
 	if (f == LimAvg && isDeterministic() == false) {
-		weight_t top = getTopValue(LimAvg);
-		for (unsigned int weight_id = 0; weight_id < this->weights->size(); ++weight_id) {
-			weight_t value = this->weights->at(weight_id)->getValue();
-			this->weights->at(weight_id)->setValue(value-top);
-		}
-		return lol();
+		return isLimAvgConstant();
 	}
 	else {
 		return (getTopValue(f) == getBottomValue(f));
