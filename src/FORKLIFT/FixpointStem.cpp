@@ -1,6 +1,5 @@
 
 #include "FixpointStem.h"
-#include "../utility.h"
 
 FixpointStem::~FixpointStem () {
 	delete this->buffer;

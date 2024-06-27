@@ -24,7 +24,7 @@ public:
 	void update (T_key key, T_value value);
 	std::string toString(std::string (*f_key) (T_key key), std::string (*f_value) (T_value value)) const;
 	void clear () { all.clear(); }
-	auto begin() {return  all.begin();};
+	auto begin() {return all.begin();};
 	auto end() {return all.end();};
 };
 
@@ -90,14 +90,15 @@ template <class T> class SetList;
 
 
 template class MapStd<std::string, Symbol*>; // Automata
-template class MapStd<weight_t, Weight<weight_t>*>; // Automata
+template class MapStd<weight_t, Weight*>; // Automata
 template class MapStd<std::string, State*>; // Automata
 template class MapStd<State*, SetStd<std::pair<TargetOf*,Word*>>*>; // StateRelation
 template class MapStd<State*, TargetOf*>; // PostTargetVariable
 template class MapStd<State*, SetStd<std::pair<ContextOf*,std::pair<Word*,weight_t>>>*>; // PostContextVariable
+template class MapStd<std::pair<State*, Weight*>, State*>;
 
 
-template class MapArray<Weight<weight_t>*>;
+template class MapArray<Weight*>;
 template class MapArray<State*>;
 template class MapArray<SetList<Edge*>*>;
 template class MapArray<Symbol*>;

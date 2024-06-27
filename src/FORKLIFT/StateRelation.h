@@ -14,6 +14,9 @@ public:
 	//unsigned int size () { return MapStd<State*,TargetOf*>::size(); }; //fixme: remove
 	auto begin() {return MapStd<State*,TargetOf*>::begin();};
 	auto end() {return MapStd<State*,TargetOf*>::end();};
+	bool contains (State* state) { return MapStd<State*,TargetOf*>::contains(state); }
+	TargetOf* at (State* state) { return MapStd<State*,TargetOf*>::at(state); }
 };
+
 
 #endif /* STATERELATION_H_ */

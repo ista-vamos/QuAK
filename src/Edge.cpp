@@ -3,7 +3,7 @@
 #include "utility.h"
 
 
-Edge::Edge(Symbol* symbol, Weight<weight_t>* weight, State* from, State* to) :
+Edge::Edge(Symbol* symbol, Weight* weight, State* from, State* to) :
 	symbol(symbol), weight(weight), from(from), to(to) {}
 
 
@@ -17,7 +17,7 @@ Symbol* Edge::getSymbol() const {
 }
 
 
-Weight<weight_t>* Edge::getWeight() const {
+Weight* Edge::getWeight() const {
 	return this->weight;
 }
 

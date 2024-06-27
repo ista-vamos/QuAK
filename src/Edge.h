@@ -11,15 +11,15 @@
 class Edge {
 private:
 	Symbol *symbol;
-	Weight<weight_t>* weight;
+	Weight* weight;
 	State* from;
 	State* to;
 
 public:
-	Edge(Symbol* symbol, Weight<weight_t>* weight, State* from, State* to);
+	Edge(Symbol* symbol, Weight* weight, State* from, State* to);
 	~Edge();
 	Symbol* getSymbol() const;
-	Weight<weight_t>* getWeight() const;
+	Weight* getWeight() const;
 	State* getFrom() const;
 	State* getTo() const;
 

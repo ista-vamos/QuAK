@@ -1,6 +1,6 @@
 
 #include "PostTargetVariable.h"
-#include "../utility.h"
+
 
 PostTargetVariable::~PostTargetVariable () {
 	for (std::pair<State*,SetStd<std::pair<TargetOf*,Word*>>*> pairmap : *this) {

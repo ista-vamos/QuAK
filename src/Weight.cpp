@@ -3,35 +3,28 @@
 #include "utility.h"
 
 unsigned int ID_of_Weights = 0;
-template <typename T_value>
-void Weight<T_value>::Weight::RESET () { ID_of_Weights = 0; }
+void Weight::Weight::RESET () { ID_of_Weights = 0; }
 
 
-template <typename T_value>
-Weight<T_value>::~Weight() {
+Weight::~Weight() {
 	delete_verbose("@Memory: Weight deleted (%s)\n", this->toString().c_str());
 }
 
 
-template <typename T_value>
-Weight<T_value>::Weight(T_value value) : my_id(ID_of_Weights++), value(value) {}
-
-template <typename T_value>
-Weight<T_value>::Weight(Weight<weight_t>* weight) : my_id(weight->my_id), value(weight->value) {}
+Weight::Weight(weight_t value) : my_id(ID_of_Weights++), value(value) {}
 
 
-template <typename T_value>
-T_value Weight<T_value>::getValue() const { return this->value; }
+Weight::Weight(Weight* weight) : my_id(weight->my_id), value(weight->value) {}
 
 
-template <typename T_value>
-const unsigned int Weight<T_value>::getId() const { return this->my_id; }
+weight_t Weight::getValue() const { return this->value; }
 
 
-template <typename T_value>
-std::string Weight<T_value>::Weight::toString (Weight* weight) { return weight->toString(); }
+const unsigned int Weight::getId() const { return this->my_id; }
 
 
-template <typename T_value>
-std::string Weight<T_value>::toString() const { return std::to_string(this->value); }
+std::string Weight::Weight::toString (Weight* weight) { return weight->toString(); }
+
+
+std::string Weight::toString() const { return std::to_string(this->value); }
 

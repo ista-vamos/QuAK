@@ -1,5 +1,6 @@
 
 #include "ContextOf.h"
+#include "inclusion.h"
 
 ContextOf::~ContextOf() {
 	for (unsigned int weight_id = 0; weight_id < this->size(); ++weight_id) {
@@ -26,7 +27,9 @@ ContextOf::ContextOf (ContextOf* currentB, Symbol* symbol) : MapArray<StateRelat
 		for (std::pair<State*,TargetOf*> pairB : *(currentB->at(weight_id))) {
 			for (State* fromB: *(pairB.second)) {
 				for (Edge* edgeB : *(fromB->getSuccessors(symbol->getId()))) {
-					// fixme: consider only edge within the current SCC (only if relevance applied)
+					#ifdef INCLUSION_SCC_SEARCH_ACTIVE
+					if (edgeB->getFrom()->getTag() != edgeB->getTo()->getTag()) continue;
+					#endif
 					weight_t max_weight_id = std::max(weight_id, edgeB->getWeight()->getId());
 					add(pairB.first, edgeB->getTo(), max_weight_id);
 					// -- since weight are sorted
@@ -39,14 +42,13 @@ ContextOf::ContextOf (ContextOf* currentB, Symbol* symbol) : MapArray<StateRelat
 
 
 
+#ifdef CONTEXT_REDUNDANCY_ACTIVE
+
 void ContextOf::add (State* fromB, State* toB, unsigned int weight_id) {
-	// fixme: redundancy
 	for (unsigned int id = 0; id <= weight_id; ++id) {
 		this->at(id)->add(fromB, toB);
 	}
 }
-
-
 
 bool ContextOf::smaller_than (ContextOf* other) {
 	for (unsigned int weight_id = 0; weight_id < this->size(); ++weight_id) {
@@ -56,3 +58,33 @@ bool ContextOf::smaller_than (ContextOf* other) {
 	}
 	return true;
 }
+
+#else
+
+void ContextOf::add (State* fromB, State* toB, unsigned int weight_id) {
+	this->at(weight_id)->add(fromB, toB);
+}
+
+bool ContextOf::smaller_than (ContextOf* other) {
+	for (unsigned int x_id = 0; x_id < this->size(); ++x_id) {
+		for (std::pair<State*, TargetOf*> pair : *(this->at(x_id))) {
+			for (State* state : *(pair.second)) {
+				bool flag = false;
+				for (unsigned int y_id = x_id; y_id < this->size(); ++y_id) {
+					if (other->at(y_id)->contains(pair.first) == false) continue;
+					if (other->at(y_id)->at(pair.first)->contains(state) == false) continue;
+					flag = true;
+					break;
+				}
+				if (flag == false) return false;
+			}
+		}
+	}
+	return true;
+}
+
+#endif
+
+
+
+

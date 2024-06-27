@@ -43,7 +43,7 @@ private:
 	std::string name;
 	MapArray<Symbol*>* alphabet;
 	MapArray<State*>* states;
-	MapArray<Weight<weight_t>*>* weights;
+	MapArray<Weight*>* weights;
 	SCC_Tree* SCCs_tree;
 	weight_t min_weight;
 	weight_t max_weight;
@@ -58,13 +58,11 @@ private:
 			std::string name,
 			MapArray<Symbol*>* alphabet,
 			MapArray<State*>* states,
-			MapArray<Weight<weight_t>*>* weights,
+			MapArray<Weight*>* weights,
 			weight_t min_weight,
 			weight_t max_weight,
 			State* initial
 	);
-	void compute_SCC_tree (State* state, int* spot, int* low, bool* stackMem, SCC_Tree* ancestor);
-	void compute_SCC_tag (State* state, int* tag, int *time, int* spot, int* low, SetList<State*>* stack, bool* stackMem);
 	void compute_SCC (void);
 
 	void top_reachably_scc (State* state, lol_t lol, bool* spot, weight_t* values) const;
@@ -81,10 +79,8 @@ private:
 	void top_avg_tree (SCC_Tree* tree, weight_t* top_values) const;
 	weight_t top_LimAvg (weight_t* top_values) const;
 
-	weight_t compute_Top (value_function_t value_function, weight_t* top_values) const;
-	weight_t compute_Bot (value_function_t value_function, weight_t* bot_values) const;
-
-	Automaton* toLimSup_helperLimInf () const;
+	weight_t compute_Top (value_function_t f, weight_t* top_values) const;
+	weight_t compute_Bottom (value_function_t f, weight_t* bot_values) const;
 
 public:
 	Automaton (std::string filename);
@@ -93,38 +89,38 @@ public:
 	~Automaton ();
 	
 	//Automaton* product(value_function_t value_function, const Automaton* B, aggregator_t product_weight) const;// fixme: obsolete
-	Automaton* trim();//fixme: to be removed!
+	//Automaton* trim();//fixme: to be removed!
 	//Automaton* complete(value_function_t value_function) const; // fixme: obsolete
-	Automaton* monotonize(value_function_t value_function) const;
-	Automaton* booleanize(Weight<weight_t> v) const;
-	Automaton* constantAutomaton (Weight<weight_t> v) const;
-	Automaton* toLimSup (value_function_t type) const;
+	//Automaton* monotonize(value_function_t value_function) const;
+	Automaton* booleanize(weight_t x) const;
+	Automaton* constantAutomaton (weight_t x) const;
+	Automaton* toLimSup (value_function_t f) const;
 
 	// TODO: move outside of this class, in file.cpp (not a class)
 	Automaton* safetyClosure(value_function_t value_function) const;
-	Automaton* livenessComponent_det (value_function_t type) const;
-
+	Automaton* livenessComponent (value_function_t type) const;
 
 	bool isDeterministic () const;
-	bool isComplete () const;
 	void print () const;
 
+
+
 	// TODO: move outside of this class, in file.cpp (not a class)
-	bool isEmpty (value_function_t type, Weight<weight_t> v) const; // checks if A(w) >= v for some w
-	bool isUniversal (value_function_t type, Weight<weight_t> v) const; // checks if A(w) >= v for all w
-	bool isUniversal_det (value_function_t type, Weight<weight_t> v) const; // checks if A(w) >= v for all w -- assuming deterministic
-	bool isIncludedIn (value_function_t type, const Automaton* rhs) const; // checks if A(w) <= B(w) for all w
-	bool isEquivalent (value_function_t type, const Automaton* rhs) const; // checks if A(w) == B(w) for all w
-	bool isSafe (value_function_t type) const; // checks if A = SafetyClosure(A)
-	bool isConstant (value_function_t type) const; // checks if Universal(A, Top_A)
-	bool isLive (value_function_t type) const; // checks if SafetyClosure(A) = Top_A
+	bool isEmpty (value_function_t f, weight_t x) const; // checks if A(w) >= v for some w
+	bool isUniversal (value_function_t f, weight_t x) const; // checks if A(w) >= v for all w
+	bool isIncludedIn (value_function_t f, const Automaton* rhs) const; // checks if A(w) <= B(w) for all w
+	bool isSafe (value_function_t f) const; // checks if A = SafetyClosure(A)
+	bool isConstant (value_function_t f) const; // checks if Universal(A, Top_A)
+	bool isLive (value_function_t f) const; // checks if SafetyClosure(A) = Top_A
 	
 	
 	//TODO: later later later, clean up
+	weight_t getTopValue (value_function_t f) const;
+	weight_t getBottomValue (value_function_t f) const;
 	State* getInitial () const;
 	MapArray<Symbol*>* getAlphabet() const;
 	MapArray<State*>* getStates() const;
-	MapArray<Weight<weight_t>*>* getWeights() const;
+	MapArray<Weight*>* getWeights() const;
 	weight_t getMinWeightValue () const;
 	weight_t getMaxWeightValue () const;
 	unsigned int getNbSCCs () const;

@@ -21,6 +21,7 @@ public:
 	bool smaller_than (TargetOf* other);
 	auto begin() {return SetStd<State*>::begin();};
 	auto end() {return SetStd<State*>::end();};
+	bool contains (State* state) { return SetStd<State*>::contains(state); };
 };
 
 #endif /* TARGETOF_H_ */

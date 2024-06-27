@@ -25,6 +25,8 @@ public:
 	void clear () { all.clear(); };
 	auto begin() {return all.begin();};
 	auto end() {return all.end();};
+	T_element getMin () { return *(all.begin());};
+	T_element getMax () { return *(all.rbegin());};
 };
 
 
@@ -141,6 +143,8 @@ template class SetStd<std::pair<TargetOf*,Word*>>;
 template class SetStd<std::pair<ContextOf*,std::pair<Word*,weight_t>>>;
 template class SetStd<std::pair<State*, unsigned int>>; // Automaton
 template class SetStd<std::pair<State*,std::pair<unsigned int, bool>>>;
+template class SetStd<std::pair<State*, Weight*>>;
+template class SetStd<std::pair<Symbol*, std::pair<std::pair<State*, Weight*>, std::pair<State*, Weight*>>>>;
 
 
 

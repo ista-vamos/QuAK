@@ -8,6 +8,7 @@
 #include "../Symbol.h"
 
 
+
 class ContextOf : protected MapArray<StateRelation*> {
 private:
 	int nb_ref = 0;

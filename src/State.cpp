@@ -56,27 +56,27 @@ State::State (std::string name, unsigned int alphabet_size, weight_t automaton_m
 	}
 }
 
-
-State::State (std::string name, unsigned int alphabet_size) :
-		my_id(ID_of_States++),
-		name(name),
-		my_scc(-1),
-		min_weight(0),
-		max_weight(0),
-		alphabet(NULL),
-		edges(NULL),
-		successors(NULL),
-		predecessors(NULL)
-{
-	this->alphabet = new SetStd<Symbol*>();
-	this->edges = new SetStd<Edge*>();
-	this->successors = new MapArray<SetStd<Edge*>*>(alphabet_size);
-	this->predecessors = new MapArray<SetStd<Edge*>*>(alphabet_size);
-	for (unsigned int symbol_id = 0; symbol_id < alphabet_size; ++symbol_id) {
-		this->successors->insert(symbol_id, new SetStd<Edge*>()); //fixme: change later
-		this->predecessors->insert(symbol_id, new SetStd<Edge*>());
-	}
-}
+//
+//State::State (std::string name, unsigned int alphabet_size) :
+//		my_id(ID_of_States++),
+//		name(name),
+//		my_scc(-1),
+//		min_weight(0),
+//		max_weight(0),
+//		alphabet(NULL),
+//		edges(NULL),
+//		successors(NULL),
+//		predecessors(NULL)
+//{
+//	this->alphabet = new SetStd<Symbol*>();
+//	this->edges = new SetStd<Edge*>();
+//	this->successors = new MapArray<SetStd<Edge*>*>(alphabet_size);
+//	this->predecessors = new MapArray<SetStd<Edge*>*>(alphabet_size);
+//	for (unsigned int symbol_id = 0; symbol_id < alphabet_size; ++symbol_id) {
+//		this->successors->insert(symbol_id, new SetStd<Edge*>()); //fixme: change later
+//		this->predecessors->insert(symbol_id, new SetStd<Edge*>());
+//	}
+//}
 
 State::State (State* state) :
 		my_id(state->my_id),

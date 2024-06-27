@@ -6,7 +6,7 @@
 #include "Word.h"
 
 int main(int argc, char **argv) {
-
+/*
 	Automaton* A = new Automaton("samples/test3.txt");
 	A->print();
 
@@ -19,8 +19,9 @@ int main(int argc, char **argv) {
 	delete A;
 	delete B;
 	delete C;
+*/
 
-	// debug_test();
+	debug_test();
 
 
 
