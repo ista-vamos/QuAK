@@ -38,9 +38,9 @@ State::State (std::string name, unsigned int alphabet_size, weight_t automaton_m
 		my_scc(-1),
 		min_weight(automaton_max_weight),
 		max_weight(automaton_min_weight),
-		alphabet(NULL),
-		successors(NULL),
-		predecessors(NULL)
+		alphabet(nullptr),
+		successors(nullptr),
+		predecessors(nullptr)
 {
 	this->alphabet = new SetStd<Symbol*>();
 	this->successors = new MapArray<SetStd<Edge*>*>(alphabet_size);
@@ -58,9 +58,9 @@ State::State (State* state) :
 		my_scc(state->my_scc),
 		min_weight(state->min_weight),
 		max_weight(state->max_weight),
-		alphabet(NULL),
-		successors(NULL),
-		predecessors(NULL)
+		alphabet(nullptr),
+		successors(nullptr),
+		predecessors(nullptr)
 {
 	this->alphabet = new SetStd<Symbol*>();
 	this->successors = new MapArray<SetStd<Edge*>*>(state->successors->size());

@@ -23,7 +23,7 @@ PostTargetVariable::PostTargetVariable () :
 
 SetStd<std::pair<TargetOf*,Word*>>* PostTargetVariable::getSetOfTargetsOrNULL (State* stateA) {
 	if (this->contains(stateA) == false) {
-		return NULL;
+		return nullptr;
 	}
 	else {
 		return this->at(stateA);

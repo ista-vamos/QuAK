@@ -85,9 +85,9 @@ protected:
 	weight_t compute_Bottom (value_function_t f, weight_t* bot_values) const;
 
 public:
-	Automaton(std::string filename, Automaton* other = NULL);
 	~Automaton ();
-	static Automaton* from_file_sync_alphabet(std::string filename, Automaton* other = NULL);
+	Automaton(std::string filename, Automaton* other = nullptr);
+	static Automaton* from_file_sync_alphabet(std::string filename, Automaton* other = nullptr);
 	static Automaton* safetyClosure(const Automaton* A, value_function_t value_function);
 	static Automaton* livenessComponent (const Automaton* A, value_function_t type);
 

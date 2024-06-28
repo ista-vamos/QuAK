@@ -24,7 +24,7 @@ PostContextVariable::PostContextVariable () :
 
 SetStd<std::pair<ContextOf*,std::pair<Word*,weight_t>>>* PostContextVariable::getSetOfContextsOrNULL (State* stateA) {
 	if (this->contains(stateA) == false) {
-		return NULL;
+		return nullptr;
 	}
 	else {
 		return this->at(stateA);

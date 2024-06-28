@@ -3,6 +3,15 @@
 #include "utility.h"
 
 
+Monitor::Monitor(std::string filename, value_function_t f) : Automaton(filename, nullptr) {
+	this->current = this->initial;
+	this->top_values = new weight_t[this->nb_SCCs];
+	this->bot_values = new weight_t[this->nb_SCCs];
+	compute_Top(f, top_values);
+	compute_Bottom(f, bot_values);
+}
+
+
 Monitor::Monitor(const Automaton* A, value_function_t f) : Automaton(A, f) {
 	this->current = this->initial;
 	this->top_values = new weight_t[this->nb_SCCs];

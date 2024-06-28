@@ -153,7 +153,7 @@ Automaton::Automaton(std::string newname, Parser* parser, MapStd<std::string, Sy
 
 Automaton::Automaton(std::string filename, Automaton* other) {
 	MapStd<std::string, Symbol*> sync_register;
-	if (other != NULL) {
+	if (other != nullptr) {
 		for (unsigned int symbol_id = 0; symbol_id < other->alphabet->size(); ++symbol_id) {
 			other->alphabet->at(symbol_id);
 			sync_register.insert(other->alphabet->at(symbol_id)->getName(), other->alphabet->at(symbol_id));
@@ -166,7 +166,7 @@ Automaton::Automaton(std::string filename, Automaton* other) {
 
 Automaton* Automaton::from_file_sync_alphabet (std::string filename, Automaton* other) {
 	MapStd<std::string, Symbol*> sync_register;
-	if (other != NULL) {
+	if (other != nullptr) {
 		for (unsigned int symbol_id = 0; symbol_id < other->alphabet->size(); ++symbol_id) {
 			other->alphabet->at(symbol_id);
 			sync_register.insert(other->alphabet->at(symbol_id)->getName(), other->alphabet->at(symbol_id));

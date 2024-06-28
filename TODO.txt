@@ -1,16 +1,6 @@
-TODO:
-	split determinization (also useful for isLive of LimAvg) and livenessComponent
-
 
 Plan next steps:
-    Constant check for nondeterministic limit average -- boundedness stuff [N]
     Safety check for nondeterministic limit average -- implement determinization of safety closure [E]
-    Deterministic decompositions [E]
-    Decide if we want to distinguish LimInfAvg and LimSupAvg -- relevant for membership
-    Membership and monitoring
     DSum?'
-    change automata product to build only relevant states
-    check all automata methods for optimization (e.g. building a constant automata is not always necessary)
-    remove getEdges from class State
     
     

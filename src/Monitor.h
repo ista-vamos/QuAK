@@ -10,6 +10,7 @@ private:
 	weight_t* bot_values;
 	State* current;
 public:
+	Monitor(std::string filename, value_function_t f);
 	Monitor(const Automaton* A, value_function_t f);
 	void read(Symbol* symbol);
 	weight_t getLowest() const;

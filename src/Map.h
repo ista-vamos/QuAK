@@ -34,7 +34,7 @@ public:
 template <typename T_value>
 class MapArray {
 private:
-	T_value* all = NULL;
+	T_value* all = nullptr;
 	unsigned int capacity = 0;
 public:
 	~MapArray();
