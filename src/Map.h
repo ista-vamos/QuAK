@@ -43,36 +43,6 @@ public:
 	unsigned int size () const;
 	T_value at (unsigned int key) const;
 	std::string toString(std::string (*f_value) (T_value value)) const;
-
-
-	/*
-	class Iterator {
-	public:
-		T_value* iter;
-	public:
-		Iterator(T_value* iter) : iter(iter) {}
-		T_value& operator*() const { return *iter; }
-		T_value* operator->() { return iter; }
-		Iterator& operator++() { iter++; return *this; }
-	    friend bool operator== (const Iterator& a, const Iterator& b) { return a.iter == b.iter; };
-	    friend bool operator!= (const Iterator& a, const Iterator& b) { return a.iter != b.iter; };
-	};
-	Iterator begin() { return Iterator(&all[0]); }
-	Iterator end()   { return Iterator(&all[capacity]); }
-	class ConstIterator {
-	public:
-		T_value* iter;
-	public:
-		ConstIterator(T_value* iter) : iter(iter) {}
-		const T_value& operator*() const { return *iter; }
-		T_value* operator->() { return iter; }
-		ConstIterator& operator++() { iter++; return *this; }
-		friend bool operator== (const ConstIterator& a, const ConstIterator& b) { return a.iter == b.iter; };
-		friend bool operator!= (const ConstIterator& a, const ConstIterator& b) { return a.iter != b.iter; };
-	};
-	ConstIterator cbegin() const { return ConstIterator(&all[0]); }
-	ConstIterator cend() const { return ConstIterator(&all[capacity]); }
-	*/
 };
 
 

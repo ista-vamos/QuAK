@@ -16,7 +16,6 @@ private:
 	weight_t min_weight;
 	weight_t max_weight;
 	SetStd<Symbol*>* alphabet;
-	SetStd<Edge*>* edges;
 	MapArray<SetStd<Edge*>*>* successors;
 	MapArray<SetStd<Edge*>*>* predecessors;
 public:
@@ -35,9 +34,6 @@ public:
 	void setTag(int tag);
 
 	SetStd<Symbol*>* getAlphabet () const;
-
-	SetStd<Edge*>* getEdges() const;
-	void addEdge (Edge *edge);
 
 	SetStd<Edge*>* getSuccessors(unsigned int symbol_id) const;
 	void addSuccessor (Edge* edge);

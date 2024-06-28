@@ -1,9 +1,3 @@
-/*
- * PostContextVariable.h
- *
- *  Created on: Jun 12, 2024
- *      Author: nmazzocc
- */
 
 #ifndef POSTCONTEXTVARIABLE_H_
 #define POSTCONTEXTVARIABLE_H_

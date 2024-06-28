@@ -21,7 +21,6 @@ void abort(std::string message) {
 std::string readEdge (std::string line, Parser* parser) {
 	// -- expected shape: symbol : weight, from -> to #comment
 	size_t index;
-	if (line.empty()) return "";
 
 	index = line.find("->");
 	if (index == std::string::npos) abort("edge without '->'");
@@ -79,11 +78,70 @@ std::string readEdge (std::string line, Parser* parser) {
 	edge.second.first = fromname;
 	edge.second.second = toname;
 	parser->edges.insert(edge);
-	parser_verbose("Parser: Edge: %s -- %s : %d --> %s\n", fromname.c_str(), symbolname.c_str(), weight, toname.c_str());
+	parser_verbose("Parser: Edge = %s -- %s : %d --> %s\n", fromname.c_str(), symbolname.c_str(), weight, toname.c_str());
 
 	return fromname;
 }
 
+
+void readDomain (std::string line, Parser* parser) {
+	// -- expected shape: min_domain -- max_domain #comment
+	size_t index;
+
+	index = line.find('#');
+	if (index != std::string::npos) {
+		unsigned int i = index;
+		while (i < line.length()) {
+			line[i++] = ' ';
+		}
+	}
+
+	std::istringstream buffer(line);
+
+	std::string minname;
+	buffer >> minname;
+	if (minname.empty()) abort("domain without minimal value");
+	std::istringstream string_to_min(minname);
+	weight_t minweight;
+	string_to_min >> minweight;
+	if (string_to_min.eof() == false) abort("non-integer value");
+
+	std::string maxname;
+	buffer >> maxname;
+	if (maxname.empty()) abort("domain without maximal value");
+	std::istringstream string_to_max(maxname);
+	weight_t maxweight;
+	string_to_max >> maxweight;
+	if (string_to_max.eof() == false) abort("non-integer value");
+	parser_verbose("Parser: Domain = '%s' -- '%s'\n", std::to_string(minweight).c_str(), std::to_string(maxweight).c_str());
+
+	if (parser->domain_defined == true) {
+		parser->min_domain = std::min(parser->min_domain, minweight);
+		parser->min_domain = std::min(parser->min_domain, maxweight);
+		parser->max_domain = std::max(parser->max_domain, minweight);
+		parser->max_domain = std::max(parser->max_domain, maxweight);
+	}
+	else {
+		parser->min_domain = std::min(minweight, maxweight);
+		parser->max_domain = std::max(minweight, maxweight);
+		parser->domain_defined = true;
+	}
+}
+
+
+std::string readLine (std::string line, Parser* parser) {
+	if (line.empty()) return "";
+
+	size_t index = line.find("--");
+	if (index == std::string::npos){
+		return readEdge(line, parser);
+	}
+	else {
+		line[index] = ' '; line[index+1] = ' ';
+		readDomain(line, parser);
+		return "";
+	}
+}
 
 
 void readFile (std::string filename, Parser* parser) {
@@ -102,20 +160,33 @@ void readFile (std::string filename, Parser* parser) {
 	std::string line;
 	while (parser->initial == "" && getline(file, line)) {
 		line_counter++;
-		parser->initial = readEdge(line, parser);
+		parser->initial = readLine(line, parser);
 	}
 
 	while (getline(file, line)) {
 		line_counter++;
-		readEdge(line, parser);
+		readLine(line, parser);
 	}
 
-	if (parser->initial == "") abort("empty file");
+	if (parser->initial == "") abort("automaton without transitions");
+	if (parser->domain_defined == true) {
+		parser->min_domain = std::min(parser->min_domain, parser->weights.getMin());
+		parser->max_domain = std::max(parser->max_domain, parser->weights.getMax());
+	}
+	else {
+		parser->min_domain = parser->weights.getMin();
+		parser->max_domain = parser->weights.getMax();
+	}
 	file.close();
 }
 
 
-Parser::Parser() {}
+Parser::Parser(weight_t min_domain, weight_t max_domain) :
+		domain_defined(true),
+		min_domain(min_domain),
+		max_domain(max_domain)
+
+{}
 
 
 Parser::Parser(std::string filename) {

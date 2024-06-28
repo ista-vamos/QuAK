@@ -84,12 +84,7 @@ MapArray<T_value>::~MapArray() {
 
 template <typename T_value>
 void MapArray<T_value>::insert(unsigned int key, T_value value) {
-	if (key < this->capacity) {
-		all[key] = value;
-	}
-	else {
-		fail("MapVec insert failure");//fixme : remove
-	}
+	all[key] = value;
 }
 
 
@@ -114,12 +109,7 @@ std::string MapArray<T_value>::toString (std::string (*f_value) (T_value value))
 
 template <typename T_value>
 T_value MapArray<T_value>::at (unsigned int key) const {
-	if (key < this->capacity) {
-		return all[key];
-	}
-	else {
-		fail("MapVec at failure");//fixme : remove
-	}
+	return all[key];
 }
 
 

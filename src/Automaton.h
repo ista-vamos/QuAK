@@ -10,7 +10,6 @@
 #include "State.h"
 #include "Symbol.h"
 #include "Word.h"
-#include "FORKLIFT/TargetOf.h"
 
 class SCC_Tree;
 
@@ -40,10 +39,9 @@ private:
 	MapArray<State*>* states;
 	MapArray<Weight*>* weights;
 	SCC_Tree* SCCs_tree;
-	weight_t min_weight;
-	weight_t max_weight;
+	weight_t min_domain;
+	weight_t max_domain;
 	State* initial;
-	unsigned int nb_reachable_states;// fixme: obsolete (only used in trim)
 	unsigned int nb_SCCs;
 private:
 	static Automaton* build(std::string newname, Parser* parser, MapStd<std::string, Symbol*> sync_register);
@@ -53,8 +51,8 @@ private:
 			MapArray<Symbol*>* alphabet,
 			MapArray<State*>* states,
 			MapArray<Weight*>* weights,
-			weight_t min_weight,
-			weight_t max_weight,
+			weight_t min_domain,
+			weight_t max_domain,
 			State* initial
 	);
 	void compute_SCC (void);
@@ -101,8 +99,8 @@ public:
 	
 	weight_t getTopValue (value_function_t f) const;
 	weight_t getBottomValue (value_function_t f) const;
-	weight_t getMaxWeightValue () const;
-	weight_t getMinWeightValue () const;
+	weight_t getMaxDomain () const;
+	weight_t getMinDomain () const;
 	State* getInitial () const;
 	MapArray<Symbol*>* getAlphabet() const;
 	MapArray<State*>* getStates() const;

@@ -127,8 +127,7 @@ bool inclusion (const Automaton* A, const Automaton* B)  {
 	unsigned int membership_counter = 0;
 	unsigned int call_V = 0;
 	for (unsigned int stateA_id = 0; stateA_id < A->getStates()->size(); ++stateA_id) {
-		//if (A->getStates()->at(stateA_id)->getMaxWeightValue() < 1) continue; //fixme:
-		if (A->getStates()->at(stateA_id)->getMaxWeightValue() < B->getMinWeightValue()) continue;
+		if (A->getStates()->at(stateA_id)->getMaxWeightValue() <= B->getMinDomain()) continue;
 
 		final_counter++;
 		State* stateA = A->getStates()->at(stateA_id);
@@ -225,255 +224,257 @@ void debug_test() {
 	Automaton* toto;
 	Automaton* titi;
 
-	printf("--------------------------------------------\n");
-	printf("--------------------------------------------\n");
-
-	toto = Automaton::from_file("./samples/All_positive_numbers_have_a_predecessor_SUBSET.txt");
-	titi = Automaton::from_file_sync_alphabet("./samples/All_positive_numbers_have_a_predecessor_SUPERSET.txt", toto);
-	std::cout << "All_positive_numbers_have_a_predecessor" << std::endl;
-	inclusion(toto, titi);
-	delete toto;
-	delete titi;
-
-	 printf("--------------------------------------------\n");
-
-	 titi = Automaton::from_file("./samples/All_positive_numbers_have_a_predecessor_SUPERSET.txt");
-	 toto = Automaton::from_file_sync_alphabet("./samples/All_positive_numbers_have_a_predecessor_SUBSET.txt", titi);
-	 std::cout << "All_positive_numbers_have_a_predecessor" << std::endl;
-	 inclusion(titi, toto);
-	 delete toto;
-	 delete titi;
-
-	 printf("--------------------------------------------\n");
-	 printf("--------------------------------------------\n");
-
-	 toto = Automaton::from_file("./samples/All_Sturmian_words_contain_cubes_SUBSET.txt");
-	 titi = Automaton::from_file_sync_alphabet("./samples/All_Sturmian_words_contain_cubes_SUPERSET.txt", toto);
-	 std::cout << "All_Sturmian_words_contain_cubes" << std::endl;
-	 inclusion(toto, titi);
-	 delete toto;
-	 delete titi;
-
-	 printf("--------------------------------------------\n");
-
-	 titi = Automaton::from_file("./samples/All_Sturmian_words_contain_cubes_SUPERSET.txt");
-	 toto = Automaton::from_file_sync_alphabet("./samples/All_Sturmian_words_contain_cubes_SUBSET.txt", titi);
-	 std::cout << "All_Sturmian_words_contain_cubes" << std::endl;
-	 inclusion(titi, toto);
-	 delete toto;
-	 delete titi;
-
-	 printf("--------------------------------------------\n");
-	 printf("--------------------------------------------\n");
-
-	 toto = Automaton::from_file("./samples/All_Sturmian_words_start_with_arbitarily_long_palindromes_SUBSET.txt");
-	 titi = Automaton::from_file_sync_alphabet("./samples/All_Sturmian_words_start_with_arbitarily_long_palindromes_SUPERSET.txt", toto);
-	 std::cout << "All_Sturmian_words_start_with_arbitarily_long_palindromes" << std::endl;
-	 inclusion(toto, titi);
-	 delete toto;
-	 delete titi;
-
-	 printf("--------------------------------------------\n");
-
-	 titi = Automaton::from_file("./samples/All_Sturmian_words_start_with_arbitarily_long_palindromes_SUPERSET.txt");
-	 toto = Automaton::from_file_sync_alphabet("./samples/All_Sturmian_words_start_with_arbitarily_long_palindromes_SUBSET.txt", titi);
-	 std::cout << "All_Sturmian_words_start_with_arbitarily_long_palindromes" << std::endl;
-	 inclusion(titi, toto);
-	 delete toto;
-	 delete titi;
-
-	 printf("--------------------------------------------\n");
-	 printf("--------------------------------------------\n");
-
-	 toto = Automaton::from_file("./samples/bakeryV3_SUBSET.txt");
-	 titi = Automaton::from_file_sync_alphabet("./samples/bakeryV3_SUPERSET.txt", toto);
-	 std::cout << "bakeryV3" << std::endl;
-	 inclusion(toto, titi);
-	 delete toto;
-	 delete titi;
-
-	 printf("--------------------------------------------\n");
-
-	 titi = Automaton::from_file("./samples/bakeryV3_SUPERSET.txt");
-	 toto = Automaton::from_file_sync_alphabet("./samples/bakeryV3_SUBSET.txt", titi);
-	 std::cout << "bakeryV3" << std::endl;
-	 inclusion(titi, toto);
-	 delete toto;
-	 delete titi;
-
-	 printf("--------------------------------------------\n");
-	 printf("--------------------------------------------\n");
-
-	 toto = Automaton::from_file("./samples/bigb_SUBSET.txt");
-	 titi = Automaton::from_file_sync_alphabet("./samples/bigb_SUPERSET.txt", toto);
-	 std::cout << "bigb" << std::endl;
-	 inclusion(toto, titi);
-	 delete toto;
-	 delete titi;
-
-	 printf("--------------------------------------------\n");
-
-	 titi = Automaton::from_file("./samples/bigb_SUPERSET.txt");
-	 toto = Automaton::from_file_sync_alphabet("./samples/bigb_SUBSET.txt", titi);
-	 std::cout << "bigb" << std::endl;
-	 inclusion(titi, toto);
-	 delete toto;
-	 delete titi;
-
-	 printf("--------------------------------------------\n");
-	 printf("--------------------------------------------\n");
-
-	 toto = Automaton::from_file("./samples/BuchiCegarLoopAbstraction_SUBSET.txt");
-	 titi = Automaton::from_file_sync_alphabet("./samples/BuchiCegarLoopAbstraction_SUPERSET.txt", toto);
-	 std::cout << "BuchiCegarLoopAbstraction" << std::endl;
-	 inclusion(toto, titi);
-	 delete toto;
-	 delete titi;
-
-	 printf("--------------------------------------------\n");
-
-	 titi = Automaton::from_file("./samples/BuchiCegarLoopAbstraction_SUPERSET.txt");
-	 toto = Automaton::from_file_sync_alphabet("./samples/BuchiCegarLoopAbstraction_SUBSET.txt", titi);
-	 std::cout << "BuchiCegarLoopAbstraction" << std::endl;
-	 inclusion(titi, toto);
-	 delete toto;
-	 delete titi;
-
-	 printf("--------------------------------------------\n");
-	 printf("--------------------------------------------\n");
-
-	 toto = Automaton::from_file("./samples/example_SUBSET.txt");
-	 titi = Automaton::from_file_sync_alphabet("./samples/example_SUPERSET.txt", toto);
-	 std::cout << "example" << std::endl;
-	 inclusion(toto, titi);
-	 delete toto;
-	 delete titi;
-
-	 printf("--------------------------------------------\n");
-
-	 titi = Automaton::from_file("./samples/example_SUPERSET.txt");
-	 toto = Automaton::from_file_sync_alphabet("./samples/example_SUBSET.txt", titi);
-	 std::cout << "example" << std::endl;
-	 inclusion(titi, toto);
-	 delete toto;
-	 delete titi;
-
-	 printf("--------------------------------------------\n");
-	 printf("--------------------------------------------\n");
-
-	 toto = Automaton::from_file("./samples/fischerV3_SUBSET.txt");
-	 titi = Automaton::from_file_sync_alphabet("./samples/fischerV3_SUPERSET.txt", toto);
-	 std::cout << "fischerV3" << std::endl;
-	 std::cout << "NOT COMPUTED" << std::endl;//inclusion(toto, titi);
-	 delete toto;
-	 delete titi;
-
-	 printf("--------------------------------------------\n");
-
-	 titi = Automaton::from_file("./samples/fischerV3_SUPERSET.txt");
-	 toto = Automaton::from_file_sync_alphabet("./samples/fischerV3_SUBSET.txt", titi);
-	 std::cout << "fischerV3" << std::endl;
-	 std::cout << "NOT COMPUTED" << std::endl;//inclusion(titi, toto);
-	 delete toto;
-	 delete titi;
-
-	 printf("--------------------------------------------\n");
-	 printf("--------------------------------------------\n");
-
-	 toto = Automaton::from_file("./samples/Odd_and_even_work_as_expected_SUBSET.txt");
-	 titi = Automaton::from_file_sync_alphabet("./samples/Odd_and_even_work_as_expected_SUPERSET.txt", toto);
-	 std::cout << "Odd_and_even_work_as_expected" << std::endl;
-	 inclusion(toto, titi);
-	 delete toto;
-	 delete titi;
-
-	 printf("--------------------------------------------\n");
-
-	 titi = Automaton::from_file("./samples/Odd_and_even_work_as_expected_SUPERSET.txt");
-	 toto = Automaton::from_file_sync_alphabet("./samples/Odd_and_even_work_as_expected_SUBSET.txt", titi);
-	 std::cout << "Odd_and_even_work_as_expected" << std::endl;
-	 inclusion(titi, toto);
-	 delete toto;
-	 delete titi;
-
-	 printf("--------------------------------------------\n");
-	 printf("--------------------------------------------\n");
+//	printf("--------------------------------------------\n");
+//	printf("--------------------------------------------\n");
+//
+//	toto = Automaton::from_file("./samples/All_positive_numbers_have_a_predecessor_SUBSET.txt");
+//	titi = Automaton::from_file_sync_alphabet("./samples/All_positive_numbers_have_a_predecessor_SUPERSET.txt", toto);
+//	std::cout << "All_positive_numbers_have_a_predecessor" << std::endl;
+//	inclusion(toto, titi);
+//	delete toto;
+//	delete titi;
+//
+//	 printf("--------------------------------------------\n");
+//
+//	 titi = Automaton::from_file("./samples/All_positive_numbers_have_a_predecessor_SUPERSET.txt");
+//	 toto = Automaton::from_file_sync_alphabet("./samples/All_positive_numbers_have_a_predecessor_SUBSET.txt", titi);
+//	 std::cout << "All_positive_numbers_have_a_predecessor" << std::endl;
+//	 inclusion(titi, toto);
+//	 delete toto;
+//	 delete titi;
+//
+//	 printf("--------------------------------------------\n");
+//	 printf("--------------------------------------------\n");
+//
+//	 toto = Automaton::from_file("./samples/All_Sturmian_words_contain_cubes_SUBSET.txt");
+//	 titi = Automaton::from_file_sync_alphabet("./samples/All_Sturmian_words_contain_cubes_SUPERSET.txt", toto);
+//	 std::cout << "All_Sturmian_words_contain_cubes" << std::endl;
+//	 inclusion(toto, titi);
+//	 delete toto;
+//	 delete titi;
+//
+//	 printf("--------------------------------------------\n");
+//
+//	 titi = Automaton::from_file("./samples/All_Sturmian_words_contain_cubes_SUPERSET.txt");
+//	 toto = Automaton::from_file_sync_alphabet("./samples/All_Sturmian_words_contain_cubes_SUBSET.txt", titi);
+//	 std::cout << "All_Sturmian_words_contain_cubes" << std::endl;
+//	 inclusion(titi, toto);
+//	 delete toto;
+//	 delete titi;
+//
+//	 printf("--------------------------------------------\n");
+//	 printf("--------------------------------------------\n");
+//
+//	 toto = Automaton::from_file("./samples/All_Sturmian_words_start_with_arbitarily_long_palindromes_SUBSET.txt");
+//	 titi = Automaton::from_file_sync_alphabet("./samples/All_Sturmian_words_start_with_arbitarily_long_palindromes_SUPERSET.txt", toto);
+//	 std::cout << "All_Sturmian_words_start_with_arbitarily_long_palindromes" << std::endl;
+//	 inclusion(toto, titi);
+//	 delete toto;
+//	 delete titi;
+//
+//	 printf("--------------------------------------------\n");
+//
+//	 titi = Automaton::from_file("./samples/All_Sturmian_words_start_with_arbitarily_long_palindromes_SUPERSET.txt");
+//	 toto = Automaton::from_file_sync_alphabet("./samples/All_Sturmian_words_start_with_arbitarily_long_palindromes_SUBSET.txt", titi);
+//	 std::cout << "All_Sturmian_words_start_with_arbitarily_long_palindromes" << std::endl;
+//	 inclusion(titi, toto);
+//	 delete toto;
+//	 delete titi;
+//
+//	 printf("--------------------------------------------\n");
+//	 printf("--------------------------------------------\n");
+//
+//	 toto = Automaton::from_file("./samples/bakeryV3_SUBSET.txt");
+//	 titi = Automaton::from_file_sync_alphabet("./samples/bakeryV3_SUPERSET.txt", toto);
+//	 std::cout << "bakeryV3" << std::endl;
+//	 inclusion(toto, titi);
+//	 delete toto;
+//	 delete titi;
+//
+//	 printf("--------------------------------------------\n");
+//
+//	 titi = Automaton::from_file("./samples/bakeryV3_SUPERSET.txt");
+//	 toto = Automaton::from_file_sync_alphabet("./samples/bakeryV3_SUBSET.txt", titi);
+//	 std::cout << "bakeryV3" << std::endl;
+//	 inclusion(titi, toto);
+//	 delete toto;
+//	 delete titi;
+//
+//	 printf("--------------------------------------------\n");
+//	 printf("--------------------------------------------\n");
+//
+//	 toto = Automaton::from_file("./samples/bigb_SUBSET.txt");
+//	 titi = Automaton::from_file_sync_alphabet("./samples/bigb_SUPERSET.txt", toto);
+//	 std::cout << "bigb" << std::endl;
+//	 inclusion(toto, titi);
+//	 delete toto;
+//	 delete titi;
+//
+//	 printf("--------------------------------------------\n");
+//
+//	 titi = Automaton::from_file("./samples/bigb_SUPERSET.txt");
+//	 toto = Automaton::from_file_sync_alphabet("./samples/bigb_SUBSET.txt", titi);
+//	 std::cout << "bigb" << std::endl;
+//	 inclusion(titi, toto);
+//	 delete toto;
+//	 delete titi;
+//
+//	 printf("--------------------------------------------\n");
+//	 printf("--------------------------------------------\n");
+//
+//	 toto = Automaton::from_file("./samples/BuchiCegarLoopAbstraction_SUBSET.txt");
+//	 titi = Automaton::from_file_sync_alphabet("./samples/BuchiCegarLoopAbstraction_SUPERSET.txt", toto);
+//	 std::cout << "BuchiCegarLoopAbstraction" << std::endl;
+//	 inclusion(toto, titi);
+//	 delete toto;
+//	 delete titi;
+//
+//	 printf("--------------------------------------------\n");
+//
+//	 titi = Automaton::from_file("./samples/BuchiCegarLoopAbstraction_SUPERSET.txt");
+//	 toto = Automaton::from_file_sync_alphabet("./samples/BuchiCegarLoopAbstraction_SUBSET.txt", titi);
+//	 std::cout << "BuchiCegarLoopAbstraction" << std::endl;
+//	 inclusion(titi, toto);
+//	 delete toto;
+//	 delete titi;
+//
+//	 printf("--------------------------------------------\n");
+//	 printf("--------------------------------------------\n");
+//
+//	 toto = Automaton::from_file("./samples/example_SUBSET.txt");
+//	 titi = Automaton::from_file_sync_alphabet("./samples/example_SUPERSET.txt", toto);
+//	 std::cout << "example" << std::endl;
+//	 inclusion(toto, titi);
+//	 delete toto;
+//	 delete titi;
+//
+//	 printf("--------------------------------------------\n");
+//
+//	 titi = Automaton::from_file("./samples/example_SUPERSET.txt");
+//	 toto = Automaton::from_file_sync_alphabet("./samples/example_SUBSET.txt", titi);
+//	 std::cout << "example" << std::endl;
+//	 inclusion(titi, toto);
+//	 delete toto;
+//	 delete titi;
+//
+//	 printf("--------------------------------------------\n");
+//	 printf("--------------------------------------------\n");
+//
+//	 toto = Automaton::from_file("./samples/fischerV3_SUBSET.txt");
+//	 titi = Automaton::from_file_sync_alphabet("./samples/fischerV3_SUPERSET.txt", toto);
+//	 std::cout << "fischerV3" << std::endl;
+//	 std::cout << "NOT COMPUTED" << std::endl;//inclusion(toto, titi);
+//	 delete toto;
+//	 delete titi;
+//
+//	 printf("--------------------------------------------\n");
+//
+//	 titi = Automaton::from_file("./samples/fischerV3_SUPERSET.txt");
+//	 toto = Automaton::from_file_sync_alphabet("./samples/fischerV3_SUBSET.txt", titi);
+//	 std::cout << "fischerV3" << std::endl;
+//	 std::cout << "NOT COMPUTED" << std::endl;//inclusion(titi, toto);
+//	 delete toto;
+//	 delete titi;
+//
+//	 printf("--------------------------------------------\n");
+//	 printf("--------------------------------------------\n");
+//
+//	 toto = Automaton::from_file("./samples/Odd_and_even_work_as_expected_SUBSET.txt");
+//	 titi = Automaton::from_file_sync_alphabet("./samples/Odd_and_even_work_as_expected_SUPERSET.txt", toto);
+//	 std::cout << "Odd_and_even_work_as_expected" << std::endl;
+//	 std::cout << "NOT COMPUTED" << std::endl;//inclusion(toto, titi);
+//	 delete toto;
+//	 delete titi;
+//
+//	 printf("--------------------------------------------\n");
+//
+//	 titi = Automaton::from_file("./samples/Odd_and_even_work_as_expected_SUPERSET.txt");
+//	 toto = Automaton::from_file_sync_alphabet("./samples/Odd_and_even_work_as_expected_SUBSET.txt", titi);
+//	 std::cout << "Odd_and_even_work_as_expected" << std::endl;
+//	 std::cout << "NOT COMPUTED" << std::endl;//inclusion(titi, toto);
+//	 delete toto;
+//	 delete titi;
+//
+//	 printf("--------------------------------------------\n");
+//	 printf("--------------------------------------------\n");
 
 	 toto = Automaton::from_file("./samples/peterson_SUBSET.txt");
 	 titi = Automaton::from_file_sync_alphabet("./samples/peterson_SUPERSET.txt", toto);
 	 std::cout << "peterson" << std::endl;
-	 inclusion(toto, titi);
-	 delete toto;
-	 delete titi;
-
-	 printf("--------------------------------------------\n");
-
-	 titi = Automaton::from_file("./samples/peterson_SUPERSET.txt");
-	 toto = Automaton::from_file_sync_alphabet("./samples/peterson_SUBSET.txt", titi);
-	 std::cout << "peterson" << std::endl;
-	 inclusion(titi, toto);
-	 delete toto;
-	 delete titi;
-
-	 printf("--------------------------------------------\n");
-	 printf("--------------------------------------------\n");
-
-	 toto = Automaton::from_file("./samples/slides_example_SUBSET.txt");
-	 titi = Automaton::from_file_sync_alphabet("./samples/slides_example_SUPERSET.txt", toto);
-	 std::cout << "slides_example" << std::endl;
-	 inclusion(toto, titi);
-	 delete toto;
-	 delete titi;
-
-	 printf("--------------------------------------------\n");
-
-	 titi = Automaton::from_file("./samples/slides_example_SUPERSET.txt");
-	 toto = Automaton::from_file_sync_alphabet("./samples/slides_example_SUBSET.txt", titi);
-	 std::cout << "slides_example" << std::endl;
-	 inclusion(titi, toto);
-	 delete toto;
-	 delete titi;
-
-	 printf("--------------------------------------------\n");
-	 printf("--------------------------------------------\n");
-
-	 toto = Automaton::from_file("./samples/Specal_factors_are_unique_SUBSET.txt");
-	 titi = Automaton::from_file_sync_alphabet("./samples/Specal_factors_are_unique_SUPERSET.txt", toto);
-	 std::cout << "Specal_factors_are_unique" << std::endl;
-	 inclusion(toto, titi);
-	 delete toto;
-	 delete titi;
-
-	 printf("--------------------------------------------\n");
-
-	 titi = Automaton::from_file("./samples/Specal_factors_are_unique_SUPERSET.txt");
-	 toto = Automaton::from_file_sync_alphabet("./samples/Specal_factors_are_unique_SUBSET.txt", titi);
-	 std::cout << "Specal_factors_are_unique" << std::endl;
-	 inclusion(titi, toto);
-	 delete toto;
-	 delete titi;
-
-	 printf("--------------------------------------------\n");
-	 printf("--------------------------------------------\n");
-
-	 toto = Automaton::from_file("./samples/The_lazy_Ostrowski_representation_is_unique_SUBSET.txt");
-	 titi = Automaton::from_file_sync_alphabet("./samples/The_lazy_Ostrowski_representation_is_unique_SUPERSET.txt", toto);
-	 std::cout << "The_lazy_Ostrowski_representation_is_unique" << std::endl;
-	 inclusion(toto, titi);
-	 delete toto;
-	 delete titi;
-
-	 printf("--------------------------------------------\n");
-
-	 titi = Automaton::from_file("./samples/The_lazy_Ostrowski_representation_is_unique_SUPERSET.txt");
-	 toto = Automaton::from_file_sync_alphabet("./samples/The_lazy_Ostrowski_representation_is_unique_SUBSET.txt", titi);
-	 std::cout << "The_lazy_Ostrowski_representation_is_unique" << std::endl;
-	 inclusion(titi, toto);
-	 delete toto;
-	 delete titi;
-
-	 printf("--------------------------------------------\n");
-	 printf("--------------------------------------------\n");
+	 toto->print();
+	 titi->print();
+//	 inclusion(toto, titi);
+//	 delete toto;
+//	 delete titi;
+//
+//	 printf("--------------------------------------------\n");
+//
+//	 titi = Automaton::from_file("./samples/peterson_SUPERSET.txt");
+//	 toto = Automaton::from_file_sync_alphabet("./samples/peterson_SUBSET.txt", titi);
+//	 std::cout << "peterson" << std::endl;
+//	 inclusion(titi, toto);
+//	 delete toto;
+//	 delete titi;
+//
+//	 printf("--------------------------------------------\n");
+//	 printf("--------------------------------------------\n");
+//
+//	 toto = Automaton::from_file("./samples/slides_example_SUBSET.txt");
+//	 titi = Automaton::from_file_sync_alphabet("./samples/slides_example_SUPERSET.txt", toto);
+//	 std::cout << "slides_example" << std::endl;
+//	 inclusion(toto, titi);
+//	 delete toto;
+//	 delete titi;
+//
+//	 printf("--------------------------------------------\n");
+//
+//	 titi = Automaton::from_file("./samples/slides_example_SUPERSET.txt");
+//	 toto = Automaton::from_file_sync_alphabet("./samples/slides_example_SUBSET.txt", titi);
+//	 std::cout << "slides_example" << std::endl;
+//	 inclusion(titi, toto);
+//	 delete toto;
+//	 delete titi;
+//
+//	 printf("--------------------------------------------\n");
+//	 printf("--------------------------------------------\n");
+//
+//	 toto = Automaton::from_file("./samples/Specal_factors_are_unique_SUBSET.txt");
+//	 titi = Automaton::from_file_sync_alphabet("./samples/Specal_factors_are_unique_SUPERSET.txt", toto);
+//	 std::cout << "Specal_factors_are_unique" << std::endl;
+//	 inclusion(toto, titi);
+//	 delete toto;
+//	 delete titi;
+//
+//	 printf("--------------------------------------------\n");
+//
+//	 titi = Automaton::from_file("./samples/Specal_factors_are_unique_SUPERSET.txt");
+//	 toto = Automaton::from_file_sync_alphabet("./samples/Specal_factors_are_unique_SUBSET.txt", titi);
+//	 std::cout << "Specal_factors_are_unique" << std::endl;
+//	 inclusion(titi, toto);
+//	 delete toto;
+//	 delete titi;
+//
+//	 printf("--------------------------------------------\n");
+//	 printf("--------------------------------------------\n");
+//
+//	 toto = Automaton::from_file("./samples/The_lazy_Ostrowski_representation_is_unique_SUBSET.txt");
+//	 titi = Automaton::from_file_sync_alphabet("./samples/The_lazy_Ostrowski_representation_is_unique_SUPERSET.txt", toto);
+//	 std::cout << "The_lazy_Ostrowski_representation_is_unique" << std::endl;
+//	 inclusion(toto, titi);
+//	 delete toto;
+//	 delete titi;
+//
+//	 printf("--------------------------------------------\n");
+//
+//	 titi = Automaton::from_file("./samples/The_lazy_Ostrowski_representation_is_unique_SUPERSET.txt");
+//	 toto = Automaton::from_file_sync_alphabet("./samples/The_lazy_Ostrowski_representation_is_unique_SUBSET.txt", titi);
+//	 std::cout << "The_lazy_Ostrowski_representation_is_unique" << std::endl;
+//	 inclusion(titi, toto);
+//	 delete toto;
+//	 delete titi;
+//
+//	 printf("--------------------------------------------\n");
+//	 printf("--------------------------------------------\n");
 }
 
 
