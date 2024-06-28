@@ -37,8 +37,8 @@ Automaton::~Automaton () {
 		}
 	}
 	delete_verbose("@Detail: %u Symbols will be deleted (automaton %s)\n", this->alphabet->size(), this->name.c_str());
-	for (unsigned int id = 0; id < this->alphabet->size(); ++id) {
-		delete this->alphabet->at(id);
+	for (unsigned int symbol_id = 0; symbol_id < this->alphabet->size(); ++symbol_id) {
+		delete this->alphabet->at(symbol_id);
 	}
 	delete_verbose("@Detail: 1 MapVec (alphabet) will be deleted (automaton %s)\n", this->name.c_str());
 	delete alphabet;
@@ -90,8 +90,9 @@ Automaton::Automaton (
 }
 
 
+void Automaton::build(std::string newname, Parser* parser, MapStd<std::string, Symbol*> sync_register){
+	this->name = newname;
 
-Automaton* Automaton::build(std::string newname, Parser* parser, MapStd<std::string, Symbol*> sync_register) {
 	Symbol::RESET(sync_register.size());
 	State::RESET();
 	Weight::RESET();
@@ -100,26 +101,26 @@ Automaton* Automaton::build(std::string newname, Parser* parser, MapStd<std::str
 	MapStd<std::string, State*> state_register;
 	MapStd<std::string, Symbol*> symbol_register;
 
-	weight_t newmin_domain = parser->min_domain;
-	weight_t newmax_domain = parser->max_domain;
+	this->min_domain = parser->min_domain;
+	this->max_domain = parser->max_domain;
 
-	MapArray<Weight*>* newweights = new MapArray<Weight*>(parser->weights.size());
-	MapArray<Symbol*>* newalphabet = new MapArray<Symbol*>(parser->alphabet.size());
-	MapArray<State*>* newstates = new MapArray<State*>(parser->states.size());
+	this->weights = new MapArray<Weight*>(parser->weights.size());
+	this->alphabet = new MapArray<Symbol*>(parser->alphabet.size());
+	this->states = new MapArray<State*>(parser->states.size());
 
 	for (weight_t value : parser->weights) {
 		Weight* weight = new Weight(value);
-		newweights->insert(weight->getId(), weight);
+		this->weights->insert(weight->getId(), weight);
 		weight_register.insert(weight->getValue(), weight);
 	}
 
 
 	for (std::string statename : parser->states) {
-		State* state = new State(statename, newalphabet->size(), newmin_domain, newmax_domain);
-		newstates->insert(state->getId(), state);
+		State* state = new State(statename, this->alphabet->size(), this->min_domain, this->max_domain);
+		this->states->insert(state->getId(), state);
 		state_register.insert(state->getName(), state);
 	}
-	State* newinitial = state_register.at(parser->initial);
+	this->initial = state_register.at(parser->initial);
 
 	for (std::string symbolname : parser->alphabet) {
 		Symbol * symbol;
@@ -127,7 +128,7 @@ Automaton* Automaton::build(std::string newname, Parser* parser, MapStd<std::str
 			symbol = new Symbol(sync_register.at(symbolname));
 		else
 			symbol = new Symbol(symbolname);
-		newalphabet->insert(symbol->getId(), symbol);
+		this->alphabet->insert(symbol->getId(), symbol);
 		symbol_register.insert(symbol->getName(), symbol);
 	}
 
@@ -141,26 +142,38 @@ Automaton* Automaton::build(std::string newname, Parser* parser, MapStd<std::str
 		to->addPredecessor(edge);
 	}
 
-	return new Automaton(newname, newalphabet, newstates, newweights, newmin_domain, newmax_domain, newinitial);
+	compute_SCC();
 }
 
 
 
-Automaton* Automaton::from_file(std::string filename) {
+Automaton::Automaton(std::string newname, Parser* parser, MapStd<std::string, Symbol*> sync_register) {
+	build(newname, parser, sync_register);
+}
+
+Automaton::Automaton(std::string filename, Automaton* other) {
 	MapStd<std::string, Symbol*> sync_register;
+	if (other != NULL) {
+		for (unsigned int symbol_id = 0; symbol_id < other->alphabet->size(); ++symbol_id) {
+			other->alphabet->at(symbol_id);
+			sync_register.insert(other->alphabet->at(symbol_id)->getName(), other->alphabet->at(symbol_id));
+		}
+	}
 	Parser parser(filename, &sync_register);
-	return build(filename, &parser, sync_register);
+	build(filename, &parser, sync_register);
 }
 
 
 Automaton* Automaton::from_file_sync_alphabet (std::string filename, Automaton* other) {
 	MapStd<std::string, Symbol*> sync_register;
-	for (unsigned int symbol_id = 0; symbol_id < other->alphabet->size(); ++symbol_id) {
-		other->alphabet->at(symbol_id);
-		sync_register.insert(other->alphabet->at(symbol_id)->getName(), other->alphabet->at(symbol_id));
+	if (other != NULL) {
+		for (unsigned int symbol_id = 0; symbol_id < other->alphabet->size(); ++symbol_id) {
+			other->alphabet->at(symbol_id);
+			sync_register.insert(other->alphabet->at(symbol_id)->getName(), other->alphabet->at(symbol_id));
+		}
 	}
 	Parser parser(filename, &sync_register);
-	return build(filename, &parser, sync_register);
+	return (new Automaton(filename, &parser, sync_register));
 }
 
 
@@ -225,27 +238,27 @@ Automaton* Automaton::product(const Automaton* A, aggregator_t f, const Automato
 	}
 
 	std::string newname =  aggregator_name(f) + "(" + A->getName() + "," + B->getName() + ")";
-	return build(newname, &parser, sync_register);
+	return (new Automaton(newname, &parser, sync_register));
 }
 
 
-Automaton* Automaton::trim_and_complete(const Automaton* A, value_function_t f) {
-	MapStd<std::string, Symbol*> sync_register;
-	Parser parser(A->min_domain, A->max_domain);
 
-	for (unsigned int stateA_id = 0; stateA_id < A->states->size(); ++stateA_id) {
-		if (A->states->at(stateA_id)->getTag() == -1) continue;
-		parser.states.insert(A->states->at(stateA_id)->getName());
-		for (Symbol* symbol : *(A->states->at(stateA_id)->getAlphabet())) {
-			parser.alphabet.insert(symbol->getName());
-			for (Edge* edgeA : *(A->states->at(stateA_id)->getSuccessors(symbol->getId()))) {
-				parser.weights.insert(edgeA->getWeight()->getValue());
+Parser* parse_trim_complete(const Automaton* A, value_function_t f) {
+	Parser* parser = new Parser(A->getMinDomain(), A->getMaxDomain());
+
+	for (unsigned int stateA_id = 0; stateA_id < A->getStates()->size(); ++stateA_id) {
+		if (A->getStates()->at(stateA_id)->getTag() == -1) continue;
+		parser->states.insert(A->getStates()->at(stateA_id)->getName());
+		for (Symbol* symbol : *(A->getStates()->at(stateA_id)->getAlphabet())) {
+			parser->alphabet.insert(symbol->getName());
+			for (Edge* edgeA : *(A->getStates()->at(stateA_id)->getSuccessors(symbol->getId()))) {
+				parser->weights.insert(edgeA->getWeight()->getValue());
 				std::pair<std::pair<std::string, weight_t>,std::pair<std::string, std::string>> edge;
 				edge.first.first = edgeA->getSymbol()->getName();
 				edge.first.second = edgeA->getWeight()->getValue();
 				edge.second.first = edgeA->getFrom()->getName();
 				edge.second.second = edgeA->getTo()->getName();
-				parser.edges.insert(edge);
+				parser->edges.insert(edge);
 			}
 		}
 	}
@@ -253,40 +266,57 @@ Automaton* Automaton::trim_and_complete(const Automaton* A, value_function_t f) 
 	weight_t sinkvalue;
 	switch(f) {
 		case Inf: case LimInf : case LimAvg:
-			sinkvalue = A->max_domain;
+			sinkvalue = A->getMaxDomain();
 			break;
 		case Sup: case LimSup:
-			sinkvalue = A->min_domain;
+			sinkvalue = A->getMinDomain();
 			break;
 		default: fail("case value function");
 	}
 
-	for (unsigned int stateA_id = 0; stateA_id < A->states->size(); ++stateA_id) {
-		if (A->states->at(stateA_id)->getTag() == -1) continue;
-		for (unsigned int symbol_id = 0; symbol_id < A->states->size(); ++symbol_id) {
-			if (parser.alphabet.contains(A->alphabet->at(symbol_id)->getName()) == false) continue;
-			if (A->states->at(stateA_id)->getAlphabet()->contains(A->alphabet->at(symbol_id)) == true) continue;
-			parser.states.insert("#sink#");
-			parser.weights.insert(sinkvalue);
+	for (unsigned int stateA_id = 0; stateA_id < A->getStates()->size(); ++stateA_id) {
+		if (A->getStates()->at(stateA_id)->getTag() == -1) continue;
+		for (unsigned int symbol_id = 0; symbol_id < A->getStates()->size(); ++symbol_id) {
+			if (parser->alphabet.contains(A->getAlphabet()->at(symbol_id)->getName()) == false) continue;
+			if (A->getStates()->at(stateA_id)->getAlphabet()->contains(A->getAlphabet()->at(symbol_id)) == true) continue;
+			parser->states.insert("#sink#");
+			parser->weights.insert(sinkvalue);
 			std::pair<std::pair<std::string, weight_t>,std::pair<std::string, std::string>> edge;
-			edge.first.first = A->alphabet->at(symbol_id)->getName();
+			edge.first.first = A->getAlphabet()->at(symbol_id)->getName();
 			edge.first.second = sinkvalue;
-			edge.second.first = A->states->at(stateA_id)->getName();
+			edge.second.first = A->getStates()->at(stateA_id)->getName();
 			edge.second.second = "#sink#";
-			parser.edges.insert(edge);
+			parser->edges.insert(edge);
 		}
 	}
 
-	for (std::string symbolname: parser.alphabet) {
+	for (std::string symbolname: parser->alphabet) {
 		std::pair<std::pair<std::string, weight_t>,std::pair<std::string, std::string>> edge;
 		edge.first.first = symbolname;
 		edge.first.second = sinkvalue;
 		edge.second.first = "#sink#";
 		edge.second.second = "#sink#";
-		parser.edges.insert(edge);
+		parser->edges.insert(edge);
 	}
 
-	return build(A->name, &parser, sync_register);
+	return parser;
+}
+
+
+Automaton::Automaton(const Automaton* A, value_function_t f) {
+	MapStd<std::string, Symbol*> sync_register;
+	Parser* parser = parse_trim_complete(A, f);
+	build(A->name, parser, sync_register);
+	delete parser;
+}
+
+
+Automaton* Automaton::copy_trim_complete(const Automaton* A, value_function_t f) {
+	MapStd<std::string, Symbol*> sync_register;
+	Parser* parser = parse_trim_complete(A, f);
+	Automaton* that = new Automaton(A->name, parser, sync_register);
+	delete parser;
+	return that;
 }
 
 
@@ -775,7 +805,7 @@ Automaton* Automaton::toLimSup (const Automaton* A, value_function_t f) {
 // -------------------------------- Decisions -------------------------------- //
 
 
-// TODO: avoid multi-call in decision procedures
+
 bool Automaton::isDeterministic () const {
 	for (unsigned int state_id = 0; state_id < this->states->size(); ++state_id) {
 		for (unsigned int symbol_id = 0; symbol_id < this->alphabet->size(); ++symbol_id) {
@@ -865,6 +895,8 @@ bool Automaton::isLimAvgConstant() const {
 	return out;
 }
 
+
+// Remark: If deterministic LimAvg then 'isDeterministic' is called twice
 bool Automaton::isConstant (value_function_t f) const {
 	if (f == LimAvg && isDeterministic() == false) {
 		return isLimAvgConstant();
