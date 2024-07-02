@@ -7,7 +7,7 @@
 
 int main(int argc, char **argv) {
 
-	Automaton* A = new Automaton("samples/test44.txt");
+	Automaton* A = new Automaton("samples/test5.txt");
 	A->print();
 	Automaton* B = Automaton::safetyClosure(A, LimAvg);
 	B->print();
