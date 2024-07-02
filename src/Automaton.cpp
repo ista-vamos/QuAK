@@ -586,7 +586,11 @@ Automaton* Automaton::safetyClosure(const Automaton* A, value_function_t f) {
 
 
 
-Automaton* Automaton::livenessComponent (const Automaton* A, value_function_t f) {
+Automaton* Automaton::livenessComponent_deterministic (const Automaton* A, value_function_t f) {
+	if (!((f == Sup || f == LimInf || f == LimSup) && A->isDeterministic())) {
+		fail("invalid automaton type for liveness component (deterministic)");
+	}
+
 	State::RESET();
 	Symbol::RESET();
 	Weight::RESET();
@@ -646,6 +650,73 @@ Automaton* Automaton::livenessComponent (const Automaton* A, value_function_t f)
 	return new Automaton(name, newalphabet, newstates, newweights, newmin_domain, newmax_domain, newinitial);
 }
 
+
+
+// TODO
+Automaton* Automaton::livenessComponent_prefixIndependent (const Automaton* A, value_function_t f) {
+	if (!(f == LimInf || f = LimSup || f == LimAvg)) {
+		fail("invalid automaton type for liveness component (prefix independent)");
+	}
+
+	State::RESET();
+	Symbol::RESET();
+	Weight::RESET();
+
+	// std::string name = "LiveOf(" + A->getName() + ")";
+
+	// MapArray<Symbol*>* newalphabet = new MapArray<Symbol*>(A->alphabet->size());
+	// for (unsigned int symbol_id = 0; symbol_id < A->alphabet->size(); ++symbol_id) {
+	// 	newalphabet->insert(symbol_id, new Symbol(A->alphabet->at(symbol_id)));
+	// }
+
+	
+	// MapArray<State*>* newstates = new MapArray<State*>(A->states->size());
+	// for (unsigned int state_id = 0; state_id < A->states->size(); ++state_id) {
+	// 	newstates->insert(state_id, new State(A->states->at(state_id)));
+	// }
+	// State* newinitial = newstates->at(A->initial->getId());
+
+	// weight_t top_values[A->nb_SCCs];
+	// A->compute_Top(f, top_values);
+
+	// SetStd<weight_t> weight_values;
+	// weight_values.insert(top_values[A->initial->getTag()]);
+	// for (unsigned int weight_id = 0; weight_id < A->weights->size(); ++weight_id) {
+	// 	weight_values.insert(A->weights->at(weight_id)->getValue());
+	// }
+	// weight_t newmin_domain = A->min_domain;//domain does not change
+	// weight_t newmax_domain = A->max_domain;//domain does not depend on weights
+
+	// MapStd<weight_t, Weight*> weight_register;
+	// MapArray<Weight*>* newweights = new MapArray<Weight*>(weight_values.size());
+	// for (weight_t value : weight_values) {
+	// 	Weight* weight = new Weight(value);
+	// 	newweights->insert(weight->getId(), weight);
+	// 	weight_register.insert(weight->getValue(), weight);
+	// }
+
+	// for (unsigned int state_id = 0; state_id < A->states->size(); ++state_id) {
+	// 	for (Symbol* symbol : *(A->states->at(state_id)->getAlphabet())) {
+	// 		for (Edge* edge : *(A->states->at(state_id)->getSuccessors(symbol->getId()))) {
+	// 			State* from = newstates->at(edge->getFrom()->getId());
+	// 			State* to = newstates->at(edge->getTo()->getId());
+	// 			weight_t value;
+	// 			if (edge->getWeight()->getValue() == top_values[from->getTag()]) {
+	// 				value = top_values[A->initial->getTag()];
+	// 			}
+	// 			else {
+	// 				value = edge->getWeight()->getValue();
+	// 			}
+	// 			Weight* weight = weight_register.at(value);
+	// 			Edge* new_edge = new Edge(newalphabet->at(symbol->getId()), weight, from, to);
+	// 			from->addSuccessor(new_edge);
+	// 			to->addPredecessor(new_edge);
+	// 		}
+	// 	}
+	// }
+
+	// return new Automaton(name, newalphabet, newstates, newweights, newmin_domain, newmax_domain, newinitial);
+}
 
 
 void explore_monotonically (
@@ -799,7 +870,75 @@ Automaton* Automaton::toLimSup (const Automaton* A, value_function_t f) {
 }
 
 
+// TODO
+Automaton* Automaton::determinizeInf (const Automaton* A) {
+	State::RESET();
+	Symbol::RESET();
+	Weight::RESET();
 
+	// void (*explore)(
+	// 		std::pair<State*, Weight*> from,
+	// 		SetStd<std::pair<State*, Weight*>> set_of_states,
+	// 		SetStd<std::pair<Symbol*, std::pair<std::pair<State*, Weight*>, std::pair<State*, Weight*>>>> set_of_edges
+	// );
+	// switch(f) {
+	// case Inf:
+	// 	explore = explore_Inf;
+	// 	break;
+	// case Sup:
+	// 	explore = explore_Sup;
+	// 	break;
+	// case LimInf:
+	// 	explore = explore_LimInf;
+	// 	break;
+	// case LimSup: case LimAvg:
+	// 	fail("invalid translation to LimSup");
+	// default:
+	// 	fail("invalid value function");
+	// }
+
+	// std::string newname = "Determinized(" + A->getName() + ")";
+
+	// MapArray<Symbol*>* newalphabet = new MapArray<Symbol*>(A->alphabet->size());
+	// for (unsigned int symbol_id = 0; symbol_id < A->alphabet->size(); ++symbol_id) {
+	// 	newalphabet->insert(symbol_id, new Symbol(A->alphabet->at(symbol_id)));
+	// }
+
+	// MapArray<Weight*>* newweights = new MapArray<Weight*>(A->weights->size());
+	// for (unsigned int weight_id = 0; weight_id < A->weights->size(); ++weight_id) {
+	// 	newweights->insert(weight_id, new Weight(A->weights->at(weight_id)));
+	// }
+
+	// weight_t newmin_domain = A->min_domain;//domain does not change
+	// weight_t newmax_domain = A->max_domain;//domain does not depend on weights
+
+	// SetStd<std::pair<State*, Weight*>> set_of_states;
+	// SetStd<std::pair<Symbol*, std::pair<std::pair<State*, Weight*>, std::pair<State*, Weight*>>>> set_of_edges;
+	// auto start = std::pair<State*, Weight*>(A->initial, A->weights->at(0));
+	// explore(start, set_of_states, set_of_edges);
+
+	// MapArray<State*>* newstates = new MapArray<State*>(A->alphabet->size());
+	// MapStd<std::pair<State*, Weight*>, State*> state_register;
+	// for (std::pair<State*, Weight*> pair : set_of_states) {
+	// 	std::string statename = "(" + pair.first->getName() + ", " + std::to_string(pair.second->getValue());
+	// 	State* state = new State(statename, newalphabet->size(), newmin_domain, newmax_domain);
+	// 	newstates->insert(state->getId(), state);
+	// 	state_register.insert(pair, state);
+	// }
+	// State* newinitial = state_register.at(start);
+
+	// for (auto pair : set_of_edges) {
+	// 	Symbol* symbol = newalphabet->at(pair.first->getId());
+	// 	Weight* weight = newweights->at(pair.second.second.second->getId());
+	// 	State* from = state_register.at(pair.second.first);
+	// 	State* to = state_register.at(pair.second.second);
+	// 	Edge *edge = new Edge(symbol, weight, from, to);
+	// 	from->addSuccessor(edge);
+	// 	to->addPredecessor(edge);
+	// }
+
+	// return new Automaton(newname, newalphabet, newstates, newweights, newmin_domain, newmax_domain, newinitial);
+}
 
 
 // -------------------------------- Decisions -------------------------------- //
