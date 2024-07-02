@@ -48,6 +48,16 @@ unsigned int SetStd<T_element>::size () const {
 	return this->all.size();
 }
 
+template <typename T_element>
+std::string SetStd<T_element>::toString (std::string (*f) (T_element)) const {
+	std::string s = "";
+	for (T_element e : this->all){
+		s.append("\n\t\t");
+		s.append(f(e));
+	}
+
+	return s;
+}
 
 
 
