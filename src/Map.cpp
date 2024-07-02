@@ -46,7 +46,7 @@ unsigned int MapStd<T_key, T_value>::size () const {
 }
 
 
-
+/*
 template <typename T_key, typename T_value>
 std::string MapStd<T_key, T_value>::toString (std::string (*f_key) (T_key key), std::string (*f_value) (T_value value)) const {
 	std::string s = "";
@@ -58,6 +58,7 @@ std::string MapStd<T_key, T_value>::toString (std::string (*f_key) (T_key key), 
 	}
 	return s;
 }
+*/
 
 
 

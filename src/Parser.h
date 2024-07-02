@@ -16,7 +16,7 @@ public:
 	weight_t max_domain = 0;
 	SetStd<std::string> states;
 	SetStd<std::string> alphabet;
-	SetStd<weight_t> weights;
+	SetSorted<weight_t> weights;
 	SetStd<std::pair<std::pair<std::string, weight_t>,std::pair<std::string, std::string>>> edges;
 	Parser(weight_t min_domain, weight_t max_domain);
 	Parser (std::string filename);

@@ -7,6 +7,7 @@
 #include <string>
 #include <map>
 #include <unordered_map>
+#include "hash.h"
 
 
 template <typename T_key, typename T_value>
@@ -22,7 +23,7 @@ public:
 	T_value at (T_key key);
 	bool contains (T_key key) { return all.find(key) != all.end(); };
 	void update (T_key key, T_value value);
-	std::string toString(std::string (*f_key) (T_key key), std::string (*f_value) (T_value value)) const;
+	//std::string toString(std::string (*f_key) (T_key key), std::string (*f_value) (T_value value)) const;
 	void clear () { all.clear(); }
 	auto begin() {return all.begin();};
 	auto end() {return all.end();};
@@ -44,6 +45,7 @@ public:
 	T_value at (unsigned int key) const;
 	std::string toString(std::string (*f_value) (T_value value)) const;
 };
+
 
 
 

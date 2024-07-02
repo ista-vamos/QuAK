@@ -2,6 +2,29 @@
 #include "Set.h"
 #include "utility.h"
 
+
+
+// -------------------------------- SetSorted -------------------------------- //
+
+template <typename T_element>
+SetSorted<T_element>::SetSorted() {}
+
+template <typename T_element>
+SetSorted<T_element>::~SetSorted() { delete_verbose("@Memory: SetStd deleted\n"); }
+
+
+template <typename T_element>
+void SetSorted<T_element>::insert (T_element element) { this->all.insert(element); }
+
+
+template <typename T_element>
+unsigned int SetSorted<T_element>::size () const {
+	return this->all.size();
+}
+
+
+
+
 // -------------------------------- SetStd -------------------------------- //
 
 template <typename T_element>
@@ -15,6 +38,7 @@ template <typename T_element>
 void SetStd<T_element>::insert (T_element element) { this->all.insert(element); }
 
 
+
 template <typename T_element>
 void SetStd<T_element>::erase (T_element element) { this->all.erase(element); }
 
@@ -25,23 +49,14 @@ unsigned int SetStd<T_element>::size () const {
 }
 
 
-template <typename T_element>
-std::string SetStd<T_element>::toString (std::string (*f) (T_element)) const {
-	std::string s = "";
-	for (T_element e : this->all){
-		s.append("\n\t\t");
-		s.append(f(e));
-	}
-
-	return s;
-}
-
 
 
 
 // -------------------------------- SetList -------------------------------- //
 
 
+template <typename T_element>
+SetList<T_element>::SetList(SetList<T_element>* to_copy) : all(to_copy->all) {}
 
 template <typename T_element>
 SetList<T_element>::SetList() {}
