@@ -1287,7 +1287,7 @@ void Automaton::top_avg_tree (SCC_Tree* tree, weight_t* top_values) const {
 weight_t Automaton::top_LimAvg (weight_t* top_values) const {
 	unsigned int size = this->states->size();
 	weight_t distance[size + 1][size];
-	weight_t infinity = -(size*(this->min_domain)) - 1;
+	weight_t infinity = -(size*(this->min_domain)) + 1;
 
 	// O(n)
 	for (unsigned int length = 0; length <= size; ++length) {
