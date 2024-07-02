@@ -965,7 +965,7 @@ bool Automaton::isUniversal (value_function_t f, weight_t x) const {
 
 
 
-
+// FIXME: wrong output on safety closure of test44.txt
 bool Automaton::isLimAvgConstant() const {
 	weight_t top = getTopValue(LimAvg);
 
@@ -1036,7 +1036,6 @@ bool Automaton::isLimAvgConstant() const {
 }
 
 
-// Remark: If deterministic LimAvg then 'isDeterministic' is called twice
 bool Automaton::isConstant (value_function_t f) const {
 	if (f == LimAvg && isDeterministic() == false) {
 		return isLimAvgConstant();
@@ -1083,17 +1082,27 @@ bool Automaton::isIncludedIn(const Automaton* B, value_function_t f) const {
 
 bool Automaton::isSafe (value_function_t f) const {
 	Automaton* S = Automaton::safetyClosure(this, f);
-	bool out = S->isIncludedIn(this, f);
+	bool out;
+
+	if (f == LimAvg && !this->isDeterministic()) {
+		Automaton* SS = Automaton::determinizeInf(S);
+		Automaton* C = Automaton::product(this, Minus, SS);
+		out = C->isLimAvgConstant();
+		delete SS;
+		delete C;
+	}
+	else {
+		out = S->isIncludedIn(this, f);
+	}
+
 	delete S;
 	return out;
 }
 
 bool Automaton::isLive (value_function_t f) const {
 	Automaton* S = Automaton::safetyClosure(this, f);
-	Automaton* C = Automaton::product(this, Minus, S);
-	bool out = C->isConstant(f);
+	bool out = S->isConstant(f);
 	delete S;
-	delete C;
 	return out;
 }
 

@@ -7,12 +7,13 @@
 
 int main(int argc, char **argv) {
 
-	Automaton* A = new Automaton("samples/test3.txt");
+	Automaton* A = new Automaton("samples/test44.txt");
 	A->print();
-
-	Automaton* B = Automaton::toLimSup(A, Sup);
+	Automaton* B = Automaton::safetyClosure(A, LimAvg);
 	B->print();
 
+	std::cout << A->isLimAvgConstant() << std::endl;
+	std::cout << B->isLimAvgConstant() << std::endl;
 	
 	delete A;
 	delete B;
