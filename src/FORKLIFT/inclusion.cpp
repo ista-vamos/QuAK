@@ -84,13 +84,13 @@ bool fast_membership (TargetOf* U, Word* period, weight_t threshold) {
 bool inclusion (const Automaton* A, const Automaton* B)  {
 
 	unsigned int iter_W = 1;
-	printf("MAX prefixes fix-point: computing ... ( %u iterations )\r", iter_W);fflush(stdout);
+	// printf("MAX prefixes fix-point: computing ... ( %u iterations )\r", iter_W);fflush(stdout);
 	FixpointStem* postIrev = new FixpointStem(A->getInitial(), B->getInitial(), true);
 	while (postIrev->apply()) {
 		iter_W++;
-		printf("MAX prefixes fix-point: computing ... ( %u iterations )\r", iter_W);fflush(stdout);
+		// printf("MAX prefixes fix-point: computing ... ( %u iterations )\r", iter_W);fflush(stdout);
 	}
-	printf("MAX prefixes fix-point: done ( %u iterations )          \n", iter_W);fflush(stdout);
+	// printf("MAX prefixes fix-point: done ( %u iterations )          \n", iter_W);fflush(stdout);
 	/*
 	for (unsigned int stateA_id = 0; stateA_id < A->getStates()->size(); ++stateA_id) {
 		State* stateA = A->getStates()->at(stateA_id);
@@ -104,13 +104,13 @@ bool inclusion (const Automaton* A, const Automaton* B)  {
 
 
 	unsigned int iter_U = 1;
-	printf("MIN prefixes fix-point: computing ... ( %u iterations )\r", iter_U);fflush(stdout);
+	// printf("MIN prefixes fix-point: computing ... ( %u iterations )\r", iter_U);fflush(stdout);
 	FixpointStem* postI = new FixpointStem(A->getInitial(), B->getInitial(), false);
 	while (postI->apply()) {
 		iter_U++;
-		printf("MIN prefixes fix-point: computing ... ( %u iterations )\r", iter_U);fflush(stdout);
+		// printf("MIN prefixes fix-point: computing ... ( %u iterations )\r", iter_U);fflush(stdout);
 	}
-	printf("MIN prefixes fix-point: done ( %u iterations )          \n", iter_U);fflush(stdout);
+	// printf("MIN prefixes fix-point: done ( %u iterations )          \n", iter_U);fflush(stdout);
 	/*
 	for (unsigned int stateA_id = 0; stateA_id < A->getStates()->size(); ++stateA_id) {
 		State* stateA = A->getStates()->at(stateA_id);
@@ -131,12 +131,12 @@ bool inclusion (const Automaton* A, const Automaton* B)  {
 
 		final_counter++;
 		State* stateA = A->getStates()->at(stateA_id);
-		printf("State: %s (%u, %u/%u)\n",
-				stateA->getName().c_str(),
-				final_counter,
-				stateA_id,
-				A->getStates()->size()
-		);fflush(stdout);
+		// printf("State: %s (%u, %u/%u)\n",
+		// 		stateA->getName().c_str(),
+		// 		final_counter,
+		// 		stateA_id,
+		// 		A->getStates()->size()
+		// );fflush(stdout);
 
 		unsigned int max_counter = 0;
 		SetStd<std::pair<TargetOf*, Word*>>* setW = postIrev->getSetOfTargetsOrNULL(stateA);
@@ -147,21 +147,21 @@ bool inclusion (const Automaton* A, const Automaton* B)  {
 
 			TargetOf* W = pairW.first;
 			Word* word_of_W = pairW.second; // unused
-			printf("\tMax Prefix: %s (%u/%u)\n",
-					word_of_W->toString().c_str(),
-					max_counter,
-					setW->size()
-			);fflush(stdout);
+			// printf("\tMax Prefix: %s (%u/%u)\n",
+			// 		word_of_W->toString().c_str(),
+			// 		max_counter,
+			// 		setW->size()
+			// );fflush(stdout);
 
 
 			unsigned int iter_V_local = 1;
-			printf("\t\tPeriod fix-point: computing ... ( %u iterations )\r", iter_V_local);fflush(stdout);
+			// printf("\t\tPeriod fix-point: computing ... ( %u iterations )\r", iter_V_local);fflush(stdout);
 			FixpointLoop* postF = new FixpointLoop(stateA, W, B->getWeights()->size());
 			while (postF->apply()) {
 				iter_V_local++;
-				printf("\t\tPeriod fix-point: computing ... ( %u iterations )\r", iter_V_local);fflush(stdout);
+				// printf("\t\tPeriod fix-point: computing ... ( %u iterations )\r", iter_V_local);fflush(stdout);
 			}
-			printf("\t\tPeriod fix-point: done ( %u iterations )          \n", iter_V_local);fflush(stdout);
+			// printf("\t\tPeriod fix-point: done ( %u iterations )          \n", iter_V_local);fflush(stdout);
 
 			unsigned int period_counter = 0;
 			SetStd<std::pair<ContextOf*, std::pair<Word*,weight_t>>>* setV = postF->getSetOfContextsOrNULL(stateA);
@@ -176,11 +176,11 @@ bool inclusion (const Automaton* A, const Automaton* B)  {
 				Word* word_of_V = pairV.second.first;
 				weight_t valueA = pairV.second.second;
 
-				printf("\t\tPeriod: %s (%u/%u)\n",
-						pairV.second.first->toString().c_str(),
-						period_counter,
-						setV->size()
-				);fflush(stdout);
+				// printf("\t\tPeriod: %s (%u/%u)\n",
+				// 		pairV.second.first->toString().c_str(),
+				// 		period_counter,
+				// 		setV->size()
+				// );fflush(stdout);
 
 
 				if (relevance_test(W, V, B) == false) continue;
@@ -192,17 +192,18 @@ bool inclusion (const Automaton* A, const Automaton* B)  {
 
 					if (U->smaller_than(W) == true) {
 						membership_counter++;
-						printf("\t\t\tMEMBERSHIP %u: %s < %s\n",
-								membership_counter,
-								word_of_U->toString().c_str(),
-								pairW.second->toString().c_str()
-						);fflush(stdout);
+						// printf("\t\t\tMEMBERSHIP %u: %s < %s\n",
+						// 		membership_counter,
+						// 		word_of_U->toString().c_str(),
+						// 		pairW.second->toString().c_str()
+						// );fflush(stdout);
 
 						if (fast_membership(U, word_of_V, valueA) == false) {
-							printf("witness: %s cycle{ %s }\n", word_of_U->toString().c_str(), word_of_V->toString().c_str());
+							// printf("witness: %s cycle{ %s }\n", word_of_U->toString().c_str(), word_of_V->toString().c_str());
 							delete postF;
 							delete postI;
 							delete postIrev;
+							// printf("FALSE\n");
 							return false;
 						}
 					}
@@ -214,7 +215,7 @@ bool inclusion (const Automaton* A, const Automaton* B)  {
 	delete postI;
 	delete postIrev;
 
-	printf("TRUE\n");
+	// printf("TRUE\n");
 	return true;
 }
 

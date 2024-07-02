@@ -720,9 +720,9 @@ Automaton* Automaton::livenessComponent_prefixIndependent (const Automaton* A, v
 
 
 void explore_monotonically (
-		std::pair<State*, Weight*> from,
-		SetStd<std::pair<State*, Weight*>> set_of_states,
-		SetStd<std::pair<Symbol*, std::pair<std::pair<State*, Weight*>, std::pair<State*, Weight*>>>> set_of_edges,
+		std::pair<State*, Weight*> &from,
+		SetStd<std::pair<State*, Weight*>> &set_of_states,
+		SetStd<std::pair<Symbol*, std::pair<std::pair<State*, Weight*>, std::pair<State*, Weight*>>>> &set_of_edges,
 		Weight* (*select_weight)(Weight*, Weight*)
 ) {
 	set_of_states.insert(from);
@@ -744,9 +744,9 @@ void explore_monotonically (
 
 
 void explore_Inf (
-		std::pair<State*, Weight*> from,
-		SetStd<std::pair<State*, Weight*>> set_of_states,
-		SetStd<std::pair<Symbol*, std::pair<std::pair<State*, Weight*>, std::pair<State*, Weight*>>>> set_of_edges
+		std::pair<State*, Weight*> &from,
+		SetStd<std::pair<State*, Weight*>> &set_of_states,
+		SetStd<std::pair<Symbol*, std::pair<std::pair<State*, Weight*>, std::pair<State*, Weight*>>>> &set_of_edges
 ){
 	Weight* (*select_weight)(Weight*, Weight*);
 	select_weight = [] (Weight* x, Weight* y) -> Weight* {
@@ -757,9 +757,9 @@ void explore_Inf (
 
 
 void explore_Sup (
-		std::pair<State*, Weight*> from,
-		SetStd<std::pair<State*, Weight*>> set_of_states,
-		SetStd<std::pair<Symbol*, std::pair<std::pair<State*, Weight*>, std::pair<State*, Weight*>>>> set_of_edges
+		std::pair<State*, Weight*> &from,
+		SetStd<std::pair<State*, Weight*>> &set_of_states,
+		SetStd<std::pair<Symbol*, std::pair<std::pair<State*, Weight*>, std::pair<State*, Weight*>>>> &set_of_edges
 ){
 	Weight* (*select_weight)(Weight*, Weight*);
 	select_weight = [] (Weight* x, Weight* y) -> Weight* {
@@ -770,9 +770,9 @@ void explore_Sup (
 
 
 void explore_LimInf (
-		std::pair<State*, Weight*> from,
-		SetStd<std::pair<State*, Weight*>> set_of_states,
-		SetStd<std::pair<Symbol*, std::pair<std::pair<State*, Weight*>, std::pair<State*, Weight*>>>> set_of_edges
+		std::pair<State*, Weight*> &from,
+		SetStd<std::pair<State*, Weight*>> &set_of_states,
+		SetStd<std::pair<Symbol*, std::pair<std::pair<State*, Weight*>, std::pair<State*, Weight*>>>> &set_of_edges
 ) {
 	set_of_states.insert(from);
 
@@ -800,26 +800,29 @@ void explore_LimInf (
 }
 
 
-// FIXME: crashes because set_of_states is not populated
 Automaton* Automaton::toLimSup (const Automaton* A, value_function_t f) {
 	State::RESET();
 	Symbol::RESET();
 	Weight::RESET();
 
+	int initWeightId;
 	void (*explore)(
-			std::pair<State*, Weight*> from,
-			SetStd<std::pair<State*, Weight*>> set_of_states,
-			SetStd<std::pair<Symbol*, std::pair<std::pair<State*, Weight*>, std::pair<State*, Weight*>>>> set_of_edges
+			std::pair<State*, Weight*> &from,
+			SetStd<std::pair<State*, Weight*>> &set_of_states,
+			SetStd<std::pair<Symbol*, std::pair<std::pair<State*, Weight*>, std::pair<State*, Weight*>>>> &set_of_edges
 	);
 	switch(f) {
 	case Inf:
 		explore = explore_Inf;
+		initWeightId = A->getWeights()->size() - 1;
 		break;
 	case Sup:
 		explore = explore_Sup;
+		initWeightId = 0;
 		break;
 	case LimInf:
 		explore = explore_LimInf;
+		initWeightId = 0;
 		break;
 	case LimSup: case LimAvg:
 		fail("invalid translation to LimSup");
@@ -834,23 +837,26 @@ Automaton* Automaton::toLimSup (const Automaton* A, value_function_t f) {
 		newalphabet->insert(symbol_id, new Symbol(A->alphabet->at(symbol_id)));
 	}
 
+	// TODO: it may be that some weights are not seen in the limsup automaton
 	MapArray<Weight*>* newweights = new MapArray<Weight*>(A->weights->size());
 	for (unsigned int weight_id = 0; weight_id < A->weights->size(); ++weight_id) {
 		newweights->insert(weight_id, new Weight(A->weights->at(weight_id)));
 	}
 
+	// TODO: should we adjust the domain with the new weights?
 	weight_t newmin_domain = A->min_domain;//domain does not change
 	weight_t newmax_domain = A->max_domain;//domain does not depend on weights
 
 	SetStd<std::pair<State*, Weight*>> set_of_states;
 	SetStd<std::pair<Symbol*, std::pair<std::pair<State*, Weight*>, std::pair<State*, Weight*>>>> set_of_edges;
-	auto start = std::pair<State*, Weight*>(A->initial, A->weights->at(0));
+	auto start = std::pair<State*, Weight*>(A->initial, A->weights->at(initWeightId));
 	explore(start, set_of_states, set_of_edges);
 
-	MapArray<State*>* newstates = new MapArray<State*>(A->alphabet->size());
+	// MapArray<State*>* newstates = new MapArray<State*>(A->alphabet->size());
+	MapArray<State*>* newstates = new MapArray<State*>(set_of_states.size());
 	MapStd<std::pair<State*, Weight*>, State*> state_register;
 	for (std::pair<State*, Weight*> pair : set_of_states) {
-		std::string statename = "(" + pair.first->getName() + ", " + std::to_string(pair.second->getValue());
+		std::string statename = "(" + pair.first->getName() + ", " + std::to_string(pair.second->getValue()) + ")";
 		State* state = new State(statename, newalphabet->size(), newmin_domain, newmax_domain);
 		newstates->insert(state->getId(), state);
 		state_register.insert(pair, state);
@@ -965,7 +971,6 @@ bool Automaton::isUniversal (value_function_t f, weight_t x) const {
 
 
 
-// FIXME: wrong output on safety closure of test44.txt
 bool Automaton::isLimAvgConstant() const {
 	weight_t top = getTopValue(LimAvg);
 
@@ -992,7 +997,7 @@ bool Automaton::isLimAvgConstant() const {
 	Symbol::RESET();
 	Weight::RESET();
 
-	std::string newname = "Lol(" + this->getName() + ")";
+	std::string newname = "Dist(" + this->getName() + ")";
 
 	MapArray<Symbol*>* newalphabet = new MapArray<Symbol*>(this->alphabet->size());
 	for (unsigned int symbol_id = 0; symbol_id < this->alphabet->size(); ++symbol_id) {
@@ -1004,6 +1009,32 @@ bool Automaton::isLimAvgConstant() const {
 		newstates->insert(state_id, new State(this->states->at(state_id)));
 	}
 	State* newinitial = newstates->at(this->initial->getId());
+
+	bool weightsSeen[2];
+	weightsSeen[0] = false;
+	weightsSeen[1] = false;
+	for (unsigned int state_id = 0; state_id < this->states->size(); ++state_id) {
+		for (Symbol* symbol : *(this->states->at(state_id)->getAlphabet())) {
+			for (Edge* edge : *(this->states->at(state_id)->getSuccessors(symbol->getId()))) {
+				unsigned int u = edge->getFrom()->getId();
+				unsigned int v = edge->getTo()->getId();
+				if ((edge->getWeight()->getValue() - dist[u] + dist[v]) == top) {
+					weightsSeen[1] = true;
+				}
+				else {
+					weightsSeen[0] = true;
+				}
+			}
+		}
+	}
+
+	// TODO: check this. can it be that all weights are zero? is that relevant?
+	if (weightsSeen[0] && !weightsSeen[1]) {
+		return false;
+	}
+	if (!weightsSeen[0] && weightsSeen[1]) {
+		return true; 
+	}
 
 	MapArray<Weight*>* newweights = new MapArray<Weight*>(2);
 	for (unsigned int weight_id = 0; weight_id < 2; ++weight_id) {
@@ -1029,9 +1060,12 @@ bool Automaton::isLimAvgConstant() const {
 		}
 	}
 
-	Automaton* LOL = new Automaton(newname, newalphabet, newstates, newweights, 0, 1, newinitial);
-	bool out = isUniversal(LimInf, 1);
-	delete LOL;
+
+
+	Automaton* Dist = new Automaton(newname, newalphabet, newstates, newweights, 0, 1, newinitial);
+	bool out = Dist->isUniversal(LimInf, 1);
+	Dist->print();
+	delete Dist;
 	return out;
 }
 
@@ -1175,7 +1209,7 @@ weight_t Automaton::top_LimSup (weight_t* top_values) const {
 }
 
 
-void Automaton::top_safety_scc_recursive (Edge* edge, bool in_scc, int* values, int** counters) const {
+void Automaton::top_safety_scc_recursive (Edge* edge, bool in_scc, weight_t* values, int** counters) const {
 	State* state = edge->getFrom();
 	if (counters[state->getId()][edge->getSymbol()->getId()] == 0) return;
 
@@ -1287,7 +1321,7 @@ void Automaton::top_avg_tree (SCC_Tree* tree, weight_t* top_values) const {
 weight_t Automaton::top_LimAvg (weight_t* top_values) const {
 	unsigned int size = this->states->size();
 	weight_t distance[size + 1][size];
-	weight_t infinity = -(size*(this->min_domain)) - 1;
+	weight_t infinity = -(size*(this->min_domain)) - 1; // TODO?
 
 	// O(n)
 	for (unsigned int length = 0; length <= size; ++length) {

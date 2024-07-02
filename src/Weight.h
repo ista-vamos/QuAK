@@ -5,7 +5,8 @@
 #include <string>
 
 // int, float, double
-typedef int weight_t;
+// TODO
+typedef float weight_t;
 
 class Weight {
 private:
