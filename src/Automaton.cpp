@@ -1029,6 +1029,9 @@ bool Automaton::isLimAvgConstant() const {
 	}
 
 	// TODO: check this. can it be that all weights are zero? is that relevant?
+	// yes, all weights might be zero here
+	// like in booleanize, putting both 0 and 1 is a simplification
+	// trim notices if a weight is not used (but in this case it is not a big expense)
 	if (weightsSeen[0] && !weightsSeen[1]) {
 		return false;
 	}
