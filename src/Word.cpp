@@ -24,10 +24,10 @@ Word::Word (Word* word, Symbol* symbol) {
 unsigned int Word::getLength () {
 	return this->all->size();
 }
-
 Symbol* Word::at (unsigned int i) {
 	return this->all->at(i);
 }
+
 
 std::string Word::toString() {
 	std::string s = "";

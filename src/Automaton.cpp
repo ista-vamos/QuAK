@@ -552,7 +552,7 @@ Automaton* Automaton::safetyClosure(const Automaton* A, value_function_t f) {
 	weight_t top_values[A->nb_SCCs];
 	A->compute_Top(f, top_values);
 
-	SetStd<weight_t> weight_values;
+	SetSorted<weight_t> weight_values;
 	MapStd<weight_t, Weight*> weight_register;
 	for (unsigned int scc_id = 0; scc_id < A->nb_SCCs; ++scc_id) {
 		weight_values.insert(top_values[scc_id]);
@@ -611,7 +611,7 @@ Automaton* Automaton::livenessComponent_deterministic (const Automaton* A, value
 	weight_t top_values[A->nb_SCCs];
 	A->compute_Top(f, top_values);
 
-	SetStd<weight_t> weight_values;
+	SetSorted<weight_t> weight_values;
 	weight_values.insert(top_values[A->initial->getTag()]);
 	for (unsigned int weight_id = 0; weight_id < A->weights->size(); ++weight_id) {
 		weight_values.insert(A->weights->at(weight_id)->getValue());

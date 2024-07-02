@@ -31,7 +31,7 @@ bool fast_iterable_final_product (State* from, unsigned int i, Word* period) {
 	S.insert(std::pair<State*,std::pair<unsigned int, bool>>(from, std::pair<unsigned int, bool>(i, true)));
 
 	for (Edge* edge : *(from->getSuccessors(period->at(i)->getId()))) {
-		unsigned int ii = (i+1 == period->getLength())?0:i+1;
+		unsigned int ii = ((i+1 == period->getLength()) ? 0 : i+1);
 		if (P.contains(edge->getTo())) return true;
 		if (S.contains(std::pair<State*,std::pair<unsigned int, bool>>(edge->getTo(), std::pair<unsigned int, bool>(ii, true))) == false) {
 			if (fast_iterable_final_product(edge->getTo(), ii, period) == true) return true;
@@ -48,16 +48,15 @@ bool fast_reachable_final_product (State* from, unsigned int i, Word* period, we
 	P.insert(from);
 
 	for (Edge* edge : *(from->getSuccessors(period->at(i)->getId()))) {
-		unsigned int ii = (i+1 == period->getLength())?0:i+1;
+		unsigned int ii = ((i+1 == period->getLength()) ? 0 : i+1);
 		if (S.contains(std::pair<State*,std::pair<unsigned int, bool>>(edge->getTo(), std::pair<unsigned int, bool>(ii, false))) == false) {
 			if (fast_reachable_final_product(edge->getTo(), ii, period, threshold) == true) return true;
 		}
 	}
 
-
 	for (Edge* edge : *(from->getSuccessors(period->at(i)->getId()))) {
 		if (edge->getWeight()->getValue() >= threshold) {
-			unsigned int ii = (i+1 == period->getLength())?0:i+1;
+			unsigned int ii = ((i+1 == period->getLength()) ? 0 : i+1);
 			if (P.contains(edge->getTo())) return true;
 			if (S.contains(std::pair<State*,std::pair<unsigned int, bool>>(edge->getTo(), std::pair<unsigned int, bool>(ii, true))) == false) {
 				if (fast_iterable_final_product(edge->getTo(), ii, period) == true) return true;
