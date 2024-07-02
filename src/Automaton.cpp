@@ -654,7 +654,7 @@ Automaton* Automaton::livenessComponent_deterministic (const Automaton* A, value
 
 // TODO
 Automaton* Automaton::livenessComponent_prefixIndependent (const Automaton* A, value_function_t f) {
-	if (!(f == LimInf || f = LimSup || f == LimAvg)) {
+	if (!(f == LimInf || f == LimSup || f == LimAvg)) {
 		fail("invalid automaton type for liveness component (prefix independent)");
 	}
 
@@ -800,6 +800,7 @@ void explore_LimInf (
 }
 
 
+// FIXME: crashes because set_of_states is not populated
 Automaton* Automaton::toLimSup (const Automaton* A, value_function_t f) {
 	State::RESET();
 	Symbol::RESET();
@@ -1421,7 +1422,7 @@ void Automaton::print () const {
 	std::cout << states->toString(State::toString) << "\n";
 	std::cout << "\t\tINITIAL = " << initial->getName() << "\n";
 	/*std::cout << "\tSCCs (" << this->nb_SCCs << "):";
-	std::cout << this->SCCs_tree->toString("\t\t") << "\n";
+	std::cout << this->SCCs_tree->toString("\t\t") << "\n";*/
 	unsigned int nb_edge = 0;
 	for (unsigned int state_id = 0; state_id < states->size(); ++state_id) {
 		for (Symbol* symbol : *(states->at(state_id)->getAlphabet())) {
@@ -1434,7 +1435,7 @@ void Automaton::print () const {
 			std::cout << states->at(state_id)->getSuccessors(symbol->getId())->toString(Edge::toString);
 		}
 	}
-	std::cout << "\n";*/
+	std::cout << "\n";
 }
 
 

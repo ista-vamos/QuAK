@@ -6,23 +6,19 @@
 #include "Word.h"
 
 int main(int argc, char **argv) {
-/*
+
 	Automaton* A = new Automaton("samples/test3.txt");
 	A->print();
 
-	Automaton* B = A->safetyClosure(LimSup);
+	Automaton* B = Automaton::toLimSup(A, Sup);
 	B->print();
 
-	Automaton* C = A->livenessComponent_det(LimSup);
-	C->print();
 	
 	delete A;
 	delete B;
-	delete C;
-*/
 
 
-	debug_test();
+	// debug_test();
 
 
 
