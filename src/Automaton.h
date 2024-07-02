@@ -60,10 +60,9 @@ private:
 	static Automaton* product(const Automaton* A, aggregator_t aggregator, const Automaton* B);
 	static Automaton* constantAutomaton (const Automaton* A, weight_t x);
 	static Automaton* booleanize(const Automaton* A, weight_t x);
-	static Automaton* toLimSup (const Automaton* A, value_function_t f);
+	static Automaton* determinizeInf (const Automaton* A);
 
 	bool isDeterministic () const;
-	bool isLimAvgConstant() const;
 	void compute_SCC (void);
 	void invert_weights() const;
 
@@ -89,7 +88,10 @@ public:
 	Automaton(std::string filename, Automaton* other = nullptr);
 	static Automaton* from_file_sync_alphabet(std::string filename, Automaton* other = nullptr);
 	static Automaton* safetyClosure(const Automaton* A, value_function_t value_function);
-	static Automaton* livenessComponent (const Automaton* A, value_function_t type);
+	static Automaton* livenessComponent_deterministic (const Automaton* A, value_function_t type);
+	static Automaton* livenessComponent_prefixIndependent (const Automaton* A, value_function_t type);
+	static Automaton* toLimSup (const Automaton* A, value_function_t f); // TODO: make private
+	bool isLimAvgConstant() const; // TODO: make private
 
 	void print () const;
 	std::string getName() const;

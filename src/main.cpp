@@ -6,23 +6,20 @@
 #include "Word.h"
 
 int main(int argc, char **argv) {
-/*
-	Automaton* A = new Automaton("samples/test3.txt");
-	A->print();
 
-	Automaton* B = A->safetyClosure(LimSup);
+	Automaton* A = new Automaton("samples/test44.txt");
+	A->print();
+	Automaton* B = Automaton::safetyClosure(A, LimAvg);
 	B->print();
 
-	Automaton* C = A->livenessComponent_det(LimSup);
-	C->print();
+	std::cout << A->isLimAvgConstant() << std::endl;
+	std::cout << B->isLimAvgConstant() << std::endl;
 	
 	delete A;
 	delete B;
-	delete C;
-*/
 
 
-	debug_test();
+	// debug_test();
 
 
 
