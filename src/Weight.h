@@ -5,7 +5,6 @@
 #include <string>
 
 // int, float, double
-// TODO
 typedef float weight_t;
 
 class Weight {

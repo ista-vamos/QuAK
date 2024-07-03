@@ -209,6 +209,7 @@ Automaton* Automaton::product(const Automaton* A, aggregator_t f, const Automato
 		if (A->states->at(stateA_id)->getTag() == -1) continue;
 		for (unsigned int stateB_id = 0; stateB_id < B->states->size(); ++stateB_id) {
 			if (B->states->at(stateB_id)->getTag() == -1) continue;
+
 			for (Symbol* symbol : *(A->states->at(stateA_id)->getAlphabet())) {
 				if (B->alphabet->size() <= symbol->getId()) continue;
 				if (B->alphabet->at(symbol->getId())->getName() != symbol->getName()) fail("product with unsynchronized alphabet");
@@ -224,6 +225,10 @@ Automaton* Automaton::product(const Automaton* A, aggregator_t f, const Automato
 						parser.weights.insert(weightvalue);
 						parser.states.insert(fromname);
 						parser.states.insert(toname);
+
+						if (A->initial->getId() == stateA_id && B->initial->getId() == stateB_id) {
+							parser.initial = fromname;
+						}
 
 						std::pair<std::pair<std::string, weight_t>,std::pair<std::string, std::string>> edge;
 						edge.first.first = symbolname;
@@ -573,7 +578,8 @@ Automaton* Automaton::safetyClosure(const Automaton* A, value_function_t f) {
 				Symbol* symbol = newalphabet->at(edge->getSymbol()->getId());
 				State* from = newstates->at(edge->getFrom()->getId());
 				State* to = newstates->at(edge->getTo()->getId());
-				Weight* weight = weight_register.at(top_values[edge->getFrom()->getTag()]);
+				// Weight* weight = weight_register.at(top_values[edge->getFrom()->getTag()]);
+				Weight* weight = weight_register.at(top_values[edge->getTo()->getTag()]); // TODO: confirm
 				Edge* newedge = new Edge(symbol, weight, from, to);
 				from->addSuccessor(newedge);
 				to->addPredecessor(newedge);
@@ -1028,10 +1034,6 @@ bool Automaton::isLimAvgConstant() const {
 		}
 	}
 
-	// TODO: check this. can it be that all weights are zero? is that relevant?
-	// yes, all weights might be zero here
-	// like in booleanize, putting both 0 and 1 is a simplification
-	// trim notices if a weight is not used (but in this case it is not a big expense)
 	if (weightsSeen[0] && !weightsSeen[1]) {
 		return false;
 	}
@@ -1063,11 +1065,9 @@ bool Automaton::isLimAvgConstant() const {
 		}
 	}
 
-
-
 	Automaton* Dist = new Automaton(newname, newalphabet, newstates, newweights, 0, 1, newinitial);
 	bool out = Dist->isUniversal(LimInf, 1);
-	Dist->print();
+	// Dist->print();
 	delete Dist;
 	return out;
 }
@@ -1089,7 +1089,7 @@ bool Automaton::isIncludedIn(const Automaton* B, value_function_t f) const {
 			Automaton* C = Automaton::product(this, Minus, B);
 			weight_t Ctop = C->getTopValue(f);
 			delete C;
-			return (Ctop < 0);
+			return (Ctop <= 0);
 		}
 		else {
 			fail("automata inclusion undecidable for nondeterministic limavg");
@@ -1274,11 +1274,12 @@ void Automaton::top_safety_scc (weight_t* values, bool in_scc) const {
 	}
 }
 
-
-weight_t Automaton::top_Inf () const {
+// TODO
+weight_t Automaton::top_Inf (weight_t* top_values) const {
 	weight_t values[this->states->size()];
 	top_safety_scc(values, false);
 	return values[this->initial->getId()];
+	// return top_values[this->SCCs_tree->origin->getTag()];
 }
 
 
@@ -1324,7 +1325,8 @@ void Automaton::top_avg_tree (SCC_Tree* tree, weight_t* top_values) const {
 weight_t Automaton::top_LimAvg (weight_t* top_values) const {
 	unsigned int size = this->states->size();
 	weight_t distance[size + 1][size];
-	weight_t infinity = -(size*(this->min_domain)) + 1;
+	// weight_t infinity = this->max_domain + 1;
+	weight_t infinity = this->max_domain;
 
 	// O(n)
 	for (unsigned int length = 0; length <= size; ++length) {
@@ -1396,7 +1398,7 @@ weight_t Automaton::top_LimAvg (weight_t* top_values) const {
 weight_t Automaton::compute_Top (value_function_t f, weight_t* top_values) const {
 	switch (f) {
 		case Inf:
-			return top_Inf();
+			return top_Inf(top_values);
 		case Sup:
 			return top_Sup(top_values);
 		case LimInf:
