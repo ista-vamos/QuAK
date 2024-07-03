@@ -5,6 +5,8 @@
 #include "utility.h"
 #include "FORKLIFT/inclusion.h"
 #include <set>
+#include <string>
+#include <vector>
 
 
 class SCC_Tree {
@@ -280,9 +282,10 @@ Parser* parse_trim_complete(const Automaton* A, value_function_t f) {
 		default: fail("case value function");
 	}
 
+	bool sinkFlag = false;
 	for (unsigned int stateA_id = 0; stateA_id < A->getStates()->size(); ++stateA_id) {
 		if (A->getStates()->at(stateA_id)->getTag() == -1) continue;
-		for (unsigned int symbol_id = 0; symbol_id < A->getStates()->size(); ++symbol_id) {
+		for (unsigned int symbol_id = 0; symbol_id < A->getAlphabet()->size(); ++symbol_id) {
 			if (parser->alphabet.contains(A->getAlphabet()->at(symbol_id)->getName()) == false) continue;
 			if (A->getStates()->at(stateA_id)->getAlphabet()->contains(A->getAlphabet()->at(symbol_id)) == true) continue;
 			parser->states.insert("#sink#");
@@ -293,17 +296,22 @@ Parser* parse_trim_complete(const Automaton* A, value_function_t f) {
 			edge.second.first = A->getStates()->at(stateA_id)->getName();
 			edge.second.second = "#sink#";
 			parser->edges.insert(edge);
+			sinkFlag = true;
 		}
 	}
 
-	for (std::string symbolname: parser->alphabet) {
-		std::pair<std::pair<std::string, weight_t>,std::pair<std::string, std::string>> edge;
-		edge.first.first = symbolname;
-		edge.first.second = sinkvalue;
-		edge.second.first = "#sink#";
-		edge.second.second = "#sink#";
-		parser->edges.insert(edge);
+	if (sinkFlag) {
+		for (std::string symbolname: parser->alphabet) {
+			std::pair<std::pair<std::string, weight_t>,std::pair<std::string, std::string>> edge;
+			edge.first.first = symbolname;
+			edge.first.second = sinkvalue;
+			edge.second.first = "#sink#";
+			edge.second.second = "#sink#";
+			parser->edges.insert(edge);
+		}
 	}
+
+	parser->initial = A->getInitial()->getName();
 
 	return parser;
 }
@@ -900,79 +908,95 @@ Automaton* Automaton::toLimSup (const Automaton* A, value_function_t f) {
 	return new Automaton(newname, newalphabet, newstates, newweights, newmin_domain, newmax_domain, newinitial);
 }
 
+std::vector<weight_t> int2function (unsigned int id, unsigned int n, unsigned int m) {
+	std::vector<weight_t> func(n, 0);
+	for (int i = n - 1; i >= 0; i--) {
+		func[i] = id % m;
+		id = id / m;
+	}
+	return func;
+}
 
-// TODO: check
+unsigned int function2int (std::vector<weight_t> func, unsigned int n, unsigned int m) {
+	unsigned int id = 0;
+	unsigned int b = 1;
+	for (int i = n - 1; i >= 0; i--) {
+		id = id + func[i] * b;
+		b = b * m;
+	}
+	return id;
+}
+
+
+// TODO: finish
 Automaton* Automaton::determinizeInf (const Automaton* A) {
-	MapStd<std::string, Symbol*> sync_register;
-	Parser parser(A->min_domain, A->max_domain);
+	State::RESET();
+	Symbol::RESET();
+	Weight::RESET();
+	
+	MapArray<Symbol*>* newalphabet = new MapArray<Symbol*>(A->alphabet->size());
+	for (unsigned int symbol_id = 0; symbol_id < A->alphabet->size(); ++symbol_id) {
+		newalphabet->insert(symbol_id, new Symbol(A->alphabet->at(symbol_id)));
+	}
 
-	// for (unsigned int stateA_id = 0; stateA_id < A->states->size(); ++stateA_id) {
-	// 	if (A->states->at(stateA_id)->getTag() == -1) continue;
-	// 	for (unsigned int stateB_id = 0; stateB_id < B->states->size(); ++stateB_id) {
-	// 		if (B->states->at(stateB_id)->getTag() == -1) continue;
+	MapArray<Weight*>* newweights = new MapArray<Weight*>(A->weights->size());
+	for (unsigned int weight_id = 0; weight_id < A->weights->size(); ++weight_id) {
+		newweights->insert(weight_id, new Weight(A->weights->at(weight_id)));
+	}
 
-	// 		for (Symbol* symbol : *(A->states->at(stateA_id)->getAlphabet())) {
-	// 			if (B->alphabet->size() <= symbol->getId()) continue;
-	// 			if (B->alphabet->at(symbol->getId())->getName() != symbol->getName()) fail("product with unsynchronized alphabet");
+	weight_t newmin_domain = A->min_domain;//domain does not change
+	weight_t newmax_domain = A->max_domain;//domain does not depend on weights
+	
+	
+	std::vector<weight_t> weightsTemp(A->getWeights()->size());
+	for (unsigned int weight_id = 0; weight_id < A->getWeights()->size(); ++weight_id) {
+		weightsTemp[weight_id] = A->getWeights()->at(weight_id)->getValue();
+	}
 
-	// 			for (Edge* edgeA : *(A->states->at(stateA_id)->getSuccessors(symbol->getId()))) {
-	// 				for (Edge* edgeB : *(B->states->at(stateB_id)->getSuccessors(symbol->getId()))) {
-	// 					std::string symbolname = symbol->getName();
-	// 					weight_t weightvalue = aggregator_apply(f, edgeA->getWeight()->getValue(), edgeB->getWeight()->getValue());
-	// 					std::string fromname =  "(" + edgeA->getFrom()->getName() + "," + edgeB->getFrom()->getName() + ")";
-	// 					std::string toname =  "(" + edgeA->getTo()->getName() + "," + edgeB->getTo()->getName() + ")";
 
-	// 					parser.alphabet.insert(symbolname);
-	// 					parser.weights.insert(weightvalue);
-	// 					parser.states.insert(fromname);
-	// 					parser.states.insert(toname);
+	unsigned int n = A->states->size();
+	unsigned int m = A->weights->size();
 
-	// 					if (A->initial->getId() == stateA_id && B->initial->getId() == stateB_id) {
-	// 						parser.initial = fromname;
-	// 					}
+	unsigned int size = 1;
+	for (unsigned int state_id = 0; state_id < n; ++state_id) {
+		size = size * m;
+	}
 
-	// 					std::pair<std::pair<std::string, weight_t>,std::pair<std::string, std::string>> edge;
-	// 					edge.first.first = symbolname;
-	// 					edge.first.second = weightvalue;
-	// 					edge.second.first = fromname;
-	// 					edge.second.second = toname;
-	// 					parser.edges.insert(edge);
-	// 				}
-	// 			}
-	// 		}
-	// 	}
-	// }
+	MapArray<State*>* newstates = new MapArray<State*>(size);
+	for (unsigned int state_id = 0; state_id < size; ++state_id) {
+		std::string statename = std::to_string(state_id);
+		State* state = new State(statename, newalphabet->size(), newmin_domain, newmax_domain);
+		newstates->insert(state->getId(), state);
+	}
 
-	std::string newname = "Determinized(" + A->getName() + ")";
-	return (new Automaton(newname, &parser, sync_register));
+	weight_t top_values[A->nb_SCCs];
+	std::vector<weight_t> tempFunc(n,0);
+	tempFunc[A->getInitial()->getId()] = A->compute_Top(Inf, top_values);
+	unsigned int initIndex = function2int(tempFunc, n, m);	
+	State* newinitial = newstates->at(initIndex);
 
-	// MapArray<Symbol*>* newalphabet = new MapArray<Symbol*>(A->alphabet->size());
-	// for (unsigned int symbol_id = 0; symbol_id < A->alphabet->size(); ++symbol_id) {
-	// 	newalphabet->insert(symbol_id, new Symbol(A->alphabet->at(symbol_id)));
-	// }
+	for (unsigned int state_id = 0; state_id < size; ++state_id) {
+		tempFunc = int2function(state_id, n, m);
+		for (int j = 0; j < n; j++) {
+			// for each incoming transition t with letter a in A to state with id j
+				// from = state with id i
+				// tempFunc[j] = max(tempFunc[j], min(tempFunc[i], weight of t))
+			// add the transition with letter a here
+		}
 
-	// MapArray<Weight*>* newweights = new MapArray<Weight*>(A->weights->size());
-	// for (unsigned int weight_id = 0; weight_id < A->weights->size(); ++weight_id) {
-	// 	newweights->insert(weight_id, new Weight(A->weights->at(weight_id)));
-	// }
 
-	// weight_t newmin_domain = A->min_domain;//domain does not change
-	// weight_t newmax_domain = A->max_domain;//domain does not depend on weights
+		// for (Symbol* symbol : *(A->states->at(state_id)->getAlphabet())) {
+		// 	for (Edge* edge : *(A->states->at(state_id)->getSuccessors(symbol->getId()))) {
+		// 		State* from = newstates->at(edge->getFrom()->getId());
+		// 		State* to = newstates->at(edge->getTo()->getId());
+		// 		Weight* weight = weight_register.at(top_values[edge->getTo()->getTag()]);
+		// 		Edge* newedge = new Edge(newalphabet->at(symbol->getId()), weight, from, to);
+		// 		from->addSuccessor(newedge);
+		// 		to->addPredecessor(newedge);
+		// 	}
+		// }
+	}
 
-	// SetStd<std::pair<State*, Weight*>> set_of_states;
-	// SetStd<std::pair<Symbol*, std::pair<std::pair<State*, Weight*>, std::pair<State*, Weight*>>>> set_of_edges;
-	// auto start = std::pair<State*, Weight*>(A->initial, A->weights->at(0));
-	// explore(start, set_of_states, set_of_edges);
-
-	// MapArray<State*>* newstates = new MapArray<State*>(A->alphabet->size());
-	// MapStd<std::pair<State*, Weight*>, State*> state_register;
-	// for (std::pair<State*, Weight*> pair : set_of_states) {
-	// 	std::string statename = "(" + pair.first->getName() + ", " + std::to_string(pair.second->getValue());
-	// 	State* state = new State(statename, newalphabet->size(), newmin_domain, newmax_domain);
-	// 	newstates->insert(state->getId(), state);
-	// 	state_register.insert(pair, state);
-	// }
-	// State* newinitial = state_register.at(start);
 
 	// for (auto pair : set_of_edges) {
 	// 	Symbol* symbol = newalphabet->at(pair.first->getId());
@@ -984,7 +1008,16 @@ Automaton* Automaton::determinizeInf (const Automaton* A) {
 	// 	to->addPredecessor(edge);
 	// }
 
-	// return new Automaton(newname, newalphabet, newstates, newweights, newmin_domain, newmax_domain, newinitial);
+
+
+
+	std::string newname = "Determinized(" + A->getName() + ")";
+	Automaton* that = new Automaton(newname, newalphabet, newstates, newweights, newmin_domain, newmax_domain, newinitial);
+	Automaton* AA = copy_trim_complete(that, Inf);
+	delete that;
+	return AA;
+
+
 }
 
 
