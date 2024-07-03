@@ -242,6 +242,9 @@ Automaton* Automaton::product(const Automaton* A, aggregator_t f, const Automato
 		}
 	}
 
+	parser.min_domain = std::min(parser.min_domain, parser.weights.getMin());
+	parser.max_domain = std::min(parser.max_domain, parser.weights.getMax());
+
 	std::string newname =  aggregator_name(f) + "(" + A->getName() + "," + B->getName() + ")";
 	return (new Automaton(newname, &parser, sync_register));
 }
@@ -1093,6 +1096,7 @@ bool Automaton::isIncludedIn(const Automaton* B, value_function_t f) {
 			Automaton* C = Automaton::product(this, Minus, B);
 			C->print();
 			weight_t Ctop = C->getTopValue(f);
+			printf("Ctop = %s\n", std::to_string(Ctop).c_str());
 			delete C;
 			return (Ctop <= 0);
 		}
@@ -1331,7 +1335,6 @@ weight_t Automaton::top_LimAvg (weight_t* top_values) const {
 	unsigned int size = this->states->size();
 	weight_t distance[size + 1][size];
 	weight_t infinity = std::max((weight_t)1, -(size*this->min_domain) + 1); // TODO
-
 
 	// O(n)
 	for (unsigned int length = 0; length <= size; ++length) {
