@@ -854,6 +854,10 @@ Automaton* Automaton::toLimSup (const Automaton* A, value_function_t f) {
 	}
 
 	// TODO: should we adjust the domain with the new weights?
+	// definitely not!
+	// the domain should only be enlarged
+	// an automaton may have only weight 1, but domain 0,1
+	// if the domain gets reduced to 1,1 the automaton becomes constant
 	weight_t newmin_domain = A->min_domain;//domain does not change
 	weight_t newmax_domain = A->max_domain;//domain does not depend on weights
 
