@@ -189,13 +189,13 @@ std::string aggregator_name (aggregator_t aggregator) {
 	}
 }
 
-weight_t aggregator_apply (aggregator_t aggregator, Weight* x, Weight* y) {
+weight_t aggregator_apply (aggregator_t aggregator, weight_t x, weight_t y) {
 	switch (aggregator) {
-		case Max: return std::max(x->getValue(), y->getValue());
-		case Min: return std::min(x->getValue(), y->getValue());
-		case Plus: return x->getValue() + y->getValue();
-		case Minus: return x->getValue() - y->getValue();
-		case Times: return x->getValue() * y->getValue();
+		case Max: return std::max(x, y);
+		case Min: return std::min(x, y);
+		case Plus: return x + y;
+		case Minus: return x - y;
+		case Times: return x * y;
 		default: fail("case aggregator_t");
 	}
 }
@@ -203,7 +203,7 @@ weight_t aggregator_apply (aggregator_t aggregator, Weight* x, Weight* y) {
 
 Automaton* Automaton::product(const Automaton* A, aggregator_t f, const Automaton* B) {
 	MapStd<std::string, Symbol*> sync_register;
-	Parser parser(std::min(A->min_domain, B->min_domain), std::max(A->max_domain, B->max_domain));
+	Parser parser(aggregator_apply(f, A->min_domain, B->min_domain), aggregator_apply(f, A->max_domain, B->max_domain));
 
 	for (unsigned int stateA_id = 0; stateA_id < A->states->size(); ++stateA_id) {
 		if (A->states->at(stateA_id)->getTag() == -1) continue;
@@ -217,7 +217,7 @@ Automaton* Automaton::product(const Automaton* A, aggregator_t f, const Automato
 				for (Edge* edgeA : *(A->states->at(stateA_id)->getSuccessors(symbol->getId()))) {
 					for (Edge* edgeB : *(B->states->at(stateB_id)->getSuccessors(symbol->getId()))) {
 						std::string symbolname = symbol->getName();
-						weight_t weightvalue = aggregator_apply(f, edgeA->getWeight(), edgeB->getWeight());
+						weight_t weightvalue = aggregator_apply(f, edgeA->getWeight()->getValue(), edgeB->getWeight()->getValue());
 						std::string fromname =  "(" + edgeA->getFrom()->getName() + "," + edgeB->getFrom()->getName() + ")";
 						std::string toname =  "(" + edgeA->getTo()->getName() + "," + edgeB->getTo()->getName() + ")";
 
@@ -241,9 +241,6 @@ Automaton* Automaton::product(const Automaton* A, aggregator_t f, const Automato
 			}
 		}
 	}
-
-	parser.min_domain = std::min(parser.min_domain, parser.weights.getMin());
-	parser.max_domain = std::min(parser.max_domain, parser.weights.getMax());
 
 	std::string newname =  aggregator_name(f) + "(" + A->getName() + "," + B->getName() + ")";
 	return (new Automaton(newname, &parser, sync_register));
