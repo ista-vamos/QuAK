@@ -1094,7 +1094,6 @@ bool Automaton::isIncludedIn(const Automaton* B, value_function_t f) {
 			Automaton* C = Automaton::product(this, Minus, B);
 			C->print();
 			weight_t Ctop = C->getTopValue(f);
-			printf("Ctop = %s\n", std::to_string(Ctop).c_str());
 			delete C;
 			return (Ctop <= 0);
 		}
