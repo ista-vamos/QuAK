@@ -15,21 +15,23 @@ int main(int argc, char **argv) {
 
 	// // std::cout << A->isConstant(LimAvg) << std::endl;
 	// // std::cout << B->isConstant(LimAvg) << std::endl;
-	// std::cout << A->isSafe(LimAvg) << std::endl; //TODO
+	// std::cout << A->isSafe(LimAvg) << std::endl;
 	// // std::cout << A->isLive(LimAvg) << std::endl;
 
-	Automaton* A = new Automaton("samples/test6.txt");
+	// delete A;
+	// delete B;
+
+	Automaton* A = new Automaton("samples/test66.txt");
 	A->print();
 	// Automaton* B = Automaton::safetyClosure(A, Inf);
 	// B->print();
 
 	std::cout << A->isConstant(Inf) << std::endl;
 	// std::cout << B->isConstant(Inf) << std::endl;
-	std::cout << A->isSafe(Inf) << std::endl;
-	std::cout << A->isLive(Inf) << std::endl;
+	// std::cout << A->isSafe(Inf) << std::endl;
+	// std::cout << A->isLive(Inf) << std::endl;
 
 	delete A;
-	// delete B;
 
 	// debug_test();
 
