@@ -25,11 +25,11 @@ int main(int argc, char **argv) {
 	A->print();
 	Automaton* B = Automaton::safetyClosure(A, Inf);
 	B->print();
-
-	std::cout << A->isConstant(Inf) << std::endl;
-	std::cout << B->isConstant(Inf) << std::endl;
-	std::cout << A->isSafe(Inf) << std::endl;
-	std::cout << A->isLive(Inf) << std::endl;
+//
+//	std::cout << A->isConstant(Inf) << std::endl;
+//	std::cout << B->isConstant(Inf) << std::endl;
+//	std::cout << A->isSafe(Inf) << std::endl;
+//	std::cout << A->isLive(Inf) << std::endl;
 
 	//delete A;
 	//delete B;

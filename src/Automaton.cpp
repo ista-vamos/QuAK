@@ -576,14 +576,13 @@ Automaton* Automaton::safetyClosure(const Automaton* A, value_function_t f) {
 	}
 
 	for (unsigned int state_id = 0; state_id < A->states->size(); ++state_id) {
-		for (unsigned int symbol_id = 0; symbol_id < A->alphabet->size(); ++symbol_id) {
-			for (Edge* edge : *(A->states->at(state_id)->getSuccessors(symbol_id))) {
-				Symbol* symbol = newalphabet->at(edge->getSymbol()->getId());
+		if (A->states->at(state_id)->getTag() == -1) continue;
+		for (Symbol* symbol : *(A->states->at(state_id)->getAlphabet())) {
+			for (Edge* edge : *(A->states->at(state_id)->getSuccessors(symbol->getId()))) {
 				State* from = newstates->at(edge->getFrom()->getId());
 				State* to = newstates->at(edge->getTo()->getId());
-			//	Weight* weight = weight_register.at(top_values[edge->getFrom()->getTag()]);
-				Weight* weight = weight_register.at(top_values[edge->getTo()->getTag()]); // TODO: confirm .. I don't
-				Edge* newedge = new Edge(symbol, weight, from, to);
+				Weight* weight = weight_register.at(top_values[edge->getTo()->getTag()]);
+				Edge* newedge = new Edge(newalphabet->at(symbol->getId()), weight, from, to);
 				from->addSuccessor(newedge);
 				to->addPredecessor(newedge);
 			}
