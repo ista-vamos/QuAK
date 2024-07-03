@@ -21,7 +21,7 @@ int main(int argc, char **argv) {
 	// delete A;
 	// delete B;
 
-	Automaton* A = new Automaton("samples/test66.txt");
+	Automaton* A = new Automaton("samples/test666.txt");
 	A->print();
 	Automaton* B = Automaton::safetyClosure(A, Inf);
 	B->print();

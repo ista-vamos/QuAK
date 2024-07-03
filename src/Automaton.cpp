@@ -4,6 +4,7 @@
 #include "Edge.h"
 #include "utility.h"
 #include "FORKLIFT/inclusion.h"
+#include <set>
 
 
 class SCC_Tree {
@@ -845,12 +846,6 @@ Automaton* Automaton::toLimSup (const Automaton* A, value_function_t f) {
 		newalphabet->insert(symbol_id, new Symbol(A->alphabet->at(symbol_id)));
 	}
 
-	// TODO: it may be that some weights are not seen in the limsup automaton
-	MapArray<Weight*>* newweights = new MapArray<Weight*>(A->weights->size());
-	for (unsigned int weight_id = 0; weight_id < A->weights->size(); ++weight_id) {
-		newweights->insert(weight_id, new Weight(A->weights->at(weight_id)));
-	}
-
 	// TODO: should we adjust the domain with the new weights?
 	// definitely not!
 	// the domain should only be enlarged
@@ -864,7 +859,24 @@ Automaton* Automaton::toLimSup (const Automaton* A, value_function_t f) {
 	auto start = std::pair<State*, Weight*>(A->initial, A->weights->at(initWeightId));
 	explore(start, set_of_states, set_of_edges);
 
-	// MapArray<State*>* newstates = new MapArray<State*>(A->alphabet->size());
+	// TODO: it may be that some weights are not seen in the limsup automaton
+	// MapArray<Weight*>* newweights = new MapArray<Weight*>(A->weights->size());
+	// for (unsigned int weight_id = 0; weight_id < A->weights->size(); ++weight_id) {
+	// 	newweights->insert(weight_id, new Weight(A->weights->at(weight_id)));
+	// }
+	
+	// collect the weights that actually occur in the new automaton
+	std::set<unsigned int> tempWeightIds;
+	for (auto pair : set_of_edges) {
+		tempWeightIds.insert(pair.second.second.second->getId());
+	}
+	MapArray<Weight*>* newweights = new MapArray<Weight*>(tempWeightIds.size());
+	int ctr = 0;
+	for (auto weight_id : tempWeightIds) {
+		newweights->insert(ctr, new Weight(A->weights->at(weight_id)));
+		ctr++;
+	}
+
 	MapArray<State*>* newstates = new MapArray<State*>(set_of_states.size());
 	MapStd<std::pair<State*, Weight*>, State*> state_register;
 	for (std::pair<State*, Weight*> pair : set_of_states) {
@@ -889,34 +901,50 @@ Automaton* Automaton::toLimSup (const Automaton* A, value_function_t f) {
 }
 
 
-// TODO
+// TODO: check
 Automaton* Automaton::determinizeInf (const Automaton* A) {
-	State::RESET();
-	Symbol::RESET();
-	Weight::RESET();
+	MapStd<std::string, Symbol*> sync_register;
+	Parser parser(A->min_domain, A->max_domain);
 
-	// void (*explore)(
-	// 		std::pair<State*, Weight*> from,
-	// 		SetStd<std::pair<State*, Weight*>> set_of_states,
-	// 		SetStd<std::pair<Symbol*, std::pair<std::pair<State*, Weight*>, std::pair<State*, Weight*>>>> set_of_edges
-	// );
-	// switch(f) {
-	// case Inf:
-	// 	explore = explore_Inf;
-	// 	break;
-	// case Sup:
-	// 	explore = explore_Sup;
-	// 	break;
-	// case LimInf:
-	// 	explore = explore_LimInf;
-	// 	break;
-	// case LimSup: case LimAvg:
-	// 	fail("invalid translation to LimSup");
-	// default:
-	// 	fail("invalid value function");
+	// for (unsigned int stateA_id = 0; stateA_id < A->states->size(); ++stateA_id) {
+	// 	if (A->states->at(stateA_id)->getTag() == -1) continue;
+	// 	for (unsigned int stateB_id = 0; stateB_id < B->states->size(); ++stateB_id) {
+	// 		if (B->states->at(stateB_id)->getTag() == -1) continue;
+
+	// 		for (Symbol* symbol : *(A->states->at(stateA_id)->getAlphabet())) {
+	// 			if (B->alphabet->size() <= symbol->getId()) continue;
+	// 			if (B->alphabet->at(symbol->getId())->getName() != symbol->getName()) fail("product with unsynchronized alphabet");
+
+	// 			for (Edge* edgeA : *(A->states->at(stateA_id)->getSuccessors(symbol->getId()))) {
+	// 				for (Edge* edgeB : *(B->states->at(stateB_id)->getSuccessors(symbol->getId()))) {
+	// 					std::string symbolname = symbol->getName();
+	// 					weight_t weightvalue = aggregator_apply(f, edgeA->getWeight()->getValue(), edgeB->getWeight()->getValue());
+	// 					std::string fromname =  "(" + edgeA->getFrom()->getName() + "," + edgeB->getFrom()->getName() + ")";
+	// 					std::string toname =  "(" + edgeA->getTo()->getName() + "," + edgeB->getTo()->getName() + ")";
+
+	// 					parser.alphabet.insert(symbolname);
+	// 					parser.weights.insert(weightvalue);
+	// 					parser.states.insert(fromname);
+	// 					parser.states.insert(toname);
+
+	// 					if (A->initial->getId() == stateA_id && B->initial->getId() == stateB_id) {
+	// 						parser.initial = fromname;
+	// 					}
+
+	// 					std::pair<std::pair<std::string, weight_t>,std::pair<std::string, std::string>> edge;
+	// 					edge.first.first = symbolname;
+	// 					edge.first.second = weightvalue;
+	// 					edge.second.first = fromname;
+	// 					edge.second.second = toname;
+	// 					parser.edges.insert(edge);
+	// 				}
+	// 			}
+	// 		}
+	// 	}
 	// }
 
-	// std::string newname = "Determinized(" + A->getName() + ")";
+	std::string newname = "Determinized(" + A->getName() + ")";
+	return (new Automaton(newname, &parser, sync_register));
 
 	// MapArray<Symbol*>* newalphabet = new MapArray<Symbol*>(A->alphabet->size());
 	// for (unsigned int symbol_id = 0; symbol_id < A->alphabet->size(); ++symbol_id) {
