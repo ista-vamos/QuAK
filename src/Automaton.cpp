@@ -422,7 +422,7 @@ weight_t Automaton::getTopValue (value_function_t f) const {
 
 }
 
-weight_t Automaton::getBottomValue (value_function_t f) const {
+weight_t Automaton::getBottomValue (value_function_t f) {
 	weight_t bot_values[this->nb_SCCs];
 	return compute_Bottom(f, bot_values);
 }
@@ -438,7 +438,7 @@ std::string Automaton::getName() const { return this->name; }
 
 
 
-void Automaton::invert_weights() const {
+void Automaton::invert_weights() {
 	for (unsigned int weight_id = 0; weight_id < this->weights->size(); ++weight_id) {
 		weight_t value = this->weights->at(weight_id)->getValue();
 		this->weights->at(weight_id)->setValue(-value);
@@ -451,6 +451,10 @@ void Automaton::invert_weights() const {
 		this->weights->insert(i, weight_at_j);
 		this->weights->insert(j, weight_at_i);
 	}
+
+	weight_t temp = this->max_domain;
+	this->setMaxDomain(-this->getMinDomain());
+	this->setMinDomain(-temp);
 }
 
 
@@ -967,11 +971,11 @@ bool Automaton::isDeterministic () const {
 	return true;
 }
 
-bool Automaton::isEmpty (value_function_t f, weight_t x ) const {
+bool Automaton::isEmpty (value_function_t f, weight_t x ) {
 	return (getTopValue(f) >=x);
 }
 
-bool Automaton::isUniversal (value_function_t f, weight_t x) const {
+bool Automaton::isUniversal (value_function_t f, weight_t x)  {
 	return (getBottomValue(f) >= x);
 }
 
@@ -1073,7 +1077,7 @@ bool Automaton::isLimAvgConstant() const {
 }
 
 
-bool Automaton::isConstant (value_function_t f) const {
+bool Automaton::isConstant (value_function_t f) {
 	if (f == LimAvg && isDeterministic() == false) {
 		return isLimAvgConstant();
 	}
@@ -1083,10 +1087,11 @@ bool Automaton::isConstant (value_function_t f) const {
 }
 
 
-bool Automaton::isIncludedIn(const Automaton* B, value_function_t f) const {
+bool Automaton::isIncludedIn(const Automaton* B, value_function_t f) {
 	if (f == LimAvg) {
 		if (B->isDeterministic()) {
 			Automaton* C = Automaton::product(this, Minus, B);
+			C->print();
 			weight_t Ctop = C->getTopValue(f);
 			delete C;
 			return (Ctop <= 0);
@@ -1117,7 +1122,7 @@ bool Automaton::isIncludedIn(const Automaton* B, value_function_t f) const {
 }
 
 
-bool Automaton::isSafe (value_function_t f) const {
+bool Automaton::isSafe (value_function_t f) {
 	Automaton* S = Automaton::safetyClosure(this, f);
 	bool out;
 
@@ -1136,7 +1141,7 @@ bool Automaton::isSafe (value_function_t f) const {
 	return out;
 }
 
-bool Automaton::isLive (value_function_t f) const {
+bool Automaton::isLive (value_function_t f) {
 	Automaton* S = Automaton::safetyClosure(this, f);
 	bool out = S->isConstant(f);
 	delete S;
@@ -1325,8 +1330,8 @@ void Automaton::top_avg_tree (SCC_Tree* tree, weight_t* top_values) const {
 weight_t Automaton::top_LimAvg (weight_t* top_values) const {
 	unsigned int size = this->states->size();
 	weight_t distance[size + 1][size];
-	// weight_t infinity = this->max_domain + 1;
-	weight_t infinity = this->max_domain;
+	weight_t infinity = std::max((weight_t)1, -(size*this->min_domain) + 1); // TODO
+
 
 	// O(n)
 	for (unsigned int length = 0; length <= size; ++length) {
@@ -1413,7 +1418,7 @@ weight_t Automaton::compute_Top (value_function_t f, weight_t* top_values) const
 }
 
 
-weight_t Automaton::compute_Bottom (value_function_t f, weight_t* bot_values) const {
+weight_t Automaton::compute_Bottom (value_function_t f, weight_t* bot_values) {
 	if (this->isDeterministic()) {
 		invert_weights();
 		weight_t bot = compute_Top(f, bot_values);
@@ -1448,7 +1453,14 @@ weight_t Automaton::compute_Bottom (value_function_t f, weight_t* bot_values) co
 }
 
 
+void Automaton::setMaxDomain (weight_t x) {
+	this->max_domain = x;
+}
 
+
+void Automaton::setMinDomain (weight_t x) {
+	this->min_domain = x;
+}
 
 
 

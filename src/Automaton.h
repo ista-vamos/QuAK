@@ -64,7 +64,7 @@ private:
 
 	bool isDeterministic () const;
 	void compute_SCC (void);
-	void invert_weights() const;
+	void invert_weights();
 
 	void top_reachably_scc (State* state, bool in_scc, bool* spot, weight_t* values) const;
 	void top_reachably_tree (SCC_Tree* tree, bool in_scc, bool* spot, weight_t* values, weight_t* top_values) const;
@@ -81,7 +81,9 @@ private:
 protected:
 	Automaton(const Automaton* A, value_function_t f);
 	weight_t compute_Top (value_function_t f, weight_t* top_values) const;
-	weight_t compute_Bottom (value_function_t f, weight_t* bot_values) const;
+	weight_t compute_Bottom (value_function_t f, weight_t* bot_values);
+	void setMaxDomain (weight_t x);
+	void setMinDomain (weight_t x);
 
 public:
 	~Automaton ();
@@ -96,15 +98,15 @@ public:
 	void print () const;
 	std::string getName() const;
 
-	bool isEmpty (value_function_t f, weight_t x) const; 				// checks if A(w) >= v for some w
-	bool isUniversal (value_function_t f, weight_t x) const;			// checks if A(w) >= v for all w
-	bool isIncludedIn (const Automaton* B, value_function_t f) const;	// checks if A(w) <= B(w) for all w
-	bool isSafe (value_function_t f) const;								// checks if A = SafetyClosure(A)
-	bool isConstant (value_function_t f) const;							// checks if Universal(A, Top_A)
-	bool isLive (value_function_t f) const;								// checks if SafetyClosure(A) = Top_A
+	bool isEmpty (value_function_t f, weight_t x); 				// checks if A(w) >= v for some w
+	bool isUniversal (value_function_t f, weight_t x);			// checks if A(w) >= v for all w
+	bool isIncludedIn (const Automaton* B, value_function_t f);	// checks if A(w) <= B(w) for all w
+	bool isSafe (value_function_t f);								// checks if A = SafetyClosure(A)
+	bool isConstant (value_function_t f);							// checks if Universal(A, Top_A)
+	bool isLive (value_function_t f);								// checks if SafetyClosure(A) = Top_A
 	
 	weight_t getTopValue (value_function_t f) const;
-	weight_t getBottomValue (value_function_t f) const;
+	weight_t getBottomValue (value_function_t f);
 	weight_t getMaxDomain () const;
 	weight_t getMinDomain () const;
 	State* getInitial () const;
