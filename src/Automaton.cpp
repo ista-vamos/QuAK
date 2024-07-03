@@ -420,7 +420,6 @@ void Automaton::compute_SCC (void) {
 weight_t Automaton::getTopValue (value_function_t f) const {
 	weight_t top_values[this->nb_SCCs];
 	return compute_Top(f, top_values);
-
 }
 
 weight_t Automaton::getBottomValue (value_function_t f) {
@@ -583,8 +582,8 @@ Automaton* Automaton::safetyClosure(const Automaton* A, value_function_t f) {
 				Symbol* symbol = newalphabet->at(edge->getSymbol()->getId());
 				State* from = newstates->at(edge->getFrom()->getId());
 				State* to = newstates->at(edge->getTo()->getId());
-				// Weight* weight = weight_register.at(top_values[edge->getFrom()->getTag()]);
-				Weight* weight = weight_register.at(top_values[edge->getTo()->getTag()]); // TODO: confirm
+			//	Weight* weight = weight_register.at(top_values[edge->getFrom()->getTag()]);
+				Weight* weight = weight_register.at(top_values[edge->getTo()->getTag()]); // TODO: confirm .. I don't
 				Edge* newedge = new Edge(symbol, weight, from, to);
 				from->addSuccessor(newedge);
 				to->addPredecessor(newedge);
@@ -1156,10 +1155,10 @@ bool Automaton::isIncludedIn(const Automaton* B, value_function_t f) {
 
 
 bool Automaton::isSafe (value_function_t f) {
-	if (f == Inf) {
+/*	if (f == Inf) {
 		return true;
 	}
-
+*/
 	Automaton* S = Automaton::safetyClosure(this, f);
 	bool out;
 
@@ -1180,11 +1179,11 @@ bool Automaton::isSafe (value_function_t f) {
 
 bool Automaton::isLive (value_function_t f) {
 	bool out;
-
+/*
 	if (f == Inf) {
 		return this->isConstant(Inf);
 	}
-
+*/
 	Automaton* S = Automaton::safetyClosure(this, f);
 	out = S->isConstant(f);
 	delete S;
@@ -1273,7 +1272,7 @@ void Automaton::top_safety_scc_recursive (Edge* edge, bool in_scc, weight_t* val
 				max_value = std::max(max_value, tmp);
 			}
 		}
-		values[state->getId()] = max_value;
+		values[state->getId()] = std::max(values[state->getId()], max_value);
 
 		for (unsigned int symbol_id = 0; symbol_id < this->alphabet->size(); ++symbol_id) {
 			for (Edge* pred : *(state->getPredecessors(symbol_id))) {
@@ -1322,13 +1321,10 @@ void Automaton::top_safety_scc (weight_t* values, bool in_scc) const {
 	}
 }
 
-// TODO
+
 weight_t Automaton::top_Inf (weight_t* top_values) const {
-	weight_t values[this->states->size()];
-	top_safety_scc(values, false);
-	return values[this->initial->getId()];
-	// top_safety_scc(top_values, false);
-	// return top_values[this->SCCs_tree->origin->getTag()];
+	top_safety_scc(top_values, false);
+	return top_values[this->SCCs_tree->origin->getTag()];
 }
 
 
@@ -1524,8 +1520,8 @@ void Automaton::print () const {
 	std::cout << "\tstates (" << this->states->size() << "):";
 	std::cout << states->toString(State::toString) << "\n";
 	std::cout << "\t\tINITIAL = " << initial->getName() << "\n";
-	/*std::cout << "\tSCCs (" << this->nb_SCCs << "):";
-	std::cout << this->SCCs_tree->toString("\t\t") << "\n";*/
+	//std::cout << "\tSCCs (" << this->nb_SCCs << "):";
+	//std::cout << this->SCCs_tree->toString("\t\t") << "\n";
 	unsigned int nb_edge = 0;
 	for (unsigned int state_id = 0; state_id < states->size(); ++state_id) {
 		for (Symbol* symbol : *(states->at(state_id)->getAlphabet())) {
