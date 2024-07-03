@@ -7,18 +7,29 @@
 
 int main(int argc, char **argv) {
 
-	Automaton* A = new Automaton("samples/test5.txt");
-	A->print();
-	Automaton* B = Automaton::safetyClosure(A, LimAvg);
-	B->print();
+	// Automaton* A = new Automaton("samples/test5.txt");
+	// A->print();
 
-	// std::cout << A->isConstant(LimAvg) << std::endl;
-	// std::cout << B->isConstant(LimAvg) << std::endl;
-	std::cout << A->isSafe(LimAvg) << std::endl; //TODO
-	// std::cout << A->isLive(LimAvg) << std::endl;
-	
+	// Automaton* B = Automaton::safetyClosure(A, LimAvg);
+	// B->print();
+
+	// // std::cout << A->isConstant(LimAvg) << std::endl;
+	// // std::cout << B->isConstant(LimAvg) << std::endl;
+	// std::cout << A->isSafe(LimAvg) << std::endl; //TODO
+	// // std::cout << A->isLive(LimAvg) << std::endl;
+
+	Automaton* A = new Automaton("samples/test6.txt");
+	A->print();
+	// Automaton* B = Automaton::safetyClosure(A, Inf);
+	// B->print();
+
+	std::cout << A->isConstant(Inf) << std::endl;
+	// std::cout << B->isConstant(Inf) << std::endl;
+	std::cout << A->isSafe(Inf) << std::endl;
+	std::cout << A->isLive(Inf) << std::endl;
+
 	delete A;
-	delete B;
+	// delete B;
 
 	// debug_test();
 

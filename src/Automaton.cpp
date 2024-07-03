@@ -1085,6 +1085,7 @@ bool Automaton::isConstant (value_function_t f) {
 		return isLimAvgConstant();
 	}
 	else {
+		std::cout << getTopValue(f) << " " << getBottomValue(f) << std::endl;
 		return (getTopValue(f) == getBottomValue(f));
 	}
 }
@@ -1127,6 +1128,10 @@ bool Automaton::isIncludedIn(const Automaton* B, value_function_t f) {
 
 
 bool Automaton::isSafe (value_function_t f) {
+	if (f == Inf) {
+		return true;
+	}
+
 	Automaton* S = Automaton::safetyClosure(this, f);
 	bool out;
 
@@ -1146,8 +1151,14 @@ bool Automaton::isSafe (value_function_t f) {
 }
 
 bool Automaton::isLive (value_function_t f) {
+	bool out;
+
+	if (f == Inf) {
+		return this->isConstant(Inf);
+	}
+
 	Automaton* S = Automaton::safetyClosure(this, f);
-	bool out = S->isConstant(f);
+	out = S->isConstant(f);
 	delete S;
 	return out;
 }
@@ -1288,6 +1299,7 @@ weight_t Automaton::top_Inf (weight_t* top_values) const {
 	weight_t values[this->states->size()];
 	top_safety_scc(values, false);
 	return values[this->initial->getId()];
+	// top_safety_scc(top_values, false);
 	// return top_values[this->SCCs_tree->origin->getTag()];
 }
 
@@ -1443,7 +1455,7 @@ weight_t Automaton::compute_Bottom (value_function_t f, weight_t* bot_values) {
 				x = this->weights->at(weight_id)->getValue();
 
 				Automaton* C = Automaton::constantAutomaton(this, x);
-				found = this->isIncludedIn(C, f);
+				found = C->isIncludedIn(this, f);
 				delete C;
 			}
 
