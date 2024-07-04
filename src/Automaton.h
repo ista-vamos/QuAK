@@ -68,9 +68,9 @@ private:
 	void top_reachably_tree (SCC_Tree* tree, bool in_scc, bool* spot, weight_t* values, weight_t* top_values) const;
 	weight_t top_Sup (weight_t* top_values) const;
 	weight_t top_LimSup (weight_t* top_values) const;
-	void top_safety_scc_recursive(Edge* edge, bool in_scc, weight_t* values, int** counters) const;
+	void top_safety_scc_recursive(Edge* edge, SetStd<Edge*>* done_edge, bool in_scc, int* done_symbol, weight_t* values, weight_t** value_symbol, int** counters) const;
 	void top_safety_scc (weight_t* values, bool in_scc) const;
-	void top_safety_tree (SCC_Tree* tree, weight_t* top_values) const;
+	void top_safety_tree (SCC_Tree* tree, weight_t* values, weight_t* top_values) const;
 	weight_t top_Inf (weight_t* top_values) const;
 	weight_t top_LimInf (weight_t* top_values) const;
 	void top_avg_tree (SCC_Tree* tree, weight_t* top_values) const;

@@ -427,7 +427,11 @@ void Automaton::compute_SCC (void) {
 
 weight_t Automaton::getTopValue (value_function_t f) const {
 	weight_t top_values[this->nb_SCCs];
-	return compute_Top(f, top_values);
+	weight_t top = compute_Top(f, top_values);
+	/*for (unsigned int id = 0;id <this->nb_SCCs; id++) {
+		printf("top[%u] = %s\n", id, std::to_string(top_values[id]).c_str());
+	}*/
+	return top;
 }
 
 weight_t Automaton::getBottomValue (value_function_t f) {
@@ -1287,25 +1291,55 @@ weight_t Automaton::top_LimSup (weight_t* top_values) const {
 }
 
 
-void Automaton::top_safety_scc_recursive (Edge* edge, bool in_scc, weight_t* values, int** counters) const {
-	State* state = edge->getFrom();
-	if (counters[state->getId()][edge->getSymbol()->getId()] == 0) return;
+void Automaton::top_safety_scc_recursive (Edge* edge, SetStd<Edge*>* done_edge, bool in_scc, int* done_symbol, weight_t* values, weight_t** value_symbol, int** counters) const {
+	if (done_edge->contains(edge) == true) return;
+	done_edge->insert(edge);
 
-	counters[state->getId()][edge->getSymbol()->getId()]--;
-	if (counters[state->getId()][edge->getSymbol()->getId()] == 0) {
-		weight_t max_value = this->min_domain;
-		for (Edge* succ : *(state->getSuccessors(edge->getSymbol()->getId()))) {
+	unsigned int state_id = edge->getFrom()->getId();
+	unsigned int symbol_id = edge->getSymbol()->getId();
+
+	//printf("edge = %s\n", edge->toString().c_str());
+
+	counters[state_id][symbol_id]--;
+	if (counters[state_id][symbol_id] == 0) {
+		/*printf("state %s done for %s\n",
+				edge->getFrom()->getName().c_str(),
+				edge->getSymbol()->getName().c_str()
+		);*/
+
+		for (Edge* succ : *(edge->getFrom()->getSuccessors(symbol_id))) {
 			if (in_scc == false || succ->getFrom()->getTag() == succ->getTo()->getTag()) {
 				weight_t tmp = std::min(succ->getWeight()->getValue(), values[succ->getTo()->getId()]);
-				max_value = std::max(max_value, tmp);
+				value_symbol[state_id][symbol_id] = std::max(value_symbol[state_id][symbol_id], tmp);
 			}
 		}
-		values[state->getId()] = std::max(values[state->getId()], max_value);
+		done_symbol[state_id]--;
 
-		for (unsigned int symbol_id = 0; symbol_id < this->alphabet->size(); ++symbol_id) {
-			for (Edge* pred : *(state->getPredecessors(symbol_id))) {
-				if (in_scc == false || pred->getFrom()->getTag() == pred->getTo()->getTag()) {
-					top_safety_scc_recursive(pred, in_scc, values, counters);
+		/*printf("value_symbol[%s][%s] = %f\n",
+				edge->getFrom()->getName().c_str(),
+				edge->getSymbol()->getName().c_str(),
+				value_symbol[state_id][symbol_id]
+		);*/
+
+
+		if (done_symbol[state_id] == 0) {
+			//printf("state %s done\n", edge->getFrom()->toString().c_str());
+
+			values[state_id] = value_symbol[state_id][symbol_id];
+			for (unsigned int symbol_id = 0; symbol_id < this->alphabet->size(); ++symbol_id) {
+				values[state_id] = std::max(values[state_id], value_symbol[state_id][symbol_id]);
+			}
+
+			/*printf("values[%s] = %f\n",
+					edge->getFrom()->getName().c_str(),
+					values[state_id]
+			);*/
+
+			for (unsigned int symbol_id = 0; symbol_id < this->alphabet->size(); ++symbol_id) {
+				for (Edge* pred : *(edge->getFrom()->getPredecessors(symbol_id))) {
+					if (in_scc == false || pred->getFrom()->getTag() == pred->getTo()->getTag()) {
+						top_safety_scc_recursive(pred, done_edge, in_scc, done_symbol, values, value_symbol, counters);
+					}
 				}
 			}
 		}
@@ -1321,11 +1355,16 @@ void Automaton::top_safety_scc (weight_t* values, bool in_scc) const {
 	}
 
 	//O(m+n)
+	int done_symbol[this->states->size()];
 	int* counters[this->states->size()];
+	weight_t* value_symbol[this->states->size()];
 	for (unsigned int state_id = 0; state_id < this->states->size(); ++state_id) {
 		counters[state_id] = new int[this->alphabet->size()];
+		value_symbol[state_id] = new weight_t[this->alphabet->size()];
+		done_symbol[state_id] = this->alphabet->size();
 		values[state_id] = this->max_domain;
 		for (unsigned int symbol_id = 0; symbol_id < this->alphabet->size(); ++symbol_id) {
+			value_symbol[state_id][symbol_id] = this->min_domain;
 			counters[state_id][symbol_id] = states->at(state_id)->getSuccessors(symbol_id)->size();
 			for (Edge* edge : *(this->states->at(state_id)->getSuccessors(symbol_id))) {
 				if (in_scc == false || edge->getFrom()->getTag() == edge->getTo()->getTag()){
@@ -1336,52 +1375,52 @@ void Automaton::top_safety_scc (weight_t* values, bool in_scc) const {
 	}
 
 	//O((x+m)) because 'top_safety_scc_recursive' is called 2m times overall
+	SetStd<Edge*> done_edge;
 	for (unsigned int weight_id = 0; weight_id < this->weights->size(); ++weight_id) {
 		while (edges.at(weight_id)->size() > 0) {
 			Edge* edge = edges.at(weight_id)->head();
 			edges.at(weight_id)->pop();
-			top_safety_scc_recursive(edge, in_scc, values, counters);
+			top_safety_scc_recursive(edge, &done_edge, in_scc, done_symbol, values, value_symbol, counters);
 		}
 	}
 
 	for (unsigned int state_id = 0; state_id < this->states->size(); ++state_id) {
 		delete[] counters[state_id];
+		delete[] value_symbol[state_id];
+	}
+
+
+	/*for (unsigned int id=0; id < this->states->size(); ++id) {
+		printf("values[%u]=%s\n", id, std::to_string(values[id]).c_str());
+	}*/
+}
+
+
+
+
+
+void Automaton::top_safety_tree (SCC_Tree* tree, weight_t* values, weight_t* top_values) const {
+	top_values[tree->origin->getTag()] = values[tree->origin->getId()];
+	for (auto iter = tree->nexts->begin(); iter != tree->nexts->end(); ++iter) {
+		top_safety_tree(*iter, values, top_values);
 	}
 }
+
 
 
 weight_t Automaton::top_Inf (weight_t* top_values) const {
-	top_safety_scc(top_values, false);
+	weight_t values[this->states->size()];
+	top_safety_scc(values, false);
+	top_safety_tree(this->SCCs_tree, values, top_values);
 	return top_values[this->SCCs_tree->origin->getTag()];
 }
 
-
-void Automaton::top_safety_tree (SCC_Tree* tree, weight_t* top_values) const {
-	for (auto iter = tree->nexts->begin(); iter != tree->nexts->end(); ++iter) {
-		top_safety_tree(*iter, top_values);
-		top_values[tree->origin->getTag()] = std::max(top_values[tree->origin->getTag()],
-				top_values[(*iter)->origin->getTag()]);
-	}
-}
 
 
 weight_t Automaton::top_LimInf (weight_t* top_values) const {
 	weight_t values[this->states->size()];
 	top_safety_scc(values, true);
-
-	for (unsigned int scc_id = 0; scc_id < this->nb_SCCs; ++scc_id) {
-		top_values[scc_id] = this->min_domain;
-	}
-
-	for (unsigned int state_id = 0; state_id < this->states->size(); ++state_id) {
-		if (values[state_id] <= this->max_domain) {
-			top_values[this->states->at(state_id)->getTag()] =
-					std::max(top_values[this->states->at(state_id)->getTag()], values[state_id]);
-		}
-
-	}
-
-	top_safety_tree(this->SCCs_tree, top_values);
+	top_safety_tree(this->SCCs_tree, values, top_values);
 	return top_values[this->SCCs_tree->origin->getTag()];
 }
 
@@ -1548,8 +1587,8 @@ void Automaton::print () const {
 	std::cout << "\tstates (" << this->states->size() << "):";
 	std::cout << states->toString(State::toString) << "\n";
 	std::cout << "\t\tINITIAL = " << initial->getName() << "\n";
-	//std::cout << "\tSCCs (" << this->nb_SCCs << "):";
-	//std::cout << this->SCCs_tree->toString("\t\t") << "\n";
+	std::cout << "\tSCCs (" << this->nb_SCCs << "):";
+	std::cout << this->SCCs_tree->toString("\t\t") << "\n";
 	unsigned int nb_edge = 0;
 	for (unsigned int state_id = 0; state_id < states->size(); ++state_id) {
 		for (Symbol* symbol : *(states->at(state_id)->getAlphabet())) {

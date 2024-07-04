@@ -7,32 +7,11 @@
 
 int main(int argc, char **argv) {
 
-	// Automaton* A = new Automaton("samples/test5.txt");
-	// A->print();
-
-	// Automaton* B = Automaton::safetyClosure(A, LimAvg);
-	// B->print();
-
-	// // std::cout << A->isConstant(LimAvg) << std::endl;
-	// // std::cout << B->isConstant(LimAvg) << std::endl;
-	// std::cout << A->isSafe(LimAvg) << std::endl;
-	// // std::cout << A->isLive(LimAvg) << std::endl;
-
+	// Automaton* A = new Automaton("samples/A.txt");
+	// std::cout << A->getTopValue(Inf) << std::endl;
 	// delete A;
-	// delete B;
 
-	// Automaton* A = new Automaton("samples/test666.txt");
-	// A->print();
-	// Automaton* AA = Automaton::copy_trim_complete(A, Inf);
-	// AA->print();
-	// Automaton* B = Automaton::safetyClosure(AA, Inf);
-	// B->print();
-
-	// delete A;
-	// delete AA;
-	// delete B;
-
-	Automaton* A = new Automaton("samples/A.txt");
+	Automaton* A = new Automaton("samples/test2.txt");
 	A->print();
 	Automaton* B = Automaton::determinizeInf(A);
 	B->print();
