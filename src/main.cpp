@@ -11,17 +11,17 @@ int main(int argc, char **argv) {
 	// std::cout << A->getTopValue(Inf) << std::endl;
 	// delete A;
 
-	Automaton* A = new Automaton("samples/test2.txt");
+	Automaton* A = new Automaton("samples/All_Sturmian_words_contain_cubes_SUPERSET.txt");
 	A->print();
 	Automaton* B = Automaton::determinizeInf(A);
 	B->print();
 
 	std::cout << A->isIncludedIn(B, Inf) << " " << B->isIncludedIn(A, Inf) << std::endl;
 
-	delete A;
-	delete B;
+	// delete A;
+	// delete B;
 
-	// debug_test();
+	// debug_test2();
 
 	return EXIT_SUCCESS;
 }
