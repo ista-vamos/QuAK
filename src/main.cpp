@@ -21,10 +21,12 @@ int main(int argc, char **argv) {
 	// delete A;
 	// delete B;
 
-	Automaton* A = new Automaton("samples/test666.txt");
+	Automaton* A = new Automaton("samples/A.txt");
 	A->print();
-	Automaton* B = Automaton::safetyClosure(A, Inf);
-	B->print();
+	std::cout << A->getTopValue(Inf) << std::endl;
+
+//	Automaton* B = Automaton::safetyClosure(A, Inf);
+//	B->print();
 //
 //	std::cout << A->isConstant(Inf) << std::endl;
 //	std::cout << B->isConstant(Inf) << std::endl;
