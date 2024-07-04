@@ -908,8 +908,8 @@ Automaton* Automaton::toLimSup (const Automaton* A, value_function_t f) {
 	return new Automaton(newname, newalphabet, newstates, newweights, newmin_domain, newmax_domain, newinitial);
 }
 
-std::vector<weight_t> int2function (unsigned int id, unsigned int n, unsigned int m) {
-	std::vector<weight_t> func(n, 0);
+std::vector<unsigned int> int2function (unsigned int id, unsigned int n, unsigned int m) {
+	std::vector<unsigned int> func(n, 0);
 	for (int i = n - 1; i >= 0; i--) {
 		func[i] = id % m;
 		id = id / m;
@@ -917,7 +917,7 @@ std::vector<weight_t> int2function (unsigned int id, unsigned int n, unsigned in
 	return func;
 }
 
-unsigned int function2int (std::vector<weight_t> func, unsigned int n, unsigned int m) {
+unsigned int function2int (std::vector<unsigned int> func, unsigned int n, unsigned int m) {
 	unsigned int id = 0;
 	unsigned int b = 1;
 	for (int i = n - 1; i >= 0; i--) {
@@ -939,20 +939,15 @@ Automaton* Automaton::determinizeInf (const Automaton* A) {
 		newalphabet->insert(symbol_id, new Symbol(A->alphabet->at(symbol_id)));
 	}
 
+	std::unordered_map<weight_t, unsigned int> weightInverseMap;
 	MapArray<Weight*>* newweights = new MapArray<Weight*>(A->weights->size());
 	for (unsigned int weight_id = 0; weight_id < A->weights->size(); ++weight_id) {
 		newweights->insert(weight_id, new Weight(A->weights->at(weight_id)));
+		weightInverseMap[A->weights->at(weight_id)->getValue()] = weight_id;
 	}
 
-	weight_t newmin_domain = A->min_domain;//domain does not change
-	weight_t newmax_domain = A->max_domain;//domain does not depend on weights
-	
-	
-	std::vector<weight_t> weightsTemp(A->getWeights()->size());
-	for (unsigned int weight_id = 0; weight_id < A->getWeights()->size(); ++weight_id) {
-		weightsTemp[weight_id] = A->getWeights()->at(weight_id)->getValue();
-	}
-
+	weight_t newmin_domain = A->min_domain;
+	weight_t newmax_domain = A->max_domain;
 
 	unsigned int n = A->states->size();
 	unsigned int m = A->weights->size();
@@ -962,53 +957,54 @@ Automaton* Automaton::determinizeInf (const Automaton* A) {
 		size = size * m;
 	}
 
-	MapArray<State*>* newstates = new MapArray<State*>(size);
+	MapArray<State*>* newstates = new MapArray<State*>(size); // each state represents a function from states of A to weightIds of A
 	for (unsigned int state_id = 0; state_id < size; ++state_id) {
-		std::string statename = std::to_string(state_id);
+		std::string statename = "(";
+		std::vector<unsigned int> funcTemp = int2function(state_id, n, m);
+		for (unsigned int i = 0; i < n - 1; i++) {
+			statename += std::to_string(funcTemp[i]) + ",";
+		}
+		statename += std::to_string(funcTemp[n-1]) + ")";
 		State* state = new State(statename, newalphabet->size(), newmin_domain, newmax_domain);
 		newstates->insert(state->getId(), state);
 	}
 
 	weight_t top_values[A->nb_SCCs];
-	std::vector<weight_t> tempFunc(n,0);
-	tempFunc[A->getInitial()->getId()] = A->compute_Top(Inf, top_values);
-	unsigned int initIndex = function2int(tempFunc, n, m);	
+	std::vector<unsigned int> funcFrom(n, 0);
+	funcFrom[A->getInitial()->getId()] = weightInverseMap[A->compute_Top(Inf, top_values)];
+	unsigned int initIndex = function2int(funcFrom, n, m);
 	State* newinitial = newstates->at(initIndex);
 
 	for (unsigned int state_id = 0; state_id < size; ++state_id) {
-		tempFunc = int2function(state_id, n, m);
-		for (int j = 0; j < n; j++) {
-			// for each incoming transition t with letter a in A to state with id j
-				// from = state with id i
-				// tempFunc[j] = max(tempFunc[j], min(tempFunc[i], weight of t))
-			// add the transition with letter a here
+		funcFrom = int2function(state_id, n, m);
+
+		for (unsigned int symbol_id = 0; symbol_id < A->alphabet->size(); ++symbol_id) {
+			std::vector<unsigned int> funcTo(n, 0);
+			for (unsigned int to_id = 0; to_id < n; to_id++) {
+				for (Edge* edge : *(A->states->at(to_id)->getPredecessors(symbol_id))) {
+					unsigned int from_id = edge->getFrom()->getId();
+					unsigned int x = funcFrom[from_id];
+					unsigned int y = edge->getWeight()->getId();
+					unsigned int z = funcTo[to_id];
+					funcTo[to_id] = std::max(z, std::min(x, y)); // this is fine because weights are ordered
+				}
+			}
+
+			unsigned int new_to_id = function2int(funcTo, n, m);
+			State* from = newstates->at(state_id);
+			State* to = newstates->at(new_to_id);
+
+			unsigned int weight_id = 0;
+			for (unsigned int i = 0; i < n; i++) {
+				weight_id = std::max(weight_id, funcFrom[i]);
+			}
+			
+			Weight* w = newweights->at(weight_id);
+			Edge* newedge = new Edge(newalphabet->at(symbol_id), w, from, to);
+			from->addSuccessor(newedge);
+			to->addPredecessor(newedge);
 		}
-
-
-		// for (Symbol* symbol : *(A->states->at(state_id)->getAlphabet())) {
-		// 	for (Edge* edge : *(A->states->at(state_id)->getSuccessors(symbol->getId()))) {
-		// 		State* from = newstates->at(edge->getFrom()->getId());
-		// 		State* to = newstates->at(edge->getTo()->getId());
-		// 		Weight* weight = weight_register.at(top_values[edge->getTo()->getTag()]);
-		// 		Edge* newedge = new Edge(newalphabet->at(symbol->getId()), weight, from, to);
-		// 		from->addSuccessor(newedge);
-		// 		to->addPredecessor(newedge);
-		// 	}
-		// }
 	}
-
-
-	// for (auto pair : set_of_edges) {
-	// 	Symbol* symbol = newalphabet->at(pair.first->getId());
-	// 	Weight* weight = newweights->at(pair.second.second.second->getId());
-	// 	State* from = state_register.at(pair.second.first);
-	// 	State* to = state_register.at(pair.second.second);
-	// 	Edge *edge = new Edge(symbol, weight, from, to);
-	// 	from->addSuccessor(edge);
-	// 	to->addPredecessor(edge);
-	// }
-
-
 
 
 	std::string newname = "Determinized(" + A->getName() + ")";

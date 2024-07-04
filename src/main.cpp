@@ -21,20 +21,26 @@ int main(int argc, char **argv) {
 	// delete A;
 	// delete B;
 
-	Automaton* A = new Automaton("samples/test666.txt");
-	A->print();
-	Automaton* AA = Automaton::copy_trim_complete(A, Inf);
-	AA->print();
-	Automaton* B = Automaton::safetyClosure(AA, Inf);
-	B->print();
-//
-//	std::cout << A->isConstant(Inf) << std::endl;
-//	std::cout << B->isConstant(Inf) << std::endl;
-//	std::cout << A->isSafe(Inf) << std::endl;
-//	std::cout << A->isLive(Inf) << std::endl;
+	// Automaton* A = new Automaton("samples/test666.txt");
+	// A->print();
+	// Automaton* AA = Automaton::copy_trim_complete(A, Inf);
+	// AA->print();
+	// Automaton* B = Automaton::safetyClosure(AA, Inf);
+	// B->print();
 
-	//delete A;
-	//delete B;
+	// delete A;
+	// delete AA;
+	// delete B;
+
+	Automaton* A = new Automaton("samples/A.txt");
+	A->print();
+	Automaton* B = Automaton::determinizeInf(A);
+	B->print();
+
+	std::cout << A->isIncludedIn(B, Inf) << " " << B->isIncludedIn(A, Inf) << std::endl;
+
+	delete A;
+	delete B;
 
 	// debug_test();
 

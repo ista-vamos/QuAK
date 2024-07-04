@@ -59,7 +59,6 @@ private:
 	static Automaton* product(const Automaton* A, aggregator_t aggregator, const Automaton* B);
 	static Automaton* constantAutomaton (const Automaton* A, weight_t x);
 	static Automaton* booleanize(const Automaton* A, weight_t x);
-	static Automaton* determinizeInf (const Automaton* A);
 
 	bool isDeterministic () const;
 	void compute_SCC (void);
@@ -88,6 +87,7 @@ public:
 	~Automaton ();
 	Automaton(std::string filename, Automaton* other = nullptr);
 	Automaton(std::string filename, value_function_t f, Automaton* other = nullptr);
+	static Automaton* determinizeInf (const Automaton* A); // TODO: make private
 	static Automaton* copy_trim_complete(const Automaton* A, value_function_t f); // TODO: make private
 	static Automaton* from_file_sync_alphabet(std::string filename, Automaton* other = nullptr);
 	static Automaton* safetyClosure(const Automaton* A, value_function_t value_function);
