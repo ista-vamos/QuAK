@@ -1,6 +1,8 @@
 #include <iostream>
 #include <memory>
 #include <cstring>
+#include <ctime>
+#include <cstdint>
 
 #include "FORKLIFT/inclusion.h"
 #include "Automaton.h"
@@ -39,9 +41,21 @@ int main(int argc, char **argv) {
         return -1;
     }
 
-    bool included = A1->isIncludedIn(A2.get(), value_fun);
+    bool included;
+    struct timespec start_time, end_time;
+
+    clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &start_time);
+    included = A1->isIncludedIn(A2.get(), value_fun);
+    clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &end_time);
+
+    end_time.tv_sec -= start_time.tv_sec;
+    end_time.tv_nsec -= start_time.tv_nsec;
 
     std::cout << "Is included: " << included << "\n";
+    std::cout << "Cputime: "
+              << static_cast<uint64_t>((end_time.tv_sec * 1000000) +
+                                       (end_time.tv_nsec / 1000.0d))
+              << " ms\n";
 
 	return EXIT_SUCCESS;
 }
