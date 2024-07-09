@@ -9,7 +9,6 @@
 #include "Map.h"
 #include "Word.h"
 
-constexpr unsigned REPETITIONS = 100;
 constexpr bool STATES_NUM_IS_MAX=false;
 
 #define tostr(x) _tostr(x)

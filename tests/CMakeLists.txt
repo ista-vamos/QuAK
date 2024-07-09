@@ -5,34 +5,124 @@ function(add_exe NAME)
 	add_test(${NAME} ${NAME})
 endfunction()
 
-add_exe(test-self-inclusion-rand-inf-1)
-target_compile_definitions(test-self-inclusion-rand-inf-1 PUBLIC
+
+
+set(TEST_NAME test-self-inclusion-rand-inf-1state)
+add_exe(${TEST_NAME})
+target_compile_definitions(${TEST_NAME} PUBLIC
 				VALUE_FUNCTION=Inf
 				STATES_NUM=1
-				EDGES_NUM=4
+				EDGES_NUM=0
 				ALPHABET_SIZE=2
 				MIN_WEIGHT=-10.0
 				MAX_WEIGHT=10.0
+				REPETITIONS=10000
 				)
 
+set(TEST_NAME test-self-inclusion-rand-sup-1state)
+add_exe(${TEST_NAME})
+target_compile_definitions(${TEST_NAME} PUBLIC
+				VALUE_FUNCTION=Sup
+				STATES_NUM=1
+				EDGES_NUM=0
+				ALPHABET_SIZE=2
+				MIN_WEIGHT=-10.0
+				MAX_WEIGHT=10.0
+				REPETITIONS=10000
+				)
 
-add_exe(test-self-inclusion-rand-inf)
-target_compile_definitions(test-self-inclusion-rand-inf PUBLIC
+set(TEST_NAME test-self-inclusion-rand-inf-2state)
+add_exe(${TEST_NAME})
+target_compile_definitions(${TEST_NAME} PUBLIC
 				VALUE_FUNCTION=Inf
 				STATES_NUM=2
-				EDGES_NUM=4
+				EDGES_NUM=0
 				ALPHABET_SIZE=2
 				MIN_WEIGHT=-10.0
 				MAX_WEIGHT=10.0
+				REPETITIONS=10000
 				)
 
-add_exe(test-self-inclusion-rand-sup)
-target_compile_definitions(test-self-inclusion-rand-sup PUBLIC
+set(TEST_NAME test-self-inclusion-rand-sup-2state)
+add_exe(${TEST_NAME})
+target_compile_definitions(${TEST_NAME} PUBLIC
 				VALUE_FUNCTION=Sup
 				STATES_NUM=2
-				EDGES_NUM=4
+				EDGES_NUM=0
 				ALPHABET_SIZE=2
 				MIN_WEIGHT=-10.0
 				MAX_WEIGHT=10.0
+				REPETITIONS=10000
 				)
 
+set(TEST_NAME test-self-inclusion-rand-inf-4state)
+add_exe(${TEST_NAME})
+target_compile_definitions(${TEST_NAME} PUBLIC
+				VALUE_FUNCTION=Inf
+				STATES_NUM=4
+				EDGES_NUM=0
+				ALPHABET_SIZE=2
+				MIN_WEIGHT=-10.0
+				MAX_WEIGHT=10.0
+				REPETITIONS=5000
+				)
+
+set(TEST_NAME test-self-inclusion-rand-sup-4state)
+add_exe(${TEST_NAME})
+target_compile_definitions(${TEST_NAME} PUBLIC
+				VALUE_FUNCTION=Sup
+				STATES_NUM=4
+				EDGES_NUM=0
+				ALPHABET_SIZE=2
+				MIN_WEIGHT=-10.0
+				MAX_WEIGHT=10.0
+				REPETITIONS=4000
+				)
+
+set(TEST_NAME test-self-inclusion-rand-inf-10state)
+add_exe(${TEST_NAME})
+target_compile_definitions(${TEST_NAME} PUBLIC
+				VALUE_FUNCTION=Inf
+				STATES_NUM=10
+				EDGES_NUM=0
+				ALPHABET_SIZE=2
+				MIN_WEIGHT=-10.0
+				MAX_WEIGHT=10.0
+				REPETITIONS=1000
+				)
+
+set(TEST_NAME test-self-inclusion-rand-sup-10state)
+add_exe(${TEST_NAME})
+target_compile_definitions(${TEST_NAME} PUBLIC
+				VALUE_FUNCTION=Sup
+				STATES_NUM=10
+				EDGES_NUM=0
+				ALPHABET_SIZE=2
+				MIN_WEIGHT=-10.0
+				MAX_WEIGHT=10.0
+				REPETITIONS=1000
+				)
+
+set(TEST_NAME test-self-inclusion-rand-inf-10state-5alph)
+add_exe(${TEST_NAME})
+target_compile_definitions(${TEST_NAME} PUBLIC
+				VALUE_FUNCTION=Inf
+				STATES_NUM=10
+				EDGES_NUM=0
+				ALPHABET_SIZE=5
+				MIN_WEIGHT=-10.0
+				MAX_WEIGHT=10.0
+				REPETITIONS=100
+				)
+
+set(TEST_NAME test-self-inclusion-rand-sup-10state-5alph)
+add_exe(${TEST_NAME})
+target_compile_definitions(${TEST_NAME} PUBLIC
+				VALUE_FUNCTION=Sup
+				STATES_NUM=10
+				EDGES_NUM=0
+				ALPHABET_SIZE=5
+				MIN_WEIGHT=-10.0
+				MAX_WEIGHT=10.0
+				REPETITIONS=100
+				)
