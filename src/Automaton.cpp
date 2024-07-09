@@ -824,15 +824,18 @@ void explore_LimInf (
 
 
 Automaton* Automaton::toLimSup (const Automaton* A, value_function_t f) {
+
+  using std::pair;
+
 	State::RESET();
 	Symbol::RESET();
 	Weight::RESET();
 
 	int initWeightId;
 	void (*explore)(
-			std::pair<State*, Weight*> &from,
-			SetStd<std::pair<State*, Weight*>> &set_of_states,
-			SetStd<std::pair<Symbol*, std::pair<std::pair<State*, Weight*>, std::pair<State*, Weight*>>>> &set_of_edges
+			pair<State*, Weight*> &from,
+			SetStd<pair<State*, Weight*>> &set_of_states,
+			SetStd<pair<Symbol*, pair<pair<State*, Weight*>, pair<State*, Weight*>>>> &set_of_edges
 	);
 	switch(f) {
 	case Inf:
@@ -855,6 +858,7 @@ Automaton* Automaton::toLimSup (const Automaton* A, value_function_t f) {
 
 	std::string newname = "LimSup(" + A->getName() + ")";
 
+  // copy the alphabet
 	MapArray<Symbol*>* newalphabet = new MapArray<Symbol*>(A->alphabet->size());
 	for (unsigned int symbol_id = 0; symbol_id < A->alphabet->size(); ++symbol_id) {
 		newalphabet->insert(symbol_id, new Symbol(A->alphabet->at(symbol_id)));
@@ -868,9 +872,9 @@ Automaton* Automaton::toLimSup (const Automaton* A, value_function_t f) {
 	weight_t newmin_domain = A->min_domain;//domain does not change
 	weight_t newmax_domain = A->max_domain;//domain does not depend on weights
 
-	SetStd<std::pair<State*, Weight*>> set_of_states;
-	SetStd<std::pair<Symbol*, std::pair<std::pair<State*, Weight*>, std::pair<State*, Weight*>>>> set_of_edges;
-	auto start = std::pair<State*, Weight*>(A->initial, A->weights->at(initWeightId));
+	SetStd<pair<State*, Weight*>> set_of_states;
+	SetStd<pair<Symbol*, pair<pair<State*, Weight*>, pair<State*, Weight*>>>> set_of_edges;
+	auto start = pair<State*, Weight*>(A->initial, A->weights->at(initWeightId));
 	explore(start, set_of_states, set_of_edges);
 
 	// TODO: it may be that some weights are not seen in the limsup automaton
@@ -881,8 +885,8 @@ Automaton* Automaton::toLimSup (const Automaton* A, value_function_t f) {
 	
 	// collect the weights that actually occur in the new automaton
 	std::set<unsigned int> tempWeightIds;
-	for (auto pair : set_of_edges) {
-		tempWeightIds.insert(pair.second.second.second->getId());
+	for (const auto &edge : set_of_edges) {
+		tempWeightIds.insert(edge.second.second.second->getId());
 	}
 	MapArray<Weight*>* newweights = new MapArray<Weight*>(tempWeightIds.size());
 	int ctr = 0;
@@ -892,20 +896,20 @@ Automaton* Automaton::toLimSup (const Automaton* A, value_function_t f) {
 	}
 
 	MapArray<State*>* newstates = new MapArray<State*>(set_of_states.size());
-	MapStd<std::pair<State*, Weight*>, State*> state_register;
-	for (std::pair<State*, Weight*> pair : set_of_states) {
-		std::string statename = "(" + pair.first->getName() + ", " + std::to_string(pair.second->getValue()) + ")";
+	MapStd<pair<State*, Weight*>, State*> state_register;
+	for (const pair<State*, Weight*> &weighted_state : set_of_states) {
+		std::string statename = "(" + weighted_state.first->getName() + ", " + std::to_string(weighted_state.second->getValue()) + ")";
 		State* state = new State(statename, newalphabet->size(), newmin_domain, newmax_domain);
 		newstates->insert(state->getId(), state);
-		state_register.insert(pair, state);
+		state_register.insert(weighted_state, state);
 	}
 	State* newinitial = state_register.at(start);
 
-	for (auto pair : set_of_edges) {
-		Symbol* symbol = newalphabet->at(pair.first->getId());
-		Weight* weight = newweights->at(pair.second.second.second->getId());
-		State* from = state_register.at(pair.second.first);
-		State* to = state_register.at(pair.second.second);
+	for (const auto &edgeA : set_of_edges) {
+		Symbol* symbol = newalphabet->at(edgeA.first->getId());
+		Weight* weight = newweights->at(edgeA.second.second.second->getId());
+		State* from = state_register.at(edgeA.second.first);
+		State* to = state_register.at(edgeA.second.second);
 		Edge *edge = new Edge(symbol, weight, from, to);
 		from->addSuccessor(edge);
 		to->addPredecessor(edge);
