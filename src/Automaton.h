@@ -132,6 +132,7 @@ public:
 	MapArray<Symbol*>* getAlphabet() const;
 	MapArray<State*>* getStates() const;
 	MapArray<Weight*>* getWeights() const;
+	unsigned getAlphabetSize() const;
 };
 
 #endif /* AUTOMATON_H_ */

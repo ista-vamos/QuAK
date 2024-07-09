@@ -450,6 +450,10 @@ weight_t Automaton::getMaxDomain () const { return this->max_domain; }
 State* Automaton::getInitial () const { return initial; }
 std::string Automaton::getName() const { return this->name; }
 
+unsigned Automaton::getAlphabetSize() const {
+    return alphabet->size();
+}
+
 
 
 void Automaton::invert_weights() {
