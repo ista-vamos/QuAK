@@ -4,9 +4,9 @@
 
 #include <string>
 #include "Weight.h"
-#include "State.h"
 #include "Symbol.h"
 
+class State;
 
 class Edge {
 private:
