@@ -36,16 +36,11 @@ int main(int argc, char **argv) {
 
     auto value_fun = getValueFunction(argv[3]);
 
-    if (booleanize) {
-        std::cerr << "Not implemented yet\n";
-        return -1;
-    }
-
     bool included;
     struct timespec start_time, end_time;
 
     clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &start_time);
-    included = A1->isIncludedIn(A2.get(), value_fun);
+    included = A1->isIncludedIn(A2.get(), value_fun, booleanize);
     clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &end_time);
 
     end_time.tv_sec -= start_time.tv_sec;
