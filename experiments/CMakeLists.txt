@@ -5,7 +5,16 @@ add_executable(inclusion inclusion.cpp)
 target_include_directories(inclusion PRIVATE ${SRCDIR})
 target_link_libraries(inclusion PRIVATE quak utils)
 
-find_package(vamos-buffers)
+find_package(vamos-buffers QUIET)
+
+# if vamos-buffers were not found
+if (NOT vamos-buffers_FOUND)
+	message(STATUS "vamos-buffers were not found, looking for them in vamos_DIR=${vamos_DIR}")
+	if (vamos_DIR)
+		set(vamos-buffers_DIR ${vamos_DIR}/vamos-buffers/cmake/vamos-buffers)
+		find_package(vamos-buffers)
+	endif()
+endif()
 
 if (vamos-buffers_FOUND)
 	message(STATUS "Found VAMOS buffers")
