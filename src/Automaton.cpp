@@ -3,6 +3,7 @@
 #include <vector>
 #include <memory>
 #include <unordered_map>
+#include <cassert>
 
 #include "Automaton.h"
 #include "Parser.h"
@@ -882,22 +883,27 @@ Automaton* Automaton::toLimSup (const Automaton* A, value_function_t f) {
 	explore(start, set_of_states, set_of_edges);
 
 	// TODO: it may be that some weights are not seen in the limsup automaton
-	// MapArray<Weight*>* newweights = new MapArray<Weight*>(A->weights->size());
-	// for (unsigned int weight_id = 0; weight_id < A->weights->size(); ++weight_id) {
-	// 	newweights->insert(weight_id, new Weight(A->weights->at(weight_id)));
-	// }
+	MapArray<Weight*>* newweights = new MapArray<Weight*>(A->weights->size());
+	for (unsigned int weight_id = 0; weight_id < A->weights->size(); ++weight_id) {
+		newweights->insert(weight_id, new Weight(A->weights->at(weight_id)));
+	}
 	
 	// collect the weights that actually occur in the new automaton
 	std::set<unsigned int> tempWeightIds;
 	for (const auto &edge : set_of_edges) {
 		tempWeightIds.insert(edge.second.second.second->getId());
 	}
+
+  /*
+  std::map<unsigned, unsigned> newweights_mapping;
 	MapArray<Weight*>* newweights = new MapArray<Weight*>(tempWeightIds.size());
 	int ctr = 0;
 	for (auto weight_id : tempWeightIds) {
 		newweights->insert(ctr, new Weight(A->weights->at(weight_id)));
+    newweights_mapping[weight_id] = ctr;
 		ctr++;
 	}
+  */
 
 	MapArray<State*>* newstates = new MapArray<State*>(set_of_states.size());
 	MapStd<pair<State*, Weight*>, State*> state_register;
@@ -911,6 +917,8 @@ Automaton* Automaton::toLimSup (const Automaton* A, value_function_t f) {
 
 	for (const auto &edgeA : set_of_edges) {
 		Symbol* symbol = newalphabet->at(edgeA.first->getId());
+    // assert(newweights_mapping.count(edgeA.second.second.second->getId()) > 0);
+		//Weight* weight = newweights->at(newweights_mapping[edgeA.second.second.second->getId()]);
 		Weight* weight = newweights->at(edgeA.second.second.second->getId());
 		State* from = state_register.at(edgeA.second.first);
 		State* to = state_register.at(edgeA.second.second);
