@@ -1,7 +1,6 @@
 #include <iostream>
 #include <memory>
 #include <cstring>
-#include <ctime>
 #include <cstdint>
 
 #include "FORKLIFT/inclusion.h"
@@ -34,7 +33,6 @@ int main(int argc, char **argv) {
         );
 
         bool included;
-        struct timespec start_time, end_time;
 
         included = A->isIncludedIn(A.get(), VALUE_FUNCTION);
         if (!included) {
