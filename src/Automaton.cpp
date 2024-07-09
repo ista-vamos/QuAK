@@ -92,6 +92,7 @@ Automaton::Automaton (
 		max_domain(max_domain),
 		initial(initial)
 {
+  assert(isComplete() && "The automaton is not complete.");
 	compute_SCC();
 }
 
