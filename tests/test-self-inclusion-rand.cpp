@@ -28,6 +28,7 @@ int main(int argc, char **argv) {
                                            alphabet.get(),
                                            MIN_WEIGHT, MAX_WEIGHT,
                                            EDGES_NUM,
+                                           /* complete=*/ true,
                                            STATES_NUM_IS_MAX
                                            )
         );

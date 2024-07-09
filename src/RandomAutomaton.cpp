@@ -15,6 +15,8 @@ Automaton *Automaton::randomAutomaton(const std::string& name,
                                       // number of edges, if set to `0`, the number is
                                       // going to be a random number between `states_num / 2` and `states_num*states_num`
                                       unsigned edges_num,
+                                      // generate complete automaton?
+                                      bool complete,
                                       // should we generate exactly `states_num` states
                                       // or _at most_ `states_num` states?
                                       bool states_num_is_max) {
@@ -51,7 +53,6 @@ Automaton *Automaton::randomAutomaton(const std::string& name,
   // generate edges
   std::uniform_real_distribution<weight_t> rand_weight(min_weight, max_weight);
   std::uniform_int_distribution<unsigned> rand_state(0, states_num - 1);
-  std::uniform_int_distribution<unsigned> rand_symbol(0, alphabet_size - 1);
   std::map<weight_t, Weight *> weights_register;
 
   weight_t real_min = max_weight;
@@ -60,26 +61,51 @@ Automaton *Automaton::randomAutomaton(const std::string& name,
   std::vector<std::tuple<unsigned, unsigned, weight_t, unsigned>> tmpedges;
   tmpedges.reserve(edges_num);
 
-  while (edges_num > 0) {
-    auto src_id = rand_state(reng);
-    auto dest_id = rand_state(reng);
-    auto weight = rand_weight(reng);
-    auto symbol = rand_symbol(reng);
+  if (complete) {
+    // generate outgoing (random) transitions for all states and all symbols
+    for (auto state = 0U; state < states_num; ++state) {
+      for (auto symbol = 0U; symbol < alphabet_size; ++symbol) {
+        auto dest_state = rand_state(reng);
+        auto weight = rand_weight(reng);
 
-    auto *W = weights_register[weight];
-    if (W == nullptr) {
-      W = new Weight(weight);
-      weights_register[weight] = W;
+        auto *W = weights_register[weight];
+        if (W == nullptr) {
+          W = new Weight(weight);
+          weights_register[weight] = W;
+        }
+
+        if (weight < real_min)
+          real_min = weight;
+        if (weight > real_max)
+          real_max = weight;
+
+        tmpedges.push_back({state, dest_state, weight, symbol});
+      }
     }
+  } else {
+      std::uniform_int_distribution<unsigned> rand_symbol(0, alphabet_size - 1);
 
-    if (weight < real_min)
-      real_min = weight;
-    if (weight > real_max)
-      real_max = weight;
+      while (edges_num > 0) {
+        auto src_id = rand_state(reng);
+        auto dest_id = rand_state(reng);
+        auto weight = rand_weight(reng);
+        auto symbol = rand_symbol(reng);
 
-    tmpedges.push_back({src_id, dest_id, weight, symbol});
+        auto *W = weights_register[weight];
+        if (W == nullptr) {
+          W = new Weight(weight);
+          weights_register[weight] = W;
+        }
 
-    --edges_num;
+        if (weight < real_min)
+          real_min = weight;
+        if (weight > real_max)
+          real_max = weight;
+
+        tmpedges.push_back({src_id, dest_id, weight, symbol});
+
+        --edges_num;
+      }
   }
 
   ///////////////////////////////////////////////////////////////////

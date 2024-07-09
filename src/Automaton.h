@@ -107,7 +107,11 @@ public:
                                     weight_t max_weight,
                                     // number of edges, if set to `0`, the number is
                                     // going to be a random number between `states_num / 2` and `states_num*states_num`
+                                    // if the automaton should not be complete, and `states_num*alphabet.size()`
+                                    // if complete=true
                                     unsigned edges_num=0,
+                                      // generate complete automaton?
+                                      bool complete = true,
                                     // should we generate exactly `states_num` states
                                     // or _at most_ `states_num` states?
                                     bool states_num_is_max=false);
