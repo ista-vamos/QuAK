@@ -49,7 +49,7 @@ int main(int argc, char **argv) {
     std::cout << "Is included: " << included << "\n";
     std::cout << "Cputime: "
               << static_cast<uint64_t>((end_time.tv_sec * 1000000) +
-                                       (end_time.tv_nsec / 1000.0d))
+                                       (end_time.tv_nsec / 1000.0))
               << " ms\n";
 
 	return EXIT_SUCCESS;
