@@ -16,9 +16,12 @@ apt-get install make cmake
 Then you can compile QuAK:
 
 ```
-cmake .
+cmake . -DCMAKE_BUILD_TYPE=Release
 make -j4
 ```
+
+For debug builds, use `Debug` instead of `Release`.
+
 
 #### Building with VAMOS integration
 
