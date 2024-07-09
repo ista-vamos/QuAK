@@ -1,12 +1,11 @@
-
-
 #ifndef MAP_H_
 #define MAP_H_
 
 #include <vector>
 #include <string>
 #include <map>
-#include <unordered_map>
+//#include <unordered_map>
+#include <cassert>
 #include "hash.h"
 
 
@@ -44,6 +43,38 @@ public:
 	unsigned int size () const;
 	T_value at (unsigned int key) const;
 	std::string toString(std::string (*f_value) (T_value value)) const;
+
+    class MapArrayIterator {
+        unsigned int pos{0};
+        MapArray *array;
+
+    public:
+        MapArrayIterator(MapArray* a) : array(a) {}
+        MapArrayIterator(MapArray* a, unsigned pos) : pos(pos), array(a) {}
+
+        MapArrayIterator& operator++() {
+            ++pos;
+            return *this;
+        }
+
+        MapArrayIterator operator++(int) {
+            auto tmp = *this;
+            operator++();
+            return tmp;
+        }
+
+        T_value operator*() { return array->at(pos); }
+
+        bool operator==(const MapArrayIterator& rhs) const {
+            assert(array == rhs.array && "Comparing iterators for different arrays");
+            return pos == rhs.pos;
+        }
+
+        bool operator!=(const MapArrayIterator& rhs) const { return !operator==(rhs); }
+    };
+
+    MapArrayIterator begin() { return MapArrayIterator(this); }
+    MapArrayIterator end() { return MapArrayIterator(this, this->capacity); }
 };
 
 

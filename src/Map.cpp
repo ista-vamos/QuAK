@@ -1,5 +1,6 @@
-
 #include <cstring> //memset
+#include <cassert> // assert
+
 #include "Map.h"
 #include "utility.h"
 
@@ -85,6 +86,7 @@ MapArray<T_value>::~MapArray() {
 
 template <typename T_value>
 void MapArray<T_value>::insert(unsigned int key, T_value value) {
+    assert(key < capacity && "OOB");
 	all[key] = value;
 }
 
@@ -107,11 +109,9 @@ std::string MapArray<T_value>::toString (std::string (*f_value) (T_value value))
 	return s;
 }
 
-
 template <typename T_value>
 T_value MapArray<T_value>::at (unsigned int key) const {
-	return all[key];
+    assert(key < capacity && "OOB");
+    return all[key];
 }
-
-
 
