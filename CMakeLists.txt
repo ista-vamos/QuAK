@@ -38,4 +38,5 @@ add_library(quak STATIC
 OPTION(BUILD_EXPERIMENTS "Enable and build experiments" ON)
 add_subdirectory(experiments)
 
-#enable_testing()
+enable_testing()
+add_subdirectory(tests)
