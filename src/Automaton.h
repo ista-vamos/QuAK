@@ -14,7 +14,6 @@
 class SCC_Tree;
 
 
-
 typedef enum {
 	Inf,
 	Sup,
@@ -98,6 +97,20 @@ public:
 	static Automaton* livenessComponent_prefixIndependent (const Automaton* A, value_function_t type);
 	static Automaton* toLimSup (const Automaton* A, value_function_t f); // TODO: make private
 	bool isLimAvgConstant() const; // TODO: make private
+
+  // Generate a random automaton
+  static Automaton *randomAutomaton(const std::string& name,
+                                    unsigned states_num,
+                                    MapArray<Symbol*>* alphabet,
+                                    weight_t min_weight,
+                                    weight_t max_weight,
+                                    // number of edges, if set to `0`, the number is
+                                    // going to be a random number between `states_num / 2` and `states_num*states_num`
+                                    unsigned edges_num=0,
+                                    // should we generate exactly `states_num` states
+                                    // or _at most_ `states_num` states?
+                                    bool states_num_is_max=false);
+
 
 	void print () const;
 	std::string getName() const;

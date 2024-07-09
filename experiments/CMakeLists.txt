@@ -26,6 +26,7 @@ add_library(quak STATIC
 	${SRCDIR}/Word.cpp
 	${SRCDIR}/Parser.cpp
 	${SRCDIR}/Monitor.cpp
+	${SRCDIR}/RandomAutomaton.cpp
 	${SRCDIR}/FORKLIFT/inclusion.cpp
 	${SRCDIR}/FORKLIFT/FixpointLoop.cpp
 	${SRCDIR}/FORKLIFT/FixpointStem.cpp
