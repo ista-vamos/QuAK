@@ -60,6 +60,7 @@ private:
 	static Automaton* booleanize(const Automaton* A, weight_t x);
 
 	bool isDeterministic () const;
+  bool isComplete () const;
 	void compute_SCC (void);
 	void invert_weights();
 

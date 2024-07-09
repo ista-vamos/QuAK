@@ -1060,6 +1060,14 @@ bool Automaton::isUniversal (value_function_t f, weight_t x)  {
 	return (getBottomValue(f) >= x);
 }
 
+bool Automaton::isComplete () const {
+	for (unsigned int state_id = 0; state_id < this->states->size(); ++state_id) {
+		for (unsigned int symbol_id = 0; symbol_id < this->alphabet->size(); ++symbol_id) {
+			if (1 > this->states->at(state_id)->getSuccessors(symbol_id)->size()) return false;
+		}
+	}
+	return true;
+}
 
 
 bool Automaton::isLimAvgConstant() const {
