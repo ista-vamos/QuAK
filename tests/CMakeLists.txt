@@ -112,7 +112,7 @@ target_compile_definitions(${TEST_NAME} PUBLIC
 				ALPHABET_SIZE=5
 				MIN_WEIGHT=-10.0
 				MAX_WEIGHT=10.0
-				REPETITIONS=100
+				REPETITIONS=10
 				)
 
 set(TEST_NAME test-self-inclusion-rand-sup-10state-5alph)

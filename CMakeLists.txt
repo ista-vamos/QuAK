@@ -10,6 +10,12 @@ project(QuAK)
 # 	set(CMAKE_INTERPROCEDURAL_OPTIMIZATION TRUE)
 # endif(ENABLE_IPO)
 
+#set(CMAKE_VERBOSE_MAKEFILE 1)
+set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
+
+
 set(SRCDIR src)
 get_filename_component(SRCDIR ${SRCDIR} ABSOLUTE)
 
@@ -33,7 +39,7 @@ add_library(quak STATIC
 	${SRCDIR}/FORKLIFT/PostTargetVariable.cpp
 	${SRCDIR}/FORKLIFT/StateRelation.cpp
 	${SRCDIR}/FORKLIFT/TargetOf.cpp
-	)
+)
 
 OPTION(BUILD_EXPERIMENTS "Enable and build experiments" ON)
 add_subdirectory(experiments)

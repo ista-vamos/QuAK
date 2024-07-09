@@ -3,7 +3,7 @@ target_include_directories(utils PRIVATE ${SRCDIR})
 
 add_executable(inclusion inclusion.cpp)
 target_include_directories(inclusion PRIVATE ${SRCDIR})
-target_link_libraries(inclusion PRIVATE quak utils)
+target_link_libraries(inclusion PUBLIC quak utils)
 
 find_package(vamos-buffers QUIET)
 
