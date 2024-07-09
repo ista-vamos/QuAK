@@ -76,6 +76,9 @@ private:
 	void top_avg_tree (SCC_Tree* tree, weight_t* top_values) const;
 	weight_t top_LimAvg (weight_t* top_values) const;
 
+	bool isIncludedIn_booleanized (const Automaton* B, value_function_t f);
+	bool isIncludedIn_antichains (const Automaton* B, value_function_t f);
+
 protected:
 	Automaton(const Automaton* A, value_function_t f);
 	weight_t compute_Top (value_function_t f, weight_t* top_values) const;
@@ -101,7 +104,9 @@ public:
 
 	bool isEmpty (value_function_t f, weight_t x); 				// checks if A(w) >= v for some w
 	bool isUniversal (value_function_t f, weight_t x);			// checks if A(w) >= v for all w
-	bool isIncludedIn (const Automaton* B, value_function_t f);	// checks if A(w) <= B(w) for all w
+    // checks if A(w) <= B(w) for all w. If `booleanized` is set to true, the inclusion algorithm based
+    // on booleanization is used, otherwise the one on anti-chains is used
+	bool isIncludedIn (const Automaton* B, value_function_t f, bool booleanized = false);
 	bool isSafe (value_function_t f);								// checks if A = SafetyClosure(A)
 	bool isConstant (value_function_t f);							// checks if Universal(A, Top_A)
 	bool isLive (value_function_t f);								// checks if SafetyClosure(A) = Top_A

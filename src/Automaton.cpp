@@ -1,12 +1,14 @@
+#include <set>
+#include <string>
+#include <vector>
+#include <memory>
+#include <unordered_map>
 
 #include "Automaton.h"
 #include "Parser.h"
 #include "Edge.h"
 #include "utility.h"
 #include "FORKLIFT/inclusion.h"
-#include <set>
-#include <string>
-#include <vector>
 
 
 class SCC_Tree {
@@ -1150,8 +1152,15 @@ bool Automaton::isConstant (value_function_t f) {
 	}
 }
 
+bool Automaton::isIncludedIn(const Automaton* B, value_function_t f, bool booleanized) {
+    if (booleanized) {
+        return isIncludedIn_booleanized(B, f);
+    }
 
-bool Automaton::isIncludedIn(const Automaton* B, value_function_t f) {
+    return isIncludedIn_antichains(B, f);
+}
+
+bool Automaton::isIncludedIn_antichains(const Automaton* B, value_function_t f) {
 	if (f == LimAvg) {
 		if (B->isDeterministic()) {
 			Automaton* C = Automaton::product(this, Minus, B);
@@ -1183,6 +1192,18 @@ bool Automaton::isIncludedIn(const Automaton* B, value_function_t f) {
 	else {
 		fail("automata inclusion type");
 	}
+}
+
+bool Automaton::isIncludedIn_booleanized(const Automaton* B, value_function_t f) {
+    for (auto *weight: *weights) {
+        auto boolA = std::unique_ptr<Automaton>(booleanize(this, weight->getValue()));
+        auto boolB = std::unique_ptr<Automaton>(booleanize(B, weight->getValue()));
+
+        if (!boolA->isIncludedIn_antichains(boolB.get(), f))
+            return false;
+    }
+
+    return true;
 }
 
 
