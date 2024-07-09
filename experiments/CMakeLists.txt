@@ -5,6 +5,12 @@ add_executable(inclusion inclusion.cpp)
 target_include_directories(inclusion PRIVATE ${SRCDIR})
 target_link_libraries(inclusion PUBLIC quak utils)
 
+add_executable(measure-inclusion measure-inclusion.cpp)
+target_include_directories(measure-inclusion PRIVATE ${SRCDIR})
+target_link_libraries(measure-inclusion PUBLIC quak utils)
+
+
+
 find_package(vamos-buffers QUIET)
 
 # if vamos-buffers were not found
