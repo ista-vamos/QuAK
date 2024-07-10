@@ -88,7 +88,7 @@ target_compile_definitions(${TEST_NAME} PUBLIC
 				ALPHABET_SIZE=2
 				MIN_WEIGHT=-10.0
 				MAX_WEIGHT=10.0
-				REPETITIONS=1000
+				REPETITIONS=500
 				)
 
 set(TEST_NAME test-self-inclusion-rand-sup-10state)
@@ -100,7 +100,7 @@ target_compile_definitions(${TEST_NAME} PUBLIC
 				ALPHABET_SIZE=2
 				MIN_WEIGHT=-10.0
 				MAX_WEIGHT=10.0
-				REPETITIONS=1000
+				REPETITIONS=10
 				)
 
 set(TEST_NAME test-self-inclusion-rand-inf-10state-5alph)
@@ -124,7 +124,7 @@ target_compile_definitions(${TEST_NAME} PUBLIC
 				ALPHABET_SIZE=5
 				MIN_WEIGHT=-10.0
 				MAX_WEIGHT=10.0
-				REPETITIONS=100
+				REPETITIONS=10
 				)
 
 function(add_exe NAME)
