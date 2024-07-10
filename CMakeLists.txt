@@ -11,14 +11,14 @@ if (ENABLE_CONTEXT_REDUNDANCY_OPT)
 	add_compile_definitions(CONTEXT_REDUNDANCY_ACTIVE)
 endif()
 
-# OPTION(ENABLE_IPO "Enable interprocedural optimizations" OFF)
-# 
-# if (ENABLE_IPO)
-# 	cmake_policy(SET CMP0069 NEW)
-# 	include(CheckIPOSupported)
-# 	check_ipo_supported()
-# 	set(CMAKE_INTERPROCEDURAL_OPTIMIZATION TRUE)
-# endif(ENABLE_IPO)
+OPTION(ENABLE_IPO "Enable interprocedural optimizations" OFF)
+
+if (ENABLE_IPO)
+	cmake_policy(SET CMP0069 NEW)
+	include(CheckIPOSupported)
+	check_ipo_supported()
+	set(CMAKE_INTERPROCEDURAL_OPTIMIZATION TRUE)
+endif(ENABLE_IPO)
 
 #set(CMAKE_VERBOSE_MAKEFILE 1)
 set(CMAKE_CXX_STANDARD 14)

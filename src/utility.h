@@ -1,7 +1,9 @@
 
-#ifndef UTILITY_H_
-#define UTILITY_H_
+#ifndef QUAK_UTILITY_H_
+#define QUAK_UTILITY_H_
 
+#include <cstdio>
+#include <cstdlib>
 
 
 #define fail(text)										\
@@ -53,4 +55,4 @@
 
 
 
-#endif /* UTILITY_H_ */
+#endif /* QUAK_UTILITY_H_ */
