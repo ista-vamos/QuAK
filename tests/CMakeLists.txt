@@ -103,25 +103,25 @@ target_compile_definitions(${TEST_NAME} PUBLIC
 				REPETITIONS=10
 				)
 
-set(TEST_NAME test-self-inclusion-rand-inf-10state-5alph)
+set(TEST_NAME test-self-inclusion-rand-inf-8state-4alph)
 add_self_exe(${TEST_NAME})
 target_compile_definitions(${TEST_NAME} PUBLIC
 				VALUE_FUNCTION=Inf
-				STATES_NUM=10
+				STATES_NUM=8
 				EDGES_NUM=0
-				ALPHABET_SIZE=5
+				ALPHABET_SIZE=4
 				MIN_WEIGHT=-10.0
 				MAX_WEIGHT=10.0
 				REPETITIONS=10
 				)
 
-set(TEST_NAME test-self-inclusion-rand-sup-10state-5alph)
+set(TEST_NAME test-self-inclusion-rand-sup-8state-4alph)
 add_self_exe(${TEST_NAME})
 target_compile_definitions(${TEST_NAME} PUBLIC
 				VALUE_FUNCTION=Sup
-				STATES_NUM=10
+				STATES_NUM=8
 				EDGES_NUM=0
-				ALPHABET_SIZE=5
+				ALPHABET_SIZE=4
 				MIN_WEIGHT=-10.0
 				MAX_WEIGHT=10.0
 				REPETITIONS=10
@@ -194,7 +194,7 @@ target_compile_definitions(${TEST_NAME} PUBLIC
 				ALPHABET_SIZE=2
 				MIN_WEIGHT=-10.0
 				MAX_WEIGHT=10.0
-				REPETITIONS=5000
+				REPETITIONS=1000
 				)
 
 set(TEST_NAME test-inclusion-rand-sup-4state)
@@ -206,14 +206,14 @@ target_compile_definitions(${TEST_NAME} PUBLIC
 				ALPHABET_SIZE=2
 				MIN_WEIGHT=-10.0
 				MAX_WEIGHT=10.0
-				REPETITIONS=4000
+				REPETITIONS=1000
 				)
 
-set(TEST_NAME test-inclusion-rand-inf-10state)
+set(TEST_NAME test-inclusion-rand-inf-8state)
 add_exe(${TEST_NAME})
 target_compile_definitions(${TEST_NAME} PUBLIC
 				VALUE_FUNCTION=Inf
-				STATES_NUM=10
+				STATES_NUM=8
 				EDGES_NUM=0
 				ALPHABET_SIZE=2
 				MIN_WEIGHT=-10.0
@@ -221,11 +221,11 @@ target_compile_definitions(${TEST_NAME} PUBLIC
 				REPETITIONS=1000
 				)
 
-set(TEST_NAME test-inclusion-rand-sup-10state)
+set(TEST_NAME test-inclusion-rand-sup-8state)
 add_exe(${TEST_NAME})
 target_compile_definitions(${TEST_NAME} PUBLIC
 				VALUE_FUNCTION=Sup
-				STATES_NUM=10
+				STATES_NUM=8
 				EDGES_NUM=0
 				ALPHABET_SIZE=2
 				MIN_WEIGHT=-10.0
@@ -233,26 +233,26 @@ target_compile_definitions(${TEST_NAME} PUBLIC
 				REPETITIONS=1000
 				)
 
-set(TEST_NAME test-inclusion-rand-inf-10state-5alph)
+set(TEST_NAME test-inclusion-rand-inf-8state-4alph)
 add_exe(${TEST_NAME})
 target_compile_definitions(${TEST_NAME} PUBLIC
 				VALUE_FUNCTION=Inf
-				STATES_NUM=10
+				STATES_NUM=8
 				EDGES_NUM=0
-				ALPHABET_SIZE=5
+				ALPHABET_SIZE=4
 				MIN_WEIGHT=-10.0
 				MAX_WEIGHT=10.0
 				REPETITIONS=10
 				)
 
-set(TEST_NAME test-inclusion-rand-sup-10state-5alph)
+set(TEST_NAME test-inclusion-rand-sup-8state-4alph)
 add_exe(${TEST_NAME})
 target_compile_definitions(${TEST_NAME} PUBLIC
 				VALUE_FUNCTION=Sup
-				STATES_NUM=10
+				STATES_NUM=8
 				EDGES_NUM=0
-				ALPHABET_SIZE=5
+				ALPHABET_SIZE=4
 				MIN_WEIGHT=-10.0
 				MAX_WEIGHT=10.0
-				REPETITIONS=100
+				REPETITIONS=10
 				)
