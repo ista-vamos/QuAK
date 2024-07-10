@@ -11,6 +11,26 @@
 
 #include "utils.h"
 
+static std::pair<unsigned, unsigned>
+getAutomatonStats(const Automaton *A) {
+    auto *states = A->getStates();
+    unsigned n_states = states->size();
+    unsigned n_edges = 0;
+
+    for (unsigned s = 0; s < n_states; ++s) {
+        auto *state = states->at(s);
+        assert(state);
+        auto *alphabet = state->getAlphabet();
+        assert(alphabet);
+
+        for (auto *symbol : *alphabet) {
+            n_edges += state->getSuccessors(symbol->getId())->size();
+        }
+    }
+
+    return {n_states, n_edges};
+}
+
 int main(int argc, char **argv) {
 
     if (argc < 4 || argc > 5) {
@@ -46,6 +66,11 @@ int main(int argc, char **argv) {
     end_time.tv_sec -= start_time.tv_sec;
     end_time.tv_nsec -= start_time.tv_nsec;
 
+    unsigned n_states, n_edges;
+    std::tie(n_states, n_edges) = getAutomatonStats(A1.get());
+    std::cout << "A1 states/edges: " << n_states << "," << n_edges << "\n";
+    std::tie(n_states, n_edges) = getAutomatonStats(A2.get());
+    std::cout << "A2 states/edges: " << n_states << "," << n_edges << "\n";
     std::cout << "Is included: " << included << "\n";
     std::cout << "Cputime: "
               << static_cast<uint64_t>((end_time.tv_sec * 1000000) +
