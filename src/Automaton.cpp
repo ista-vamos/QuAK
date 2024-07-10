@@ -1227,7 +1227,7 @@ bool Automaton::isIncludedIn_booleanized(const Automaton* B, value_function_t f)
         auto boolA = std::unique_ptr<Automaton>(booleanize(limSupThis.get(), weight->getValue()));
         auto boolB = std::unique_ptr<Automaton>(booleanize(limSupB.get(), weight->getValue()));
 
-        if (!boolA->isIncludedIn_antichains(boolB.get(), f))
+        if (!inclusion(boolA.get(), boolB.get()))
             return false;
     }
 
