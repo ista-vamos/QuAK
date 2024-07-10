@@ -1220,9 +1220,12 @@ bool Automaton::isIncludedIn_antichains(const Automaton* B, value_function_t f) 
 }
 
 bool Automaton::isIncludedIn_booleanized(const Automaton* B, value_function_t f) {
+    auto limSupThis = std::unique_ptr<Automaton>(Automaton::toLimSup(this, f));
+    auto limSupB = std::unique_ptr<Automaton>(Automaton::toLimSup(B, f));
+
     for (auto *weight: *weights) {
-        auto boolA = std::unique_ptr<Automaton>(booleanize(this, weight->getValue()));
-        auto boolB = std::unique_ptr<Automaton>(booleanize(B, weight->getValue()));
+        auto boolA = std::unique_ptr<Automaton>(booleanize(limSupThis.get(), weight->getValue()));
+        auto boolB = std::unique_ptr<Automaton>(booleanize(limSupB.get(), weight->getValue()));
 
         if (!boolA->isIncludedIn_antichains(boolB.get(), f))
             return false;
