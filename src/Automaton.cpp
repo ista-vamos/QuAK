@@ -792,7 +792,7 @@ void explore_Sup (
 ){
 	Weight* (*select_weight)(Weight*, Weight*);
 	select_weight = [] (Weight* x, Weight* y) -> Weight* {
-		return ((x->getValue() > y->getValue()) ? y : x);
+		return ((x->getValue() < y->getValue()) ? y : x);
 	};
 	explore_monotonically(from, set_of_states, set_of_edges, select_weight);
 }
