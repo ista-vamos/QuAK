@@ -62,7 +62,7 @@ Automaton::~Automaton () {
 	for (unsigned int scc_id = 0; scc_id < this->nb_SCCs; ++scc_id) {
 		delete this->SCCs[scc_id];
 	}
-	delete this->SCCs;
+	delete[] this->SCCs;
 	delete_verbose("@Memory: Automaton deletion finished (%s)\n", this->name.c_str());
 }
 
@@ -1267,15 +1267,27 @@ bool Automaton::isIncludedIn_antichains(const Automaton* B, value_function_t f) 
 }
 
 bool Automaton::isIncludedIn_booleanized(const Automaton* B, value_function_t f) {
-    auto limSupThis = std::unique_ptr<Automaton>(Automaton::toLimSup(this, f));
-    auto limSupB = std::unique_ptr<Automaton>(Automaton::toLimSup(B, f));
+    // unique_ptr to keep memory in case we create new limSup automata
+    std::unique_ptr<Automaton> limSupThisMem, limSupBMem;
+    const Automaton *limSupThis{nullptr}, *limSupB{nullptr};
+
+    if (f == LimSup) {
+      limSupThis = this;
+      limSupB = B;
+    } else {
+      limSupThisMem = std::unique_ptr<Automaton>(Automaton::toLimSup(this, f));
+      limSupBMem = std::unique_ptr<Automaton>(Automaton::toLimSup(B, f));
+      limSupThis = limSupThisMem.get();
+      limSupB = limSupBMem.get();
+    }
 
     for (auto *weight: *weights) {
-        auto boolA = std::unique_ptr<Automaton>(booleanize(limSupThis.get(), weight->getValue()));
-        auto boolB = std::unique_ptr<Automaton>(booleanize(limSupB.get(), weight->getValue()));
+        auto boolA = std::unique_ptr<Automaton>(booleanize(limSupThis, weight->getValue()));
+        auto boolB = std::unique_ptr<Automaton>(booleanize(limSupB, weight->getValue()));
 
-        if (!inclusion(boolA.get(), boolB.get()))
-            return false;
+        if (!inclusion(boolA.get(), boolB.get())) {
+          return false;
+        }
     }
 
     return true;

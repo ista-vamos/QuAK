@@ -13,6 +13,7 @@ lock = Lock()
 bindir = f"{dirname(realpath(__file__))}/"
 inclusion_binary = join(bindir, "inclusion")
 
+ABORT_ON_ERROR = True
 TIMEOUT = 10
 
 def errlog(*args):
@@ -31,6 +32,8 @@ def run_one(arg):
     if s1 == "DONE" and s2 == "DONE" and i1 != i2:
         with lock:
             print("\033[1;31m-- Different result on ", A1, A2, "\033[0m", file=stderr)
+            if ABORT_ON_ERROR:
+                exit(1)
 
 def run_inclusion(A1, A2, value_fun, booleanize=False):
 
@@ -97,8 +100,11 @@ parser = argparse.ArgumentParser()
 parser.add_argument("-j", metavar="PROC_NUM", action='store', type=int)
 parser.add_argument("--dir", help="Take automata from this dir.", action='store', required=True)
 parser.add_argument("--value-fun", help="Value function: Sup, Inf, ...", action='store', required=True)
+parser.add_argument("--timeout", help="The timeout for one run (wall time)", action='store', type=int)
 args = parser.parse_args()
 
 args.dir = abspath(args.dir)
+if args.timeout is not None:
+    TIMEOUT = args.timeout
 
 run_all(args)

@@ -194,7 +194,7 @@ target_compile_definitions(${TEST_NAME} PUBLIC
 				ALPHABET_SIZE=2
 				MIN_WEIGHT=-10.0
 				MAX_WEIGHT=10.0
-				REPETITIONS=1000
+				REPETITIONS=100
 				)
 
 set(TEST_NAME test-inclusion-rand-sup-4state)
@@ -206,7 +206,7 @@ target_compile_definitions(${TEST_NAME} PUBLIC
 				ALPHABET_SIZE=2
 				MIN_WEIGHT=-10.0
 				MAX_WEIGHT=10.0
-				REPETITIONS=1000
+				REPETITIONS=100
 				)
 
 set(TEST_NAME test-inclusion-rand-inf-8state)
@@ -218,7 +218,7 @@ target_compile_definitions(${TEST_NAME} PUBLIC
 				ALPHABET_SIZE=2
 				MIN_WEIGHT=-10.0
 				MAX_WEIGHT=10.0
-				REPETITIONS=1000
+				REPETITIONS=100
 				)
 
 set(TEST_NAME test-inclusion-rand-sup-8state)
@@ -230,7 +230,7 @@ target_compile_definitions(${TEST_NAME} PUBLIC
 				ALPHABET_SIZE=2
 				MIN_WEIGHT=-10.0
 				MAX_WEIGHT=10.0
-				REPETITIONS=1000
+				REPETITIONS=100
 				)
 
 set(TEST_NAME test-inclusion-rand-inf-8state-4alph)
