@@ -1,6 +1,6 @@
 GCC = gcc
 # CFLAG = -g -O3 -Wall
-CFLAG = -g -O3 -Wall
+CFLAG = -g -Wall
 
 GPP = g++
 # CPPFLAG = -g -O3 -Wall

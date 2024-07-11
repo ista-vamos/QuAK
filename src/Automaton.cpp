@@ -351,7 +351,7 @@ void compute_SCC_dag (State* state, int* spot, int* low, bool* stackMem, SCC_Dag
 		SCCs[state->getTag()]->origin = state;
 	}
 
-	printf("state: %s\n", state->getName().c_str());
+	// printf("state: %s\n", state->getName().c_str());
 	for (Symbol* symbol : *(state->getAlphabet())) {
 		for (Edge* edge : *(state->getSuccessors(symbol->getId()))) {
 			compute_SCC_dag(edge->getTo(), spot, low, stackMem, SCCs);
@@ -390,7 +390,7 @@ void compute_SCC_tag (State* state, int* tag, int* time, int* spot, int* low, Se
 			stack->pop();
 		}
 		state->setTag(*tag);
-		printf("state %s, tag %d\n", state->getName().c_str(), *tag);
+		// printf("state %s, tag %d\n", state->getName().c_str(), *tag);
 		(*tag)++;
 		stackMem[state->getId()] = false;
 		stack->pop();
@@ -912,12 +912,12 @@ Automaton* Automaton::toLimSup (const Automaton* A, value_function_t f) {
 	}
   */
 
-	MapArray<State*>* newstates = new MapArray<State*>(set_of_states.size());
+	// MapArray<State*>* newstates = new MapArray<State*>(set_of_states.size());
 	MapStd<pair<State*, Weight*>, State*> state_register;
 	for (const pair<State*, Weight*> &weighted_state : set_of_states) {
 		std::string statename = "(" + weighted_state.first->getName() + ", " + std::to_string(weighted_state.second->getValue()) + ")";
 		State* state = new State(statename, newalphabet->size(), newmin_domain, newmax_domain);
-		newstates->insert(state->getId(), state);
+		// newstates->insert(state->getId(), state);
 		state_register.insert(weighted_state, state);
 	}
 	State* newinitial = state_register.at(start);
@@ -932,6 +932,47 @@ Automaton* Automaton::toLimSup (const Automaton* A, value_function_t f) {
 		Edge *edge = new Edge(symbol, weight, from, to);
 		from->addSuccessor(edge);
 		to->addPredecessor(edge);
+	}
+
+	// add a sink state if incomplete 
+	bool isComplete = true;
+	for (auto st : state_register) {
+		for (auto sy : *newalphabet) {
+			if (1 > st.second->getSuccessors(sy->getId())->size()) {
+				isComplete = false;
+				break;
+			}
+		}
+		if (!isComplete) {
+			break;
+		}
+	}
+
+	MapArray<State*>* newstates;
+	if (isComplete) {
+		newstates = new MapArray<State*>(set_of_states.size());
+		for (auto st : state_register) {
+			newstates->insert(st.second->getId(), st.second);
+		}
+	}
+	else {
+		newstates = new MapArray<State*>(set_of_states.size() + 1);
+		for (auto st : state_register) {
+			newstates->insert(st.second->getId(), st.second);
+		}
+		State* sinkstate = new State("sink", newalphabet->size(), newmin_domain, newmax_domain);
+		newstates->insert(sinkstate->getId(), sinkstate);
+		Weight* sinkweight = newweights->at(initWeightId);
+		
+		for (auto st : *newstates) {
+			for (auto sy : *newalphabet) {
+				if (1 > st->getSuccessors(sy->getId())->size()) {
+					Edge* sinkedge = new Edge(sy, sinkweight, st, sinkstate);
+					st->addSuccessor(sinkedge);
+					sinkstate->addPredecessor(sinkedge);
+				}
+			}
+		}
 	}
 
 	return new Automaton(newname, newalphabet, newstates, newweights, newmin_domain, newmax_domain, newinitial);
@@ -1242,10 +1283,10 @@ bool Automaton::isIncludedIn_booleanized(const Automaton* B, value_function_t f)
 
 
 bool Automaton::isSafe (value_function_t f) {
-/*	if (f == Inf) {
+	if (f == Inf) {
 		return true;
 	}
-*/
+
 	Automaton* S = Automaton::safetyClosure(this, f);
 	bool out;
 
@@ -1266,11 +1307,11 @@ bool Automaton::isSafe (value_function_t f) {
 
 bool Automaton::isLive (value_function_t f) {
 	bool out;
-/*
+
 	if (f == Inf) {
 		return this->isConstant(Inf);
 	}
-*/
+
 	Automaton* S = Automaton::safetyClosure(this, f);
 	out = S->isConstant(f);
 	delete S;
