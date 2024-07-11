@@ -1219,7 +1219,7 @@ bool Automaton::isConstant (value_function_t f) {
 		return isLimAvgConstant();
 	}
 	else {
-		std::cout << getTopValue(f) << " " << getBottomValue(f) << std::endl;
+		// std::cout << getTopValue(f) << " " << getBottomValue(f) << std::endl;
 		return (getTopValue(f) == getBottomValue(f));
 	}
 }
