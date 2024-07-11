@@ -52,6 +52,7 @@
         "random": "cpp",
         "numbers": "cpp",
         "unordered_set": "cpp",
-        "variant": "cpp"
+        "variant": "cpp",
+        "ctime": "cpp"
     }
 }

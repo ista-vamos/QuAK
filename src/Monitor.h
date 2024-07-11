@@ -4,7 +4,7 @@
 
 #include "Automaton.h"
 
-class Monitor : protected Automaton {
+class Monitor : public Automaton {
 private:
 	weight_t* top_values;
 	weight_t* bot_values;

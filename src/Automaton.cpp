@@ -351,7 +351,7 @@ void compute_SCC_dag (State* state, int* spot, int* low, bool* stackMem, SCC_Dag
 		SCCs[state->getTag()]->origin = state;
 	}
 
-	printf("state: %s\n", state->getName().c_str());
+	// printf("state: %s\n", state->getName().c_str());
 	for (Symbol* symbol : *(state->getAlphabet())) {
 		for (Edge* edge : *(state->getSuccessors(symbol->getId()))) {
 			compute_SCC_dag(edge->getTo(), spot, low, stackMem, SCCs);
@@ -390,7 +390,7 @@ void compute_SCC_tag (State* state, int* tag, int* time, int* spot, int* low, Se
 			stack->pop();
 		}
 		state->setTag(*tag);
-		printf("state %s, tag %d\n", state->getName().c_str(), *tag);
+		// printf("state %s, tag %d\n", state->getName().c_str(), *tag);
 		(*tag)++;
 		stackMem[state->getId()] = false;
 		stack->pop();

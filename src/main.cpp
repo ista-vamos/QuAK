@@ -1,30 +1,31 @@
 #include <iostream>
+#include <vector>
 
 #include "FORKLIFT/inclusion.h"
 #include "Automaton.h"
+#include "Monitor.h"
 #include "Map.h"
 #include "Word.h"
 
 int main(int argc, char **argv) {
 
-	 Automaton* A = new Automaton("samples/C1.txt");
-	 A->print();
-	 delete A;
-	 Automaton* B = new Automaton("samples/C2.txt");
-	 B->print();
-	 delete B;
+	Automaton* A = new Automaton("samples/test3.txt");
+	A->print();
 
-//	Automaton* A = new Automaton("samples/All_Sturmian_words_contain_cubes_SUPERSET.txt");
-//	A->print();
-//	Automaton* B = Automaton::determinizeInf(A);
-//	B->print();
-//
-//	std::cout << A->isIncludedIn(B, Inf) << " " << B->isIncludedIn(A, Inf) << std::endl;
+	Monitor* M = new Monitor(A, Sup);
 
-	// delete A;
-	// delete B;
+	std::vector<Symbol*> word;
+	word.push_back(M->getAlphabet()->at(0));
+	word.push_back(M->getAlphabet()->at(1));
+	word.push_back(M->getAlphabet()->at(1));
 
-	// debug_test2();
+	for (int i = 0; i < 3; i++) {
+		std::cout << M->getLowest() << " " << M->getHighest() << std::endl;
+		M->read(word[i]);
+	}
+	std::cout << M->getLowest() << " " << M->getHighest() << std::endl;
+
+	delete A;
 
 	return EXIT_SUCCESS;
 }
