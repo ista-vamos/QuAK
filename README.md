@@ -62,9 +62,12 @@ This makefile does not support integration with VAMOS.
 
 ## Using QuAK
 
-For a sample program that includes everything below, see TODO
+To use the library in your program, use the following directive:
+```cpp
+TODO
+```
 
-TODO: include...
+For a sample program that puts together the demonstrations below, see *sampleProgram.cpp*.
 
 Below, we consider two $\mathsf{Val}$ automata $\mathcal{A}$ and $\mathcal{B}$ with a rational number $v \in \mathbb{Q}$.
 
@@ -168,15 +171,16 @@ Monitor* M = new Monitor("A.txt", Val);
 Monitor* M = new Monitor(A, Val);
 ```
 
-TODO
-
 The monitor updates its state by reading a letter:
 ```cpp
-M->read(letter);
+TODO
 ```
+<!-- ```cpp
+M->read(letter);
+``` -->
 
 At any point, the monitor can provide the highest and lowest values achievable from the current state of its input automaton:
 ```cpp
 weight_t h = M->getHighest(); 
-weight_t l = M->getLowest(); 
+weight_t l = M->getLowest();
 ```

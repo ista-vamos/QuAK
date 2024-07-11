@@ -25,6 +25,7 @@ int main(int argc, char **argv) {
 	}
 	std::cout << M->getLowest() << " " << M->getHighest() << std::endl;
 
+	delete M;
 	delete A;
 
 	return EXIT_SUCCESS;
