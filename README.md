@@ -1,6 +1,22 @@
 # QuAK: Quantitative Automata Kit
 
-Description: TBD
+QuAK is an open source C++ library that helps automate the analysis of quantitative automata.
+Currently, QuAK supports the classes of quantitative automata with the following value functions:
+$\mathsf{Inf}, \mathsf{Sup}, \mathsf{LimInf}, \mathsf{LimSup}, \mathsf{LimInfAvg}, \mathsf{LimSupAvg}$.
+
+Given two quantitative automata $\mathcal{A}$ and $\mathcal{B}$ with a rational number $v \in \mathbb{Q}$, QuAK is able to solve the following problems (whenever known to be computable):
+1. Check if $\A$ is non-empty with respect to $v$.
+2. Check if $\A$ is universal with respect to $v$.
+3. Check if $\A$ is included in $\B$.
+4. Check if $\A$ defines a constant function.
+5. Check if $\A$ defines a safety property.
+6. Check if $\A$ defines a liveness property.
+7. Compute the top value $\top$ of $\A$.
+8. Compute the bottom value $\bot$ of $\A$.
+9. Compute the safety closure of $\A$.
+10. Compute the safety-liveness decomposition of $\A$.
+11. Construct and execute a monitor for extremal values of $\A$.
+
 
 ## Building from sources
 
@@ -45,4 +61,53 @@ This makefile does not support integration with VAMOS.
 
 ## Using QuAK
 
-TBD
+For a sample program that includes everything below, see *TODO*
+
+### Input Format
+
+QuAK takes reads automata from text files.
+Each automata is represented as a list of transitions of the following format:
+```
+a : v, q -> p
+```
+which encodes a transition from $q$ to $p$ with letter $a$ and weight $v$.
+
+The initial state of the input automaton is the source state of the first transition in its text file.
+
+**Important:** QuAK requires that its input automata are total (a.k.a. complete), i.e., for every state $q$ and every letter $a$, there is at least one outgoing transition from $q$ with letter $a$.
+
+### Constructing Automata
+TODO
+
+### Non-emptiness Check
+TODO
+
+### Universality Check
+TODO
+
+### Inclusion Check
+TODO
+
+### Constant-function Check
+TODO
+
+### Safety Check
+TODO
+
+### Liveness Check
+TODO
+
+### Top-value Computation
+TODO
+
+### Bottom-value Computation
+TODO
+
+### Safety Closure Construction
+TODO
+
+### Safety-Liveness Decomposition
+TODO
+
+### Monitor Construction and Execution
+TODO
