@@ -1472,16 +1472,21 @@ void Automaton::top_safety_scc (weight_t* values, bool in_scc) const {
 	for (unsigned int state_id = 0; state_id < this->states->size(); ++state_id) {
 		counters[state_id] = new int[this->alphabet->size()];
 		value_symbol[state_id] = new weight_t[this->alphabet->size()];
-		done_symbol[state_id] = this->alphabet->size();
+		done_symbol[state_id] = 0;
 		values[state_id] = this->max_domain;
 		for (unsigned int symbol_id = 0; symbol_id < this->alphabet->size(); ++symbol_id) {
 			value_symbol[state_id][symbol_id] = this->min_domain;
-			counters[state_id][symbol_id] = states->at(state_id)->getSuccessors(symbol_id)->size();
+			counters[state_id][symbol_id] = 0;
+
+			bool flag = false;
 			for (Edge* edge : *(this->states->at(state_id)->getSuccessors(symbol_id))) {
 				if (in_scc == false || edge->getFrom()->getTag() == edge->getTo()->getTag()){
 					edges.at(edge->getWeight()->getId())->push(edge);
+					counters[state_id][symbol_id]++;
+					flag = true;
 				}
 			}
+			if (flag == true) done_symbol[state_id]++;
 		}
 	}
 
