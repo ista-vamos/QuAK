@@ -682,7 +682,7 @@ Automaton* Automaton::livenessComponent_deterministic (const Automaton* A, value
 
 
 // TODO
-Automaton* Automaton::livenessComponent_prefixIndependent (const Automaton* A, value_function_t f) {
+/*Automaton* Automaton::livenessComponent_prefixIndependent (const Automaton* A, value_function_t f) {
 	if (!(f == LimInf || f == LimSup || f == LimAvg)) {
 		fail("invalid automaton type for liveness component (prefix independent)");
 	}
@@ -745,7 +745,7 @@ Automaton* Automaton::livenessComponent_prefixIndependent (const Automaton* A, v
 	// }
 
 	// return new Automaton(name, newalphabet, newstates, newweights, newmin_domain, newmax_domain, newinitial);
-}
+}*/
 
 
 void explore_monotonically (
@@ -1053,8 +1053,8 @@ bool Automaton::isDeterministic () const {
 	return true;
 }
 
-bool Automaton::isEmpty (value_function_t f, weight_t x ) {
-	return (getTopValue(f) >=x);
+bool Automaton::isNonEmpty (value_function_t f, weight_t x ) {
+	return (getTopValue(f) >= x);
 }
 
 bool Automaton::isUniversal (value_function_t f, weight_t x)  {

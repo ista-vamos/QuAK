@@ -95,7 +95,7 @@ public:
 	static Automaton* from_file_sync_alphabet(std::string filename, Automaton* other = nullptr);
 	static Automaton* safetyClosure(const Automaton* A, value_function_t value_function);
 	static Automaton* livenessComponent_deterministic (const Automaton* A, value_function_t type);
-	static Automaton* livenessComponent_prefixIndependent (const Automaton* A, value_function_t type);
+	// static Automaton* livenessComponent_prefixIndependent (const Automaton* A, value_function_t type);
 	static Automaton* toLimSup (const Automaton* A, value_function_t f); // TODO: make private
 	bool isLimAvgConstant() const; // TODO: make private
 
@@ -120,7 +120,7 @@ public:
 	void print () const;
 	std::string getName() const;
 
-	bool isEmpty (value_function_t f, weight_t x); 				// checks if A(w) >= v for some w
+	bool isNonEmpty (value_function_t f, weight_t x); 				// checks if A(w) >= v for some w
 	bool isUniversal (value_function_t f, weight_t x);			// checks if A(w) >= v for all w
     // checks if A(w) <= B(w) for all w. If `booleanized` is set to true, the inclusion algorithm based
     // on booleanization is used, otherwise the one on anti-chains is used
