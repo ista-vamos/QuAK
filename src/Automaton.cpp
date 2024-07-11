@@ -62,7 +62,7 @@ Automaton::~Automaton () {
 	for (unsigned int scc_id = 0; scc_id < this->nb_SCCs; ++scc_id) {
 		delete this->SCCs[scc_id];
 	}
-	delete this->SCCs;
+	delete[] this->SCCs;
 	delete_verbose("@Memory: Automaton deletion finished (%s)\n", this->name.c_str());
 }
 
