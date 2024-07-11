@@ -5,17 +5,17 @@ Currently, QuAK supports the classes of quantitative automata with the following
 $\mathsf{Inf}, \mathsf{Sup}, \mathsf{LimInf}, \mathsf{LimSup}, \mathsf{LimInfAvg}, \mathsf{LimSupAvg}$.
 
 Given two quantitative automata $\mathcal{A}$ and $\mathcal{B}$ with a rational number $v \in \mathbb{Q}$, QuAK is able to solve the following problems (whenever known to be computable):
-1. Check if $\A$ is non-empty with respect to $v$.
-2. Check if $\A$ is universal with respect to $v$.
-3. Check if $\A$ is included in $\B$.
-4. Check if $\A$ defines a constant function.
-5. Check if $\A$ defines a safety property.
-6. Check if $\A$ defines a liveness property.
-7. Compute the top value $\top$ of $\A$.
-8. Compute the bottom value $\bot$ of $\A$.
-9. Compute the safety closure of $\A$.
-10. Compute the safety-liveness decomposition of $\A$.
-11. Construct and execute a monitor for extremal values of $\A$.
+1. Check if $\mathcal{A}$ is non-empty with respect to $v$.
+2. Check if $\mathcal{A}$ is universal with respect to $v$.
+3. Check if $\mathcal{A}$ is included in $\mathcal{B}$.
+4. Check if $\mathcal{A}$ defines a constant function.
+5. Check if $\mathcal{A}$ defines a safety property.
+6. Check if $\mathcal{A}$ defines a liveness property.
+7. Compute the top value $\top$ of $\mathcal{A}$.
+8. Compute the bottom value $\mathcal{B}ot$ of $\mathcal{A}$.
+9. Compute the safety closure of $\mathcal{A}$.
+10. Compute the safety-liveness decomposition of $\mathcal{A}$.
+11. Construct and execute a monitor for extremal values of $\mathcal{A}$.
 
 
 ## Building from sources
