@@ -1,3 +1,5 @@
+set(SRCDIR ../src)
+
 function(add_self_exe NAME)
 	add_executable(${NAME} test-self-inclusion-rand.cpp)
 	target_include_directories(${NAME} PRIVATE ${SRCDIR})

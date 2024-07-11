@@ -25,31 +25,14 @@ set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
+add_subdirectory(src)
 
-set(SRCDIR src)
-get_filename_component(SRCDIR ${SRCDIR} ABSOLUTE)
+add_executable(quakbin src/quak.cpp)
+target_include_directories(quakbin PRIVATE ${SRCDIR})
+target_link_libraries(quakbin PUBLIC quak utils)
+set_target_properties(quakbin PROPERTIES OUTPUT_NAME quak)
 
-add_library(quak STATIC
-	${SRCDIR}/Automaton.cpp
-	${SRCDIR}/Edge.cpp
-	${SRCDIR}/Map.cpp
-	${SRCDIR}/Set.cpp
-	${SRCDIR}/State.cpp
-	${SRCDIR}/Symbol.cpp
-	${SRCDIR}/Weight.cpp
-	${SRCDIR}/Word.cpp
-	${SRCDIR}/Parser.cpp
-	${SRCDIR}/Monitor.cpp
-	${SRCDIR}/RandomAutomaton.cpp
-	${SRCDIR}/FORKLIFT/inclusion.cpp
-	${SRCDIR}/FORKLIFT/FixpointLoop.cpp
-	${SRCDIR}/FORKLIFT/FixpointStem.cpp
-	${SRCDIR}/FORKLIFT/ContextOf.cpp
-	${SRCDIR}/FORKLIFT/PostContextVariable.cpp
-	${SRCDIR}/FORKLIFT/PostTargetVariable.cpp
-	${SRCDIR}/FORKLIFT/StateRelation.cpp
-	${SRCDIR}/FORKLIFT/TargetOf.cpp
-)
+
 
 OPTION(BUILD_EXPERIMENTS "Enable and build experiments" ON)
 add_subdirectory(experiments)

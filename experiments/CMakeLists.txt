@@ -1,5 +1,4 @@
-add_library(utils STATIC utils.cpp)
-target_include_directories(utils PRIVATE ${SRCDIR})
+set(SRCDIR ../src)
 
 add_executable(inclusion inclusion.cpp)
 target_include_directories(inclusion PRIVATE ${SRCDIR})
