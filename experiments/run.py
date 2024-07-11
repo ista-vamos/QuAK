@@ -53,21 +53,31 @@ def run_inclusion(A1, A2, value_fun, booleanize=False):
     # assert out is not None, cmd
     assert err is not None, cmd
 
-    cputime=None
-    included=None
+    data = dict()
     if p.returncode in (0, 1):
         status = "DONE"
         for line in out.splitlines():
             line = line.strip()
             if line.startswith(b"Is included"):
-                included = int(line.split()[2]) == 1
+                data['included'] = int(line.split()[2]) == 1
             elif line.startswith(b"Cputime"):
-                cputime = int(line.split()[1])
+                data['cputime'] = int(line.split()[1])
+            elif line.startswith(b"A1 states"):
+                nums = line.split()[2].split(b",")
+                data['A1-states'], data['A1-edges'] = int(nums[0]),int(nums[1])
+            elif line.startswith(b"A2 states"):
+                nums = line.split()[2].split(b",")
+                data['A2-states'], data['A2-edges'] = int(nums[0]),int(nums[1])
 
     with lock:
-        print(A1, A2, value_fun, status, included, cputime, p.returncode)
+        print(A1, A2, value_fun, status, booleanize,
+              data.get('included'),
+              data.get('A1-states'), data.get('A1-edges'),
+              data.get('A2-states'), data.get('A2-edges'),
+              data.get('cputime'),
+              p.returncode)
 
-    return status, included
+    return status, data.get('included')
 
 
 def get_params(automata_dir, value_fun):
