@@ -55,7 +55,6 @@ private:
 			weight_t max_domain,
 			State* initial
 	);
-	static Automaton* product(const Automaton* A, aggregator_t aggregator, const Automaton* B);
 	static Automaton* constantAutomaton (const Automaton* A, weight_t x);
 	static Automaton* booleanize(const Automaton* A, weight_t x);
 
@@ -98,6 +97,7 @@ public:
 	// static Automaton* livenessComponent_prefixIndependent (const Automaton* A, value_function_t type);
 	static Automaton* toLimSup (const Automaton* A, value_function_t f); // TODO: make private
 	bool isLimAvgConstant() const; // TODO: make private
+	static Automaton* product(const Automaton* A, aggregator_t aggregator, const Automaton* B); // TODO: make private
 
   // Generate a random automaton
   static Automaton *randomAutomaton(const std::string& name,
