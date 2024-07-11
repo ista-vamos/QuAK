@@ -117,19 +117,19 @@ If *booleanized* is true, then the standard inclusion algorithm (repeatedly bool
 By default, *booleanized* is set to false.
 
 ### Constant-function Check
-To check if $mathcal{A}$ defines a constant function, use the following:
+To check if $\mathcal{A}$ defines a constant function, use the following:
 ```cpp
 bool flag = A->isConstant(Val);
 ```
 
 ### Safety Check
-To check if $mathcal{A}$ defines a safety property, use the following:
+To check if $\mathcal{A}$ defines a safety property, use the following:
 ```cpp
 bool flag = A->isSafe(Val);
 ```
 
 ### Liveness Check
-To check if $mathcal{A}$ defines a liveness property, use the following:
+To check if $\mathcal{A}$ defines a liveness property, use the following:
 ```cpp
 bool flag = A->isLive(Val);
 ```
