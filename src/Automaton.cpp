@@ -792,7 +792,7 @@ void explore_Sup (
 ){
 	Weight* (*select_weight)(Weight*, Weight*);
 	select_weight = [] (Weight* x, Weight* y) -> Weight* {
-		return ((x->getValue() > y->getValue()) ? y : x);
+		return ((x->getValue() < y->getValue()) ? y : x);
 	};
 	explore_monotonically(from, set_of_states, set_of_edges, select_weight);
 }
@@ -1220,11 +1220,14 @@ bool Automaton::isIncludedIn_antichains(const Automaton* B, value_function_t f) 
 }
 
 bool Automaton::isIncludedIn_booleanized(const Automaton* B, value_function_t f) {
-    for (auto *weight: *weights) {
-        auto boolA = std::unique_ptr<Automaton>(booleanize(this, weight->getValue()));
-        auto boolB = std::unique_ptr<Automaton>(booleanize(B, weight->getValue()));
+    auto limSupThis = std::unique_ptr<Automaton>(Automaton::toLimSup(this, f));
+    auto limSupB = std::unique_ptr<Automaton>(Automaton::toLimSup(B, f));
 
-        if (!boolA->isIncludedIn_antichains(boolB.get(), f))
+    for (auto *weight: *weights) {
+        auto boolA = std::unique_ptr<Automaton>(booleanize(limSupThis.get(), weight->getValue()));
+        auto boolB = std::unique_ptr<Automaton>(booleanize(limSupB.get(), weight->getValue()));
+
+        if (!inclusion(boolA.get(), boolB.get()))
             return false;
     }
 
