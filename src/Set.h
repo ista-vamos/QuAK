@@ -66,7 +66,7 @@ public:
 
 
 #include "Weight.h"
-class SCC_Tree;
+class SCC_Dag;
 class Symbol;
 class Word;
 class ContextOf;
@@ -82,6 +82,7 @@ template class SetStd<Symbol*>; // State
 template class SetStd<State*>; // State
 template class SetStd<Word*>;
 template class SetStd<Edge*>;
+template class SetStd<SCC_Dag*>;
 template class SetStd<std::pair<TargetOf*,Word*>>;
 template class SetStd<std::pair<ContextOf*,std::pair<Word*,weight_t>>>;
 template class SetStd<std::pair<State*, unsigned int>>; // Automaton
@@ -91,7 +92,6 @@ template class SetStd<std::pair<Symbol*, std::pair<std::pair<State*, Weight*>, s
 
 template class SetSorted<weight_t>; // Parser, Automaton
 
-template class SetList<SCC_Tree*>;
 template class SetList<State*>;
 template class SetList<Edge*>;
 

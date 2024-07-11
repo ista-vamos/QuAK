@@ -11,7 +11,7 @@
 #include "Symbol.h"
 #include "Word.h"
 
-class SCC_Tree;
+class SCC_Dag;
 
 
 typedef enum {
@@ -41,7 +41,7 @@ protected:
 	weight_t max_domain;
 	State* initial;
 	unsigned int nb_SCCs;
-	SCC_Tree* SCCs_tree;
+	SCC_Dag** SCCs;
 
 private:
 	void build(std::string newname, Parser* parser, MapStd<std::string, Symbol*> sync_register);
@@ -64,16 +64,16 @@ private:
 	void compute_SCC (void);
 	void invert_weights();
 
+	void top_dag (SCC_Dag* dag, bool* done, weight_t* top_values) const;
 	void top_reachably_scc (State* state, bool in_scc, bool* spot, weight_t* values) const;
-	void top_reachably_tree (SCC_Tree* tree, bool in_scc, bool* spot, weight_t* values, weight_t* top_values) const;
+	weight_t top_reachably (bool in_scc, weight_t* top_values) const;
 	weight_t top_Sup (weight_t* top_values) const;
 	weight_t top_LimSup (weight_t* top_values) const;
 	void top_safety_scc_recursive(Edge* edge, SetStd<Edge*>* done_edge, bool in_scc, int* done_symbol, weight_t* values, weight_t** value_symbol, int** counters) const;
 	void top_safety_scc (weight_t* values, bool in_scc) const;
-	void top_safety_tree (SCC_Tree* tree, weight_t* values, weight_t* top_values) const;
+	weight_t top_safety (bool in_scc, weight_t* top_values) const;
 	weight_t top_Inf (weight_t* top_values) const;
 	weight_t top_LimInf (weight_t* top_values) const;
-	void top_avg_tree (SCC_Tree* tree, weight_t* top_values) const;
 	weight_t top_LimAvg (weight_t* top_values) const;
 
 	bool isIncludedIn_booleanized (const Automaton* B, value_function_t f);
