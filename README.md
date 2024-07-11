@@ -162,7 +162,7 @@ Automaton* live_A = livenessComponent_deterministic(A, Val);
 ### Monitor Construction and Execution
 QuAK can contsruct monitors from deterministic automata by either reading them from a file or copying an automaton object:
 ```cpp
-Monitor* M = new Monitor("sample.txt", Val);
+Monitor* M = new Monitor("A.txt", Val);
 ```
 ```cpp
 Monitor* M = new Monitor(A, Val);
