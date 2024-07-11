@@ -1310,7 +1310,7 @@ void Automaton::top_reachably_scc (State* state, bool in_scc, bool* spot, weight
 				values[state->getId()] = std::max(values[state->getId()], edge->getWeight()->getValue());
 				values[state->getId()] = std::max(values[state->getId()], values[edge->getTo()->getId()]);
 			}
-			else if (in_scc == true) {
+			else if (in_scc == false) {
 				values[state->getId()] = std::max(values[state->getId()], edge->getWeight()->getValue());
 			}
 		}
