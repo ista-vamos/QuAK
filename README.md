@@ -12,7 +12,7 @@ Given two quantitative automata $\mathcal{A}$ and $\mathcal{B}$ with a rational 
 5. Check if $\mathcal{A}$ defines a safety property.
 6. Check if $\mathcal{A}$ defines a liveness property.
 7. Compute the top value $\top$ of $\mathcal{A}$.
-8. Compute the bottom value $\mathcal{B}ot$ of $\mathcal{A}$.
+8. Compute the bottom value $\bot$ of $\mathcal{A}$.
 9. Compute the safety closure of $\mathcal{A}$.
 10. Compute the safety-liveness decomposition of $\mathcal{A}$.
 11. Construct and execute a monitor for extremal values of $\mathcal{A}$.
