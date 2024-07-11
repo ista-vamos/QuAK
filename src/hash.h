@@ -5,7 +5,7 @@
 
 
 #include "Weight.h"
-class SCC_Tree;
+class SCC_Dag;
 class Symbol;
 class Word;
 class ContextOf;
