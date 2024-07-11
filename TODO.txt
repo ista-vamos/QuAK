@@ -1,6 +1,0 @@
-
-Plan next steps:
-    Safety check for nondeterministic limit average -- implement determinization of safety closure [E]
-    DSum?'
-    
-    

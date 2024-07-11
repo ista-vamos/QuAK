@@ -75,7 +75,7 @@ Each automata is represented as a list of transitions of the following format:
 ```
 a : v, q -> p
 ```
-which encodes a transition from $q$ to $p$ with letter $a$ and weight $v$.
+which encodes a transition from state $q$ to state $p$ with letter $a$ and weight $v$.
 
 The initial state of the input automaton is the source state of the first transition in its text file.
 
