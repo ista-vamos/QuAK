@@ -68,39 +68,4 @@ public:
 	auto end() -> auto { return all.end(); };
 };
 
-<<<<<<< HEAD
-
-
-
-
-#include "Weight.h"
-class SCC_Dag;
-class Symbol;
-class Word;
-class ContextOf;
-class StateRelation;
-class TargetOf;
-class State;
-class Edge;
-
-
-template class SetStd<std::pair<std::pair<std::string, weight_t>,std::pair<std::string, std::string>>>; // Parser
-template class SetStd<std::string>; // Parser
-template class SetStd<Symbol*>; // State
-template class SetStd<State*>; // State
-template class SetStd<Word*>;
-template class SetStd<Edge*>;
-template class SetStd<SCC_Dag*>;
-template class SetStd<std::pair<TargetOf*,Word*>>;
-template class SetStd<std::pair<ContextOf*,std::pair<Word*,weight_t>>>;
-template class SetStd<std::pair<State*, unsigned int>>; // Automaton
-template class SetStd<std::pair<State*,std::pair<unsigned int, bool>>>;
-template class SetStd<std::pair<State*, Weight*>>;
-template class SetStd<std::pair<Symbol*, std::pair<std::pair<State*, Weight*>, std::pair<State*, Weight*>>>>;
-
-template class SetSorted<weight_t>; // Parser, Automaton
-
-template class SetList<State*>;
-template class SetList<Edge*>;
-
 #endif /* QUAK_SET_H_ */
