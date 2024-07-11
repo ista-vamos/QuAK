@@ -21,9 +21,9 @@ FixpointLoop::FixpointLoop (State* initA, TargetOf* initB, unsigned int capacity
 
 		for (State* fromB : *initB) {
 			for (Edge* edgeB : *(fromB->getSuccessors(symbol->getId()))) {
-				#ifdef INCLUSION_SCC_SEARCH_ACTIVE
-				if (edgeB->getFrom()->getTag() != edgeB->getTo()->getTag()) continue;
-				#endif
+//				#ifdef INCLUSION_SCC_SEARCH_ACTIVE
+//				if (edgeB->getFrom()->getTag() != edgeB->getTo()->getTag()) continue;
+//				#endif
 				init_setB->add(fromB, edgeB->getTo(), edgeB->getWeight()->getId());
 			}
 		}
