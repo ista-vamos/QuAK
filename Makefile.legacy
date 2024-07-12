@@ -4,7 +4,8 @@ CFLAG = -g -Wall
 
 GPP = g++
 # CPPFLAG = -g -O3 -Wall
-CPPFLAG = -g -Wall
+INCLUSION_OPTS=-DINCLUSION_SCC_SEARCH_ACTIVE -DCONTEXT_REDUNDANCY_ACTIVE
+CPPFLAG = -g -Wall $(INCLUSION_OPTS)
 
 SRCDIR = src
 SRC0 = $(wildcard $(SRCDIR)/*.c) $(wildcard $(SRCDIR)/*.cpp)
