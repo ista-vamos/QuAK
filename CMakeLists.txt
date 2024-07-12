@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.9)
 project(QuAK)
 
-OPTION(ENABLE_SCC_SEARCH_OPT "Enable SCC search optimization in FORKLIFT" OFF)
+OPTION(ENABLE_SCC_SEARCH_OPT "Enable SCC search optimization in FORKLIFT" ON)
 OPTION(ENABLE_CONTEXT_REDUNDANCY_OPT "Enable context redundancy optimization in FORKLIFT" ON)
 
 if (ENABLE_SCC_SEARCH_OPT)
