@@ -12,7 +12,6 @@
  #define CONTEXT_REDUNDANCY_ACTIVE
 
 
-
 bool inclusion (const Automaton* A, const Automaton* B);
 void debug_test();
 void debug_test2();
