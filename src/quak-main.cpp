@@ -3,11 +3,10 @@
 #include <cstring>
 #include <ctime>
 #include <cstdint>
+#include <variant>
 
-#include "FORKLIFT/inclusion.h"
 #include "Automaton.h"
 #include "Map.h"
-#include "Word.h"
 
 #include "utils.h"
 
@@ -31,13 +30,40 @@ getAutomatonStats(const Automaton *A) {
     return {n_states, n_edges};
 }
 
+enum class Operation {
+  isNonempty,
+  isUniversal,
+  isIncluded,
+  isConstant,
+  isSafe,
+  isLive,
+  topValue,
+  bottomValue,
+};
+
+struct OperationClosure {
+  Operation op;
+  std::vector<std::variant<std::string, weight_t>> args;
+};
+
+
+struct Options {
+  std::vector<OperationClosure> actions;
+
+};
+
 int main(int argc, char **argv) {
 
     if (argc < 4 || argc > 5) {
         std::cerr << "Usage: " << argv[0]
-                  << " automaton1.txt" << " " << "automaton2.txt" << "<Inf | Sup | LimInf | LimSup | LimAvg> [booleanize]\n";
-        std::cerr << "  Compute if `automaton1.txt` is included in `automaton2.txt` assuming the given value function\n";
-        std::cerr << "  The optional argument 'booleanize' mean to use booleanized version of the inclusion\n";
+                  << " automaton.txt" << " [ACTION ACTION ...]\n";
+        std::cerr << "Where ACTIONs are the following, with VALF = <Inf | Sup | LimInf | LimSup | LimAvg>:\n";
+        std::cerr << "  empty VALF <weight>\n";
+        std::cerr << "  non-empty VALF <weight>\n";
+        std::cerr << "  universal VALF <weight>\n";
+        std::cerr << "  constant VALF\n";
+        std::cerr << "  safe VALF\n";
+        std::cerr << "  live VALF\n";
         return -1;
     }
 
@@ -52,7 +78,7 @@ int main(int argc, char **argv) {
     }
 
     auto A1 =  std::unique_ptr<Automaton>(new Automaton(argv[1]));
-    auto A2 =  std::unique_ptr<Automaton>(new Automaton(argv[2], A1.get()));
+    auto A2 =  std::unique_ptr<Automaton>(new Automaton(argv[2]));
 
     auto value_fun = getValueFunction(argv[3]);
 

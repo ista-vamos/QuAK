@@ -123,14 +123,14 @@ void Automaton::build(std::string newname, Parser* parser, MapStd<std::string, S
 	}
 
 
-	for (std::string statename : parser->states) {
+	for (const std::string &statename : parser->states) {
 		State* state = new State(statename, this->alphabet->size(), this->min_domain, this->max_domain);
 		this->states->insert(state->getId(), state);
 		state_register.insert(state->getName(), state);
 	}
 	this->initial = state_register.at(parser->initial);
 
-	for (std::string symbolname : parser->alphabet) {
+	for (const std::string &symbolname : parser->alphabet) {
 		Symbol * symbol;
 		if (sync_register.contains(symbolname))
 			symbol = new Symbol(sync_register.at(symbolname));
@@ -140,7 +140,7 @@ void Automaton::build(std::string newname, Parser* parser, MapStd<std::string, S
 		symbol_register.insert(symbol->getName(), symbol);
 	}
 
-	for (auto tuple : parser->edges) {
+	for (const auto &tuple : parser->edges) {
 		Symbol* symbol = symbol_register.at(tuple.first.first);
 		Weight* weight = weight_register.at(tuple.first.second);
 		State* from = state_register.at(tuple.second.first);
