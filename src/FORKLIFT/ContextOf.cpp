@@ -82,7 +82,7 @@ bool ContextOf::smaller_than (ContextOf* other) {
 		}
 	}
 	return true;
-}
+//}
 
 #endif
 
