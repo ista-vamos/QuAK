@@ -52,7 +52,7 @@ int main(int argc, char **argv) {
     }
 
     auto A1 =  std::unique_ptr<Automaton>(new Automaton(argv[1]));
-    auto A2 =  std::unique_ptr<Automaton>(new Automaton(argv[2]));
+    auto A2 =  std::unique_ptr<Automaton>(new Automaton(argv[2], A1.get()));
 
     auto value_fun = getValueFunction(argv[3]);
 
