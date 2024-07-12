@@ -9,33 +9,31 @@ FixpointLoop::~FixpointLoop () {
 }
 
 
-FixpointLoop::FixpointLoop (State* initA, TargetOf* initB, unsigned int capacity) {
+FixpointLoop::FixpointLoop (Symbol* initSymbol, State* initA, TargetOf* initB, unsigned int capacity) {
 	this->capacity = capacity;
 	this->content = new PostContextVariable();
 	this->updates = new PostContextVariable();
 	this->buffer = new PostContextVariable();
 
 
-	for (Symbol* symbol : *(initA->getAlphabet())) {
-		ContextOf* init_setB = new ContextOf(this->capacity);
+	ContextOf* init_setB = new ContextOf(this->capacity);
 
-		for (State* fromB : *initB) {
-			for (Edge* edgeB : *(fromB->getSuccessors(symbol->getId()))) {
-//				#ifdef INCLUSION_SCC_SEARCH_ACTIVE
-//				if (edgeB->getFrom()->getTag() != edgeB->getTo()->getTag()) continue;
-//				#endif
-				init_setB->add(fromB, edgeB->getTo(), edgeB->getWeight()->getId());
-			}
-		}
-
-		for (Edge* edgeA : *(initA->getSuccessors(symbol->getId()))) {
+	for (State* fromB : *initB) {
+		for (Edge* edgeB : *(fromB->getSuccessors(initSymbol->getId()))) {
 			#ifdef INCLUSION_SCC_SEARCH_ACTIVE
-			if (edgeA->getFrom()->getTag() != edgeA->getTo()->getTag()) continue;
+				if (edgeB->getFrom()->getTag() != edgeB->getTo()->getTag()) continue;
 			#endif
-			Word* init_word = new Word(symbol);
-			this->content->add(edgeA->getTo(), init_setB, init_word, edgeA->getWeight()->getValue());
-			this->updates->add(edgeA->getTo(), init_setB, init_word, edgeA->getWeight()->getValue());
+			init_setB->add(fromB, edgeB->getTo(), edgeB->getWeight()->getId());
 		}
+	}
+
+	for (Edge* edgeA : *(initA->getSuccessors(initSymbol->getId()))) {
+		#ifdef INCLUSION_SCC_SEARCH_ACTIVE
+			if (edgeA->getFrom()->getTag() != edgeA->getTo()->getTag()) continue;
+		#endif
+		Word* init_word = new Word(initSymbol);
+		this->content->add(edgeA->getTo(), init_setB, init_word, edgeA->getWeight()->getValue());
+		this->updates->add(edgeA->getTo(), init_setB, init_word, edgeA->getWeight()->getValue());
 	}
 }
 
@@ -66,7 +64,7 @@ bool FixpointLoop::apply () {
 
 				for (Edge* edgeA : *(iterA->first->getSuccessors((*iter_symbol)->getId()))) {
 					#ifdef INCLUSION_SCC_SEARCH_ACTIVE
-					if (edgeA->getFrom()->getTag() != edgeA->getTo()->getTag()) continue;
+						if (edgeA->getFrom()->getTag() != edgeA->getTo()->getTag()) continue;
 					#endif
 					if (addIfExtreme(edgeA->getTo(), postB, word, std::max(value, edgeA->getWeight()->getValue()))) {
 						buffer->add(edgeA->getTo(), postB, word, std::max(value, edgeA->getWeight()->getValue()));

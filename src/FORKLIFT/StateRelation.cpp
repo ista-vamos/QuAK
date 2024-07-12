@@ -1,6 +1,8 @@
 
 #include "StateRelation.h"
 
+
+
 StateRelation::~StateRelation() {
 	for (std::pair<State*, TargetOf*> pair : *this) {
 		delete pair.second;
@@ -32,4 +34,16 @@ bool StateRelation::smaller_than (StateRelation* other){
 	}
 	return true;
 }
+
+
+
+/*
+void StateRelation::print () {
+	for (std::pair<State*, TargetOf*> pair : *this) {
+		printf("at %s\n", pair.first->getName().c_str());
+		pair.second->print();
+	}
+}
+*/
+
 

@@ -9,7 +9,7 @@
 // to (temporarily, e.g., for debugging without changing makefiles)
 // hard-code these.
 // #define INCLUSION_SCC_SEARCH_ACTIVE
-// #define CONTEXT_REDUNDANCY_ACTIVE
+ #define CONTEXT_REDUNDANCY_ACTIVE
 
 
 

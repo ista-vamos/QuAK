@@ -1,11 +1,15 @@
 
 #include "FixpointStem.h"
 
+
+
 FixpointStem::~FixpointStem () {
 	delete this->buffer;
 	delete this->content;
 	delete this->updates;
 }
+
+
 
 FixpointStem::FixpointStem (State* initA, State* initB, bool rev) {
 	this->reversed_inclusion = rev;

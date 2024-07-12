@@ -12,7 +12,7 @@ private:
 	PostContextVariable* buffer;
 public:
 	~FixpointLoop ();
-	FixpointLoop (State* initA, TargetOf* initB, unsigned int capacity);
+	FixpointLoop (Symbol* initSymbol, State* initA, TargetOf* initB, unsigned int capacity);
 	bool apply ();
 	SetStd<std::pair<ContextOf*,std::pair<Word*,weight_t>>>* getSetOfContextsOrNULL (State* stateA);
 	ContextOf* post (ContextOf* currentB, Symbol* symbol);

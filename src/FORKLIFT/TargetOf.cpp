@@ -33,3 +33,13 @@ bool TargetOf::smaller_than (TargetOf* other){
 }
 
 
+
+/*
+void TargetOf::print (){
+	for (State* state : *this) {
+		printf("%s\n", state->getName().c_str());
+	}
+}
+*/
+
+

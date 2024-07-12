@@ -17,6 +17,8 @@ public:
 	void increaseRef () { nb_ref = nb_ref + 1; }
 	int getRef () { return nb_ref; }
 
+	//void print ();
+
 	void add (State* stateB);
 	bool smaller_than (TargetOf* other);
 	auto begin() {return SetStd<State*>::begin();};

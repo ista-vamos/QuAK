@@ -3,6 +3,8 @@
 #include "ContextOf.h"
 #include "inclusion.h"
 
+
+
 ContextOf::~ContextOf() {
 	for (unsigned int weight_id = 0; weight_id < this->size(); ++weight_id) {
 		delete this->at(weight_id);
@@ -28,9 +30,9 @@ ContextOf::ContextOf (ContextOf* currentB, Symbol* symbol) : MapArray<StateRelat
 		for (std::pair<State*,TargetOf*> pairB : *(currentB->at(weight_id))) {
 			for (State* fromB: *(pairB.second)) {
 				for (Edge* edgeB : *(fromB->getSuccessors(symbol->getId()))) {
-//					#ifdef INCLUSION_SCC_SEARCH_ACTIVE
-//					if (edgeB->getFrom()->getTag() != edgeB->getTo()->getTag()) continue;
-//					#endif
+					#ifdef INCLUSION_SCC_SEARCH_ACTIVE
+					if (edgeB->getFrom()->getTag() != edgeB->getTo()->getTag()) continue;
+					#endif
 					weight_t max_weight_id = std::max(weight_id, edgeB->getWeight()->getId());
 					add(pairB.first, edgeB->getTo(), max_weight_id);
 					// -- since weight are sorted
@@ -42,14 +44,28 @@ ContextOf::ContextOf (ContextOf* currentB, Symbol* symbol) : MapArray<StateRelat
 }
 
 
+/*
+void ContextOf::print () {
+	for (unsigned int weight_id = 0; weight_id < this->size(); ++weight_id) {
+		printf("weight_id %u\n", weight_id);
+		this->at(weight_id)->print();
+	}
+}
+*/
 
-#ifdef CONTEXT_REDUNDANCY_ACTIVE
+
+
+
+
+#ifdef CONTEXT_REDUNDANCY_ACTIVE//##############################
 
 void ContextOf::add (State* fromB, State* toB, unsigned int weight_id) {
 	for (unsigned int id = 0; id <= weight_id; ++id) {
 		this->at(id)->add(fromB, toB);
 	}
 }
+
+
 
 bool ContextOf::smaller_than (ContextOf* other) {
 	for (unsigned int weight_id = 0; weight_id < this->size(); ++weight_id) {
@@ -60,11 +76,15 @@ bool ContextOf::smaller_than (ContextOf* other) {
 	return true;
 }
 
-#else
+
+#else//##############################
+
 
 void ContextOf::add (State* fromB, State* toB, unsigned int weight_id) {
 	this->at(weight_id)->add(fromB, toB);
 }
+
+
 
 bool ContextOf::smaller_than (ContextOf* other) {
 	for (unsigned int x_id = 0; x_id < this->size(); ++x_id) {
@@ -82,9 +102,9 @@ bool ContextOf::smaller_than (ContextOf* other) {
 		}
 	}
 	return true;
-//}
+}
 
-#endif
+#endif//##############################
 
 
 

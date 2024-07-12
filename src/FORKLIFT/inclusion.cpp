@@ -17,10 +17,11 @@ SetStd<std::pair<State*,std::pair<unsigned int, bool>>> S;
 SetStd<State*> P;
 
 
-
 bool relevance_test (TargetOf* W, ContextOf* V, const Automaton* B) {
-	for (auto iter = V->at(0)->begin(); iter != V->at(0)->end(); ++iter) {
-		if (iter->second->smaller_than(W) == false) return false;
+	for (unsigned int weight_id = 0; weight_id < V->size(); ++weight_id) {
+		for (std::pair<State*, TargetOf*> pair : *(V->at(weight_id))) {
+			if ((pair.second)->smaller_than(W) == false) return false;
+		}
 	}
 	return true;
 }
@@ -70,6 +71,7 @@ bool fast_reachable_final_product (State* from, unsigned int i, Word* period, we
 }
 
 
+
 bool fast_membership (TargetOf* U, Word* period, weight_t threshold) {
 	for (State* start : *U) {
 		S.clear(); P.clear();
@@ -82,144 +84,149 @@ bool fast_membership (TargetOf* U, Word* period, weight_t threshold) {
 
 bool inclusion (const Automaton* A, const Automaton* B)  {
 
-	unsigned int iter_W = 1;
-	// printf("MAX prefixes fix-point: computing ... ( %u iterations )\r", iter_W);fflush(stdout);
+	//unsigned int iter_W = 1;
+	//printf("MAX prefixes fix-point: computing ... ( %u iterations )\r", iter_W);fflush(stdout);
 	FixpointStem* postIrev = new FixpointStem(A->getInitial(), B->getInitial(), true);
 	while (postIrev->apply()) {
-		iter_W++;
-		// printf("MAX prefixes fix-point: computing ... ( %u iterations )\r", iter_W);fflush(stdout);
+	//	iter_W++;
+	//	printf("MAX prefixes fix-point: computing ... ( %u iterations )\r", iter_W);fflush(stdout);
 	}
-	// printf("MAX prefixes fix-point: done ( %u iterations )          \n", iter_W);fflush(stdout);
+	//printf("MAX prefixes fix-point: done ( %u iterations )          \n", iter_W);fflush(stdout);
 	/*
 	for (unsigned int stateA_id = 0; stateA_id < A->getStates()->size(); ++stateA_id) {
 		State* stateA = A->getStates()->at(stateA_id);
 		SetStd<std::pair<TargetOf*, Word*>>* targets = postIrev->getSetOfTargetsOrNULL(stateA);
 		printf("%s ->\n", stateA->getName().c_str());
 		for (std::pair<TargetOf*, Word*> pair : *targets) {
-			printf("\t %s\n", pair.second->toString().c_str());
+			printf("\t '%s'\n", pair.second->toString().c_str());
 		}
 	}
 	*/
 
-
-	unsigned int iter_U = 1;
-	// printf("MIN prefixes fix-point: computing ... ( %u iterations )\r", iter_U);fflush(stdout);
+	//unsigned int iter_U = 1;
+	//printf("MIN prefixes fix-point: computing ... ( %u iterations )\r", iter_U);fflush(stdout);
 	FixpointStem* postI = new FixpointStem(A->getInitial(), B->getInitial(), false);
 	while (postI->apply()) {
-		iter_U++;
-		// printf("MIN prefixes fix-point: computing ... ( %u iterations )\r", iter_U);fflush(stdout);
+	//	iter_U++;
+	//	printf("MIN prefixes fix-point: computing ... ( %u iterations )\r", iter_U);fflush(stdout);
 	}
-	// printf("MIN prefixes fix-point: done ( %u iterations )          \n", iter_U);fflush(stdout);
+	//printf("MIN prefixes fix-point: done ( %u iterations )          \n", iter_U);fflush(stdout);
 	/*
 	for (unsigned int stateA_id = 0; stateA_id < A->getStates()->size(); ++stateA_id) {
 		State* stateA = A->getStates()->at(stateA_id);
 		SetStd<std::pair<TargetOf*, Word*>>* targets = postI->getSetOfTargetsOrNULL(stateA);
 		printf("%s ->\n", stateA->getName().c_str());
 		for (std::pair<TargetOf*, Word*> pair : *targets) {
-			printf("\t %s\n", pair.second->toString().c_str());
+			printf("\t '%s'\n", pair.second->toString().c_str());
 		}
 	}
 	*/
 
-
-	unsigned int final_counter = 0;
-	unsigned int membership_counter = 0;
-	unsigned int call_V = 0;
+	//unsigned int final_counter = 0;
+	//unsigned int membership_counter = 0;
+	//unsigned int call_V = 0;
 	for (unsigned int stateA_id = 0; stateA_id < A->getStates()->size(); ++stateA_id) {
 		if (A->getStates()->at(stateA_id)->getMaxWeightValue() <= B->getMinDomain()) continue;
 
-		final_counter++;
+	//	final_counter++;
 		State* stateA = A->getStates()->at(stateA_id);
-		// printf("State: %s (%u, %u/%u)\n",
-		// 		stateA->getName().c_str(),
-		// 		final_counter,
-		// 		stateA_id,
-		// 		A->getStates()->size()
-		// );fflush(stdout);
-
-		unsigned int max_counter = 0;
+	/*	 printf("State: '%s' (%u, %u/%u)\n",
+		 		stateA->getName().c_str(),
+		 		final_counter,
+		 		stateA_id,
+		 		A->getStates()->size()
+		 );fflush(stdout);
+	*/
+	//	unsigned int max_counter = 0;
 		SetStd<std::pair<TargetOf*, Word*>>* setW = postIrev->getSetOfTargetsOrNULL(stateA);
 		if (setW == nullptr) continue;
 		for (std::pair<TargetOf*, Word*> pairW : *setW) {
-			call_V++;
-			max_counter++;
+	//		call_V++;
+	//		max_counter++;
 
 			TargetOf* W = pairW.first;
-			// Word* word_of_W = pairW.second; // unused
-			// printf("\tMax Prefix: %s (%u/%u)\n",
-			// 		word_of_W->toString().c_str(),
-			// 		max_counter,
-			// 		setW->size()
-			// );fflush(stdout);
+	/*		 Word* word_of_W = pairW.second; // unused
+			 printf("\tMax Prefix: '%s' (%u/%u)\n",
+			 		word_of_W->toString().c_str(),
+			 		max_counter,
+			 		setW->size()
+			 );fflush(stdout);
+	*/
 
+	//		unsigned int iter_V_local = 1;
+	//		printf("\t\tPeriod fix-point: computing ... ( %u iterations )\r", iter_V_local);fflush(stdout);
 
-			unsigned int iter_V_local = 1;
-			// printf("\t\tPeriod fix-point: computing ... ( %u iterations )\r", iter_V_local);fflush(stdout);
-			FixpointLoop* postF = new FixpointLoop(stateA, W, B->getWeights()->size());
-			while (postF->apply()) {
-				iter_V_local++;
-				// printf("\t\tPeriod fix-point: computing ... ( %u iterations )\r", iter_V_local);fflush(stdout);
-			}
-			// printf("\t\tPeriod fix-point: done ( %u iterations )          \n", iter_V_local);fflush(stdout);
+			for (Symbol* symbol : *(stateA->getAlphabet())) {
+				FixpointLoop* postF = new FixpointLoop(symbol, stateA, W, B->getWeights()->size());
+				while (postF->apply()) {
+	//				iter_V_local++;
+	//				 printf("\t\tPeriod fix-point: computing ... ( %u iterations )\r", iter_V_local);fflush(stdout);
+				}
+	//			 printf("\t\tPeriod fix-point: done ( %u iterations )          \n", iter_V_local);fflush(stdout);
 
-			unsigned int period_counter = 0;
-			SetStd<std::pair<ContextOf*, std::pair<Word*,weight_t>>>* setV = postF->getSetOfContextsOrNULL(stateA);
+	//			unsigned int period_counter = 0;
+				SetStd<std::pair<ContextOf*, std::pair<Word*,weight_t>>>* setV = postF->getSetOfContextsOrNULL(stateA);
 
-			if (setV == nullptr) {
-				delete postF;
-				continue;
-			}
-			for (std::pair<ContextOf*, std::pair<Word*,weight_t>> pairV : *setV) {
-				period_counter++;
-				ContextOf* V = pairV.first;
-				Word* word_of_V = pairV.second.first;
-				weight_t valueA = pairV.second.second;
+				if (setV == nullptr) {
+					delete postF;
+					continue;
+				}
+				for (std::pair<ContextOf*, std::pair<Word*,weight_t>> pairV : *setV) {
+	//				period_counter++;
+					ContextOf* V = pairV.first;
+					Word* word_of_V = pairV.second.first;
+					weight_t valueA = pairV.second.second;
 
-				// printf("\t\tPeriod: %s (%u/%u)\n",
-				// 		pairV.second.first->toString().c_str(),
-				// 		period_counter,
-				// 		setV->size()
-				// );fflush(stdout);
+	/*				 printf("\t\tPeriod: '%s' (%u/%u)\n",
+							pairV.second.first->toString().c_str(),
+							period_counter,
+							setV->size()
+					 );fflush(stdout);
+	*/
 
+					if (relevance_test(W, V, B) == false) continue;
+					SetStd<std::pair<TargetOf*, Word*>>* setU = postI->getSetOfTargetsOrNULL(stateA);
+					if (setU == NULL) continue;
+					for (std::pair<TargetOf*, Word*> pairU : *setU) {
+						TargetOf* U = pairU.first;
+	//					Word* word_of_U = pairU.second;
 
-				if (relevance_test(W, V, B) == false) continue;
-				SetStd<std::pair<TargetOf*, Word*>>* setU = postI->getSetOfTargetsOrNULL(stateA);
-				if (setU == NULL) continue;
-				for (std::pair<TargetOf*, Word*> pairU : *setU) {
-					TargetOf* U = pairU.first;
-					// Word* word_of_U = pairU.second;
+						if (U->smaller_than(W) == true) {
+	//						membership_counter++;
+	/*						 printf("\t\t\tMEMBERSHIP %u: '%s' < '%s'\n",
+									membership_counter,
+									word_of_U->toString().c_str(),
+									pairW.second->toString().c_str()
+							 );fflush(stdout);
+	*/
 
-					if (U->smaller_than(W) == true) {
-						membership_counter++;
-						// printf("\t\t\tMEMBERSHIP %u: %s < %s\n",
-						// 		membership_counter,
-						// 		word_of_U->toString().c_str(),
-						// 		pairW.second->toString().c_str()
-						// );fflush(stdout);
-
-						if (fast_membership(U, word_of_V, valueA) == false) {
-							// printf("witness: %s cycle{ %s }\n", word_of_U->toString().c_str(), word_of_V->toString().c_str());
-							delete postF;
-							delete postI;
-							delete postIrev;
-							// printf("FALSE\n");
-							return false;
+							if (fast_membership(U, word_of_V, valueA) == false) {
+	//							printf("witness: %s cycle{ %s }\n", word_of_U->toString().c_str(), word_of_V->toString().c_str());
+	//							printf("FALSE\n");
+								delete postF;
+								delete postI;
+								delete postIrev;
+								return false;
+							}
 						}
 					}
 				}
+				delete postF;
 			}
-			delete postF;
 		}
 	}
 	delete postI;
 	delete postIrev;
 
-	// printf("TRUE\n");
+	//printf("TRUE\n");
 	return true;
 }
 
+
+
 void debug_test2() {
 	// EGE: i can't run these tests (it probably runs out of memory?)
+	// NIC: several of then should work (not bakery, not fischerv3, probably not Odd_and_even)
 	Automaton* toto;
 	Automaton* titi;
 
