@@ -21,6 +21,8 @@ Given two $\mathsf{Val}$ automata $\mathcal{A}$ and $\mathcal{B}$ with a rationa
 
 ## Building from sources
 
+QuAK has no external dependencies. The only requirement is to have a C++ compiler that supports the C++17 standard or newer.
+
 ### Using CMake
 
 The easiest way to build QuAK is to use CMake + make:

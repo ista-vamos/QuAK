@@ -20,8 +20,9 @@ add_library(quak STATIC
 	    FORKLIFT/TargetOf.cpp
 )
 
-add_library(utils STATIC utils.cpp)
+add_library(quak-private STATIC utils.cpp)
 
-add_library(quakso SHARED quak)
+add_library(quakso SHARED sharedlib.cpp)
+target_link_libraries(quakso PUBLIC quak)
 set_target_properties(quakso PROPERTIES OUTPUT_NAME quak)
 

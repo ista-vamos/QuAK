@@ -2,11 +2,11 @@ set(SRCDIR ../src)
 
 add_executable(inclusion inclusion.cpp)
 target_include_directories(inclusion PRIVATE ${SRCDIR})
-target_link_libraries(inclusion PUBLIC quak utils)
+target_link_libraries(inclusion PUBLIC quak quak-private)
 
 add_executable(measure-inclusion measure-inclusion.cpp)
 target_include_directories(measure-inclusion PRIVATE ${SRCDIR})
-target_link_libraries(measure-inclusion PUBLIC quak utils)
+target_link_libraries(measure-inclusion PUBLIC quak quak-private)
 
 
 
@@ -27,6 +27,6 @@ if (vamos-buffers_FOUND)
 
 	add_executable(monitor monitor.cpp)
 	target_include_directories(monitor PRIVATE ${SRCDIR})
-	target_link_libraries(monitor PRIVATE quak utils)
+	target_link_libraries(monitor PRIVATE quak quak-private)
 endif()
 

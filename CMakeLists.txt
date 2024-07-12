@@ -21,15 +21,15 @@ if (ENABLE_IPO)
 endif(ENABLE_IPO)
 
 #set(CMAKE_VERBOSE_MAKEFILE 1)
-set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
 add_subdirectory(src)
 
-add_executable(quakbin src/quak.cpp)
+add_executable(quakbin src/quak-main.cpp)
 target_include_directories(quakbin PRIVATE ${SRCDIR})
-target_link_libraries(quakbin PUBLIC quak utils)
+target_link_libraries(quakbin PUBLIC quak quak-private)
 
 set_target_properties(quakbin PROPERTIES OUTPUT_NAME quak)
 
