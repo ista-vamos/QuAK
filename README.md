@@ -78,7 +78,7 @@ To use the library in your program, use the following directive:
 TODO
 ```
 
-For a sample program that puts together the demonstrations below, see *sampleProgram.cpp*.
+For a sample program that puts together the demonstrations below, see *examples/sampleProgram.cpp*.
 
 Below, we consider two $\mathsf{Val}$ automata $\mathcal{A}$ and $\mathcal{B}$ with a rational number $v \in \mathbb{Q}$.
 
