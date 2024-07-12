@@ -4,10 +4,11 @@ CFLAG = -g -Wall
 
 GPP = g++
 # CPPFLAG = -g -O3 -Wall
-CPPFLAG = -g -Wall
+INCLUSION_OPTS=-DINCLUSION_SCC_SEARCH_ACTIVE -DCONTEXT_REDUNDANCY_ACTIVE
+CPPFLAG = -g -Wall $(INCLUSION_OPTS)
 
 SRCDIR = src
-SRC0 = $(wildcard $(SRCDIR)/*.c) $(wildcard $(SRCDIR)/*.cpp)
+SRC0 = $(filter-out $(SRCDIR)/quak-main.cpp, $(wildcard $(SRCDIR)/*.c) $(wildcard $(SRCDIR)/*.cpp))
 SRC1 = $(wildcard $(SRCDIR)/*/*.c) $(wildcard $(SRCDIR)/*/*.cpp)
 SRC = $(SRC0) $(SRC1)
 #SRC = $(SRC0)
@@ -29,8 +30,13 @@ run:
 all: $(BINDIR)/$(BIN)
 
 
-$(BINDIR)/$(BIN): $(OBJ)
+$(BINDIR)/$(BIN): $(OBJ) $(SRCDIR)/quak-main.cpp
+	mkdir -p $(BINDIR)
 	$(GPP) $(CPPFLAG) $^ -o $@
+
+$(BINDIR)/inclusion: $(OBJ) experiments/inclusion.cpp
+	mkdir -p $(BINDIR)
+	$(GPP) -I$(SRCDIR) $(CPPFLAG) $^ -o $@
 
 
 $(OBJDIR)/%.c.o: $(SRCDIR)/%.c
@@ -47,3 +53,5 @@ $(OBJDIR)/%.cpp.o: $(SRCDIR)/%.cpp
 clean:
 	rm -f $(wildcard $(OBJDIR)/*.o) $(wildcard $(OBJDIR)/*/*.o)
 	rm -f $(BINDIR)/$(BIN)
+
+

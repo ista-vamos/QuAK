@@ -59,24 +59,24 @@ int main(int argc, char **argv) {
     bool included;
     struct timespec start_time, end_time;
 
-//    clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &start_time);
+    clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &start_time);
     included = A1->isIncludedIn(A2.get(), value_fun, booleanize);
-//    clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &end_time);
-//
-//    end_time.tv_sec -= start_time.tv_sec;
-//    end_time.tv_nsec -= start_time.tv_nsec;
-//
-//    unsigned n_states, n_edges;
-//    std::tie(n_states, n_edges) = getAutomatonStats(A1.get());
-//    std::cout << "A1 states/edges: " << n_states << "," << n_edges << "\n";
-//    std::tie(n_states, n_edges) = getAutomatonStats(A2.get());
-//    std::cout << "A2 states/edges: " << n_states << "," << n_edges << "\n";
+    clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &end_time);
+
+    end_time.tv_sec -= start_time.tv_sec;
+    end_time.tv_nsec -= start_time.tv_nsec;
+
+    unsigned n_states, n_edges;
+    std::tie(n_states, n_edges) = getAutomatonStats(A1.get());
+    std::cout << "A1 states/edges: " << n_states << "," << n_edges << "\n";
+    std::tie(n_states, n_edges) = getAutomatonStats(A2.get());
+    std::cout << "A2 states/edges: " << n_states << "," << n_edges << "\n";
     std::cout << "Is included: " << included << "\n";
-//    std::cout << "Cputime: "
-//              << static_cast<uint64_t>((end_time.tv_sec * 1000000) +
-//                                       (end_time.tv_nsec / 1000.0))
-//              << " ms\n";
-//
+    std::cout << "Cputime: "
+              << static_cast<uint64_t>((end_time.tv_sec * 1000000) +
+                                       (end_time.tv_nsec / 1000.0))
+              << " ms\n";
+
 	return EXIT_SUCCESS;
 }
 

@@ -17,8 +17,8 @@ int main(int argc, char **argv) {
 //	std::cout << "Is A(w) >= 4 for some word w? " << A->isNonEmpty(LimInf, 4) << std::endl;
 //	std::cout << "Is A(w) >= 4 for every word w? " << A->isUniversal(LimInf, 4) << std::endl;
 //	std::cout << "Does A define a constant function? " << A->isConstant(LimInf) << std::endl;
-	std::cout << "Is A included in B? (calling quantitative antichain) : " << A->isIncludedIn(B, LimSup) << std::endl;
-	std::cout << "Is A included in B? (calling boolean antichain) : " << A->isIncludedIn(B, LimSup, true) << std::endl;
+	std::cout << "Is A included in B? (calling quantitative antichain) : " << A->isIncludedIn(B, LimInf) << std::endl;
+	std::cout << "Is A included in B? (calling boolean antichain) : " << A->isIncludedIn(B, LimInf, true) << std::endl;
 //	std::cout << "Is A safe? " << A->isSafe(LimInf) << std::endl;
 //	std::cout << "Is A live? " << A->isLive(LimInf) << std::endl;
 //
