@@ -1,4 +1,5 @@
 #include <iostream>
+#include <fstream>
 #include <memory>
 #include <cstring>
 
@@ -11,6 +12,7 @@
 #include "utils.h"
 
 static void monitorFile(Monitor *M, const char *input_file) {
+
     std::cerr << "Not implemented yet\n";
     abort();
 }
@@ -24,7 +26,7 @@ int main(int argc, char **argv) {
 
     if (argc < 4) {
         std::cerr << "Usage: " << argv[0]
-                  << " automaton.txt " << "<Inf | Sup | LimInf | LimSup | LimAvg> [input-file | -vamos SHMKEY]\n";
+                  << " automaton.txt " << "<Inf | Sup | Avg> [input-file | -vamos SHMKEY]\n";
         return -1;
     }
 
