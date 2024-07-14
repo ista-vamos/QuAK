@@ -7,9 +7,9 @@
 
 int main(int argc, char **argv) {
 
-	Automaton* A = new Automaton("samples/D1.txt");
+	Automaton* A = new Automaton("samples/A.txt");
 	A->print();
-	Automaton* B = new Automaton("samples/D2.txt", A);
+	Automaton* B = new Automaton("samples/B.txt", A);
 	B->print();
 
 	//std::cout << "Taking Val = LimInf" << std::endl;
