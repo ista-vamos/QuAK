@@ -88,7 +88,9 @@ The initial state of the input automaton is the source state of the first transi
 
 To use the library in your program, use the following directive:
 ```cpp
-TODO
+#include "FORKLIFT/inclusion.h"
+#include "Automaton.h"
+#include "Monitor.h"
 ```
 
 For a sample program that puts together the demonstrations below, see *examples/sampleProgram.cpp*.
