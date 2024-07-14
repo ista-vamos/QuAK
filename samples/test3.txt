@@ -1,8 +1,0 @@
-a : 0, q0 -> q1
-b: 1, q0 -> q2
-a : 2, q1 -> q0
-b : -1, q1 -> sink
-a : 1, q2 -> q2
-b : -1, q2 -> sink
-a : -1, sink -> sink
-b : -1, sink -> sink
