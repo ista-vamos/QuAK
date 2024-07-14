@@ -71,18 +71,7 @@ make -f Makefile.legacy
 
 This makefile does not support integration with VAMOS.
 
-## Using QuAK
-
-To use the library in your program, use the following directive:
-```cpp
-TODO
-```
-
-For a sample program that puts together the demonstrations below, see *examples/sampleProgram.cpp*.
-
-Below, we consider two $\mathsf{Val}$ automata $\mathcal{A}$ and $\mathcal{B}$ with a rational number $v \in \mathbb{Q}$.
-
-### Input Format
+## Input Format
 
 QuAK reads and constructs automata from text files.
 Each automata is represented as a list of transitions of the following format:
@@ -94,6 +83,17 @@ which encodes a transition from state $q$ to state $p$ with letter $a$ and weigh
 The initial state of the input automaton is the source state of the first transition in its text file.
 
 **Important:** QuAK requires that its input automata are total (a.k.a. complete), i.e., for every state $q$ and every letter $a$, there is at least one outgoing transition from $q$ with letter $a$.
+
+## Using QuAK (as a library)
+
+To use the library in your program, use the following directive:
+```cpp
+TODO
+```
+
+For a sample program that puts together the demonstrations below, see *examples/sampleProgram.cpp*.
+
+Below, we consider two $\mathsf{Val}$ automata $\mathcal{A}$ and $\mathcal{B}$ with a rational number $v \in \mathbb{Q}$.
 
 ### Constructing Automata
 To construct an automaton from a file, use the following template:
@@ -195,3 +195,74 @@ At any point, the monitor can provide the highest and lowest values achievable f
 weight_t h = M->getHighest(); 
 weight_t l = M->getLowest();
 ```
+
+## Using QuAK (as a tool)
+
+To use the tool directly, simply compile and use commands detailed below.
+
+Similarly as above, we consider below two $\mathsf{Val}$ automata $\mathcal{A}$ and $\mathcal{B}$ with a rational number $v \in \mathbb{Q}$.
+
+
+### Non-emptiness Check
+To check the non-emptiness of $\mathcal{A}$ with respect to $v$, use the following:
+```
+TODO
+```
+
+### Universality Check
+To check the universality of $\mathcal{A}$ with respect to $v$, use the following:
+```
+TODO
+```
+
+### Inclusion Check
+To check the inclusion of $\mathcal{A}$ in $\mathcal{B}$, use the following:
+```
+TODO
+```
+
+### Constant-function Check
+To check if $\mathcal{A}$ defines a constant function, use the following:
+```
+TODO
+```
+
+### Safety Check
+To check if $\mathcal{A}$ defines a safety property, use the following:
+```
+TODO
+```
+
+### Liveness Check
+To check if $\mathcal{A}$ defines a liveness property, use the following:
+```
+TODO
+```
+
+### Top-value Computation
+To compute the top value of $\mathcal{A}$, use the following:
+```
+TODO
+```
+
+### Bottom-value Computation
+To compute the bottom value of $\mathcal{A}$, use the following:
+```
+TODO
+```
+
+### Safety Closure Construction
+To construct the safety closure of $\mathcal{A}$, use the following:
+```
+TODO
+```
+
+### Safety-Liveness Decomposition
+For the safety component of the decomposition, use the safety closure construction above.
+To construct the liveness component of the decomposition of $\mathcal{A}$, use the following:
+```
+TODO
+```
+
+<!-- ### Monitor Construction and Execution
+TODO -->
