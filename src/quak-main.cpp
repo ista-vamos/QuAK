@@ -31,6 +31,8 @@ getAutomatonStats(const Automaton *A) {
 }
 
 enum class Operation {
+  INVALID,
+  isEmpty,
   isNonempty,
   isUniversal,
   isIncluded,
@@ -39,45 +41,212 @@ enum class Operation {
   isLive,
   topValue,
   bottomValue,
+  eval
 };
 
+static void printUsage(const char *bin) {
+  std::cerr << "Usage: " << bin
+            << " automaton-file" << " [ACTION ACTION ...]\n";
+  std::cerr << "Where ACTIONs are the following, with VALF = <Inf | Sup | LimInf | LimSup | LimAvg>:\n";
+  std::cerr << "  empty VALF <weight>\n";
+  std::cerr << "  non-empty VALF <weight>\n";
+  std::cerr << "  universal VALF <weight>\n";
+  std::cerr << "  constant VALF\n";
+  std::cerr << "  safe VALF\n";
+  std::cerr << "  live VALF\n";
+  std::cerr << "  isIncludedIn VALF automaton2-file\n";
+  std::cerr << "  eval <Inf | Sup | Avg> word.txt\n";
+}
+
 struct OperationClosure {
-  Operation op;
-  std::vector<std::variant<std::string, weight_t>> args;
+  Operation op{Operation::INVALID};
+  std::vector<std::variant<std::string, weight_t, value_function_t>> args;
 };
 
 
 struct Options {
+  std::string automaton;
   std::vector<OperationClosure> actions;
+  std::string error;
 
+  static Options createError(const std::string& err) {
+    Options O;
+    O.error = err;
+    return O;
+  }
 };
+
+static weight_t getWeight(const char *str, bool& succ) {
+  char *endptr;
+  static_assert(std::is_same<float, weight_t>::value,
+                "Weights are not floats, fix the code");
+  double val = strtof(str, &endptr);
+
+  succ = endptr != str && *endptr == '\0';
+  return val;
+}
+
+
+Options parseArgs(int argc, char *argv[]) {
+#define streq(s, cs) (strncmp(s, cs, sizeof(cs)) == 0)
+
+  unsigned idx = 1;
+  if (argc < 2) {
+    return Options::createError("Invalid arguments");
+  }
+
+  Options O;
+  O.automaton = std::string(argv[1]);
+  ++idx;
+
+  while (idx < argc) {
+    OperationClosure cl;
+
+    if (streq(argv[idx], "empty")) {
+      cl.op = Operation::isEmpty;
+    } else if (streq(argv[idx], "non-empty")) {
+      cl.op = Operation::isNonempty;
+    } else if (streq(argv[idx], "universal")) {
+      cl.op = Operation::isUniversal;
+    } else if (streq(argv[idx], "constant")) {
+      cl.op = Operation::isConstant;
+    } else if (streq(argv[idx], "safe")) {
+      cl.op = Operation::isSafe;
+    } else if (streq(argv[idx], "live")) {
+      cl.op = Operation::isLive;
+    }
+
+    if (cl.op == Operation::isNonempty ||
+        cl.op == Operation::isEmpty ||
+        cl.op == Operation::isUniversal) {
+      if (idx + 2 >= argc) {
+        return Options::createError("Invalid arguments for " + std::string(argv[idx]));
+      }
+
+      cl.args.push_back(getValueFunction(argv[idx + 1]));
+
+      bool succ;
+      weight_t w = getWeight(argv[idx + 2], succ);
+      if (!succ) {
+        return Options::createError("Invalid weight: " + std::string(argv[idx + 2]));
+      }
+      cl.args.push_back(w);
+      O.actions.push_back(cl);
+
+      idx += 3;
+    } else if (cl.op == Operation::isConstant ||
+               cl.op == Operation::isSafe ||
+               cl.op == Operation::isLive) {
+      if (idx + 1 >= argc) {
+        return Options::createError("Invalid arguments for " + std::string(argv[idx]));
+      }
+
+      cl.args.push_back(getValueFunction(argv[idx + 1]));
+      O.actions.push_back(cl);
+
+      idx += 2;
+    }
+  }
+
+#undef streq
+  return O;
+}
 
 int main(int argc, char **argv) {
 
-    if (argc < 4 || argc > 5) {
-        std::cerr << "Usage: " << argv[0]
-                  << " automaton.txt" << " [ACTION ACTION ...]\n";
-        std::cerr << "Where ACTIONs are the following, with VALF = <Inf | Sup | LimInf | LimSup | LimAvg>:\n";
-        std::cerr << "  empty VALF <weight>\n";
-        std::cerr << "  non-empty VALF <weight>\n";
-        std::cerr << "  universal VALF <weight>\n";
-        std::cerr << "  constant VALF\n";
-        std::cerr << "  safe VALF\n";
-        std::cerr << "  live VALF\n";
-        return -1;
-    }
+    auto opts = parseArgs(argc, argv);
+    if (!opts.error.empty()) {
+      std::cerr << "ERROR: " << opts.error << "\n";
+      printUsage(argv[0]);
+      return -1;
+    }   
+    if (opts.actions.empty()) {
+      std::cerr << "No actions given\n";
+      printUsage(argv[0]);
+      return -1;
+    }   
 
-    bool booleanize = false;
-    if (argc == 5) {
-        if (strncmp("booleanize", argv[4], sizeof "booleanize") == 0) {
-            booleanize = true;
-        } else {
-            std::cerr << "The optional argument is expected to be 'booleanize' or none\n";
-            return -1;
-        }
-    }
+    auto A =  std::unique_ptr<Automaton>(new Automaton(opts.automaton));
 
-    auto A1 =  std::unique_ptr<Automaton>(new Automaton(argv[1]));
+    unsigned n_states, n_edges;
+    std::tie(n_states, n_edges) = getAutomatonStats(A.get());
+    std::cout << "Input automaton has " << n_states
+              << " states and " << n_edges << " edges.\n";
+
+    value_function_t value_fun;
+    weight_t weight;
+    for (auto& act : opts.actions) {
+      switch (act.op) {
+      case Operation::isEmpty:
+        value_fun = std::get<value_function_t>(act.args[0]);
+        weight = std::get<weight_t>(act.args[1]);
+        std::cout << "isEmpty("
+                  << valueFunctionToStr(value_fun)
+                  << ", weight=" << weight << ") = ";
+
+        std::cout << !A->isNonEmpty(value_fun, weight);
+        std::cout << "\n";
+        break;
+
+      case Operation::isNonempty:
+        value_fun = std::get<value_function_t>(act.args[0]);
+        weight = std::get<weight_t>(act.args[1]);
+        std::cout << "isNonEmpty("
+                  << valueFunctionToStr(value_fun)
+                  << ", weight=" << weight << ") = ";
+
+        std::cout << A->isNonEmpty(value_fun, weight);
+        std::cout << "\n";
+        break;
+
+      case Operation::isUniversal:
+        value_fun = std::get<value_function_t>(act.args[0]);
+        weight = std::get<weight_t>(act.args[1]);
+        std::cout << "isUniversal("
+                  << valueFunctionToStr(value_fun)
+                  << ", weight=" << weight << ") = ";
+
+        std::cout << A->isUniversal(value_fun, weight);
+        std::cout << "\n";
+        break;
+
+      case Operation::isConstant:
+        value_fun = std::get<value_function_t>(act.args[0]);
+        std::cout << "isConstant("
+                  << valueFunctionToStr(value_fun)
+                  << ") = ";
+
+        std::cout << A->isConstant(value_fun);
+        std::cout << "\n";
+        break;
+
+      case Operation::isSafe:
+        value_fun = std::get<value_function_t>(act.args[0]);
+        std::cout << "isSafe("
+                  << valueFunctionToStr(value_fun)
+                  << ") = ";
+
+        std::cout << A->isConstant(value_fun);
+        std::cout << "\n";
+        break;
+
+      case Operation::isLive:
+        value_fun = std::get<value_function_t>(act.args[0]);
+        std::cout << "isLive("
+                  << valueFunctionToStr(value_fun)
+                  << ") = ";
+
+        std::cout << A->isConstant(value_fun);
+        std::cout << "\n";
+        break;
+      default:
+        std::cerr << "Unknown operation\n";
+        abort();
+      }
+    }
+    
+
+    /*
     auto A2 =  std::unique_ptr<Automaton>(new Automaton(argv[2]));
 
     auto value_fun = getValueFunction(argv[3]);
@@ -102,6 +271,7 @@ int main(int argc, char **argv) {
               << static_cast<uint64_t>((end_time.tv_sec * 1000000) +
                                        (end_time.tv_nsec / 1000.0))
               << " ms\n";
+  */
 
 	return EXIT_SUCCESS;
 }

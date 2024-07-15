@@ -16,3 +16,14 @@ value_function_t getValueFunction(const char *str) {
     abort();
 }
 
+const char *valueFunctionToStr(value_function_t v) {
+  switch(v) {
+    case Inf: return "Inf";
+    case Sup: return "Sup";
+    case LimInf: return "LimInf";
+    case LimSup: return "LimSup";
+    case LimAvg: return "LimAvg";
+  }
+  abort();
+}
+
