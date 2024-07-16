@@ -36,6 +36,7 @@ enum class Operation {
   isNonempty,
   isUniversal,
   isIncluded,
+  isIncludedBool,
   isConstant,
   isSafe,
   isLive,
@@ -46,7 +47,7 @@ enum class Operation {
 
 static void printUsage(const char *bin) {
   std::cerr << "Usage: " << bin
-            << " automaton-file" << " [ACTION ACTION ...]\n";
+            << " [-cputime] [-v] automaton-file" << " [ACTION ACTION ...]\n";
   std::cerr << "Where ACTIONs are the following, with VALF = <Inf | Sup | LimInf | LimSup | LimAvg>:\n";
   std::cerr << "  empty VALF <weight>\n";
   std::cerr << "  non-empty VALF <weight>\n";
@@ -54,7 +55,8 @@ static void printUsage(const char *bin) {
   std::cerr << "  constant VALF\n";
   std::cerr << "  safe VALF\n";
   std::cerr << "  live VALF\n";
-  std::cerr << "  isIncludedIn VALF automaton2-file\n";
+  std::cerr << "  isIncluded VALF automaton2-file\n";
+  std::cerr << "  isIncludedBool VALF automaton2-file\n";
   std::cerr << "  eval <Inf | Sup | Avg> word.txt\n";
 }
 
@@ -68,6 +70,8 @@ struct Options {
   std::string automaton;
   std::vector<OperationClosure> actions;
   std::string error;
+  bool cputime{false};
+  bool verbose{false};
 
   static Options createError(const std::string& err) {
     Options O;
@@ -92,12 +96,27 @@ Options parseArgs(int argc, char *argv[]) {
 
   unsigned idx = 1;
   if (argc < 2) {
-    return Options::createError("Invalid arguments");
+    return Options::createError("No automaton given");
   }
 
   Options O;
-  O.automaton = std::string(argv[1]);
-  ++idx;
+
+  while (idx < argc) {
+    if (streq(argv[idx], "-cputime"))
+      O.cputime = true;
+    else if (streq(argv[idx], "-v"))
+      O.verbose = true;
+    else if (argv[idx][0] != '-')
+      break;
+
+    ++idx;
+  }
+
+  if (idx < argc) {
+    O.automaton = std::string(argv[idx++]);
+  } else {
+    return Options::createError("Invalid arguments, expected automaton file.");
+  }
 
   while (idx < argc) {
     OperationClosure cl;
@@ -114,7 +133,12 @@ Options parseArgs(int argc, char *argv[]) {
       cl.op = Operation::isSafe;
     } else if (streq(argv[idx], "live")) {
       cl.op = Operation::isLive;
+    } else if (streq(argv[idx], "isIncluded")) {
+      cl.op = Operation::isIncluded;
+    } else if (streq(argv[idx], "isIncludedBool")) {
+      cl.op = Operation::isIncludedBool;
     }
+
 
     if (cl.op == Operation::isNonempty ||
         cl.op == Operation::isEmpty ||
@@ -145,6 +169,21 @@ Options parseArgs(int argc, char *argv[]) {
       O.actions.push_back(cl);
 
       idx += 2;
+    } else if (cl.op == Operation::isIncluded ||
+               cl.op == Operation::isIncludedBool) {
+      if (idx + 2 >= argc) {
+        return Options::createError("Invalid arguments for " + std::string(argv[idx]));
+      }
+
+      cl.args.push_back(getValueFunction(argv[idx + 1]));
+      cl.args.push_back(std::string(argv[idx + 2]));
+      O.actions.push_back(cl);
+
+      idx += 3;
+    }
+
+    else {
+      return Options::createError("Unknown action: " + std::string(argv[idx]));
     }
   }
 
@@ -168,10 +207,12 @@ int main(int argc, char **argv) {
 
     auto A =  std::unique_ptr<Automaton>(new Automaton(opts.automaton));
 
-    unsigned n_states, n_edges;
-    std::tie(n_states, n_edges) = getAutomatonStats(A.get());
-    std::cout << "Input automaton has " << n_states
-              << " states and " << n_edges << " edges.\n";
+    if (opts.verbose) {
+      unsigned n_states, n_edges;
+      std::tie(n_states, n_edges) = getAutomatonStats(A.get());
+      std::cout << "Input automaton has " << n_states
+                << " states and " << n_edges << " edges.\n";
+    }
 
     value_function_t value_fun;
     weight_t weight;
@@ -239,6 +280,23 @@ int main(int argc, char **argv) {
         std::cout << A->isConstant(value_fun);
         std::cout << "\n";
         break;
+
+      case Operation::isIncluded:
+      case Operation::isIncludedBool:
+        value_fun = std::get<value_function_t>(act.args[0]);
+        std::cout << "isIncluded(";
+        if (act.op == Operation::isIncludedBool)
+          std::cout << "bool, ";
+        std::cout << valueFunctionToStr(value_fun)
+                  << ") = ";
+        {
+        auto B = std::unique_ptr<Automaton>(
+            new Automaton(std::get<std::string>(act.args[1])));
+        std::cout << A->isIncludedIn(B.get(), value_fun,
+                                     act.op == Operation::isIncludedBool);
+        }
+        std::cout << "\n";
+        break;
       default:
         std::cerr << "Unknown operation\n";
         abort();
@@ -249,10 +307,7 @@ int main(int argc, char **argv) {
     /*
     auto A2 =  std::unique_ptr<Automaton>(new Automaton(argv[2]));
 
-    auto value_fun = getValueFunction(argv[3]);
-
     bool included;
-    struct timespec start_time, end_time;
 
     clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &start_time);
     included = A1->isIncludedIn(A2.get(), value_fun, booleanize);
