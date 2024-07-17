@@ -26,11 +26,11 @@ public:
 	State (State* state);
 
 	std::string getName() const;
-	const unsigned int getId() const;
+	unsigned int getId() const;
 	weight_t getMaxWeightValue() const;
 	weight_t getMinWeightValue() const;
 
-	const int getTag() const;
+	int getTag() const;
 	void setTag(int tag);
 
 	SetStd<Symbol*>* getAlphabet () const;

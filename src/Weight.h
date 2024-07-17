@@ -18,7 +18,7 @@ public:
 	static void RESET();
 	weight_t getValue() const;
 	void setValue(weight_t value);
-	const unsigned int getId() const;
+	unsigned int getId() const;
 	static std::string toString(Weight* weight);
 	std::string toString() const;
 };

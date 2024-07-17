@@ -14,7 +14,7 @@ public:
 	Symbol(Symbol* symbol);
 	~Symbol();
 	std::string getName() const;
-	const unsigned int getId() const;
+	unsigned int getId() const;
 	static void RESET();
 	static void RESET(unsigned int n);
 	static std::string toString(Symbol* symbol);

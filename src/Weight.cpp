@@ -23,7 +23,7 @@ weight_t Weight::getValue () const { return this->value; }
 void Weight::setValue (weight_t value) { this->value = value; }
 
 
-const unsigned int Weight::getId() const { return this->my_id; }
+unsigned int Weight::getId() const { return this->my_id; }
 
 
 std::string Weight::Weight::toString (Weight* weight) { return weight->toString(); }

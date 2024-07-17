@@ -20,7 +20,7 @@ Symbol::Symbol(Symbol* symbol) : my_id(symbol->my_id), name(symbol->name) {}
 std::string Symbol::getName() const { return this->name; }
 
 
-const unsigned int Symbol::getId() const { return this->my_id; }
+unsigned int Symbol::getId() const { return this->my_id; }
 
 
 std::string Symbol::Symbol::toString (Symbol* symbol) { return symbol->toString(); }

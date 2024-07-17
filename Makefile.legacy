@@ -1,8 +1,8 @@
 CC?=gcc
 CXX?=g++
 INCLUSION_OPTS=-DINCLUSION_SCC_SEARCH_ACTIVE -DCONTEXT_REDUNDANCY_ACTIVE
-CXXFLAGS = -g -Wall -Wpedantic -Wextra $(INCLUSION_OPTS)
-CFLAGS = -g -Wall -Wpedantic -Wextra
+CXXFLAGS = -g -Wall -Wpedantic -Wextra $(INCLUSION_OPTS) -std=c++17
+CFLAGS = -g -Wall -Wpedantic -Wextra -std=c17
 
 SRCDIR = src
 SRC0 = $(filter-out $(SRCDIR)/quak-main.cpp, $(wildcard $(SRCDIR)/*.c) $(wildcard $(SRCDIR)/*.cpp))

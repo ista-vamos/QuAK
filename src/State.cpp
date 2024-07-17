@@ -86,11 +86,11 @@ weight_t State::getMinWeightValue() const {
 }
 
 
-const unsigned int State::getId() const {
+unsigned int State::getId() const {
 	return this->my_id;
 }
 
-const int State::getTag() const {
+int State::getTag() const {
 	return this->my_scc;
 }
 
