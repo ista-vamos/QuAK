@@ -1,14 +1,15 @@
 #include <iostream>
 #include <memory>
 #include <cstring>
-#include <ctime>
-#include <cstdint>
 #include <variant>
 
 #include "Automaton.h"
 #include "Map.h"
+#include "Monitor.h"
 
 #include "utils.h"
+
+void monEvalTrace(Monitor *M, const std::string& trace);
 
 static std::pair<unsigned, unsigned>
 getAutomatonStats(const Automaton *A) {
@@ -42,7 +43,8 @@ enum class Operation {
   isLive,
   topValue,
   bottomValue,
-  eval
+  eval,
+  monitor
 };
 
 static void printUsage(const char *bin) {
@@ -57,7 +59,9 @@ static void printUsage(const char *bin) {
   std::cerr << "  live VALF\n";
   std::cerr << "  isIncluded VALF automaton2-file\n";
   std::cerr << "  isIncludedBool VALF automaton2-file\n";
-  std::cerr << "  eval <Inf | Sup | Avg> word.txt\n";
+  std::cerr << "  eval <Inf | Sup | Avg> word-file\n";
+  std::cerr << "  monitor <Inf | Sup | Avg> word-file\n";
+  std::cerr << "  monitor-vamos <Inf | Sup | Avg> shmkey\n";
 }
 
 struct OperationClosure {
@@ -137,6 +141,8 @@ Options parseArgs(int argc, char *argv[]) {
       cl.op = Operation::isIncluded;
     } else if (streq(argv[idx], "isIncludedBool")) {
       cl.op = Operation::isIncludedBool;
+    } else if (streq(argv[idx], "monitor")) {
+      cl.op = Operation::monitor;
     }
 
 
@@ -171,6 +177,16 @@ Options parseArgs(int argc, char *argv[]) {
       idx += 2;
     } else if (cl.op == Operation::isIncluded ||
                cl.op == Operation::isIncludedBool) {
+      if (idx + 2 >= argc) {
+        return Options::createError("Invalid arguments for " + std::string(argv[idx]));
+      }
+
+      cl.args.push_back(getValueFunction(argv[idx + 1]));
+      cl.args.push_back(std::string(argv[idx + 2]));
+      O.actions.push_back(cl);
+
+      idx += 3;
+    } else if (cl.op == Operation::monitor) {
       if (idx + 2 >= argc) {
         return Options::createError("Invalid arguments for " + std::string(argv[idx]));
       }
@@ -297,6 +313,22 @@ int main(int argc, char **argv) {
         }
         std::cout << "\n";
         break;
+
+      case Operation::monitor:
+        value_fun = std::get<value_function_t>(act.args[0]);
+        std::cout << "monitor("
+                  << valueFunctionToStr(value_fun)
+                  << ") = ";
+
+        {
+          auto M = std::unique_ptr<Monitor>(
+            new Monitor(A.get(), value_fun)
+          );
+
+          auto trace = std::get<std::string>(act.args[1]);
+          monEvalTrace(M.get(), trace);
+        }
+        break;
       default:
         std::cerr << "Unknown operation\n";
         abort();
@@ -329,5 +361,22 @@ int main(int argc, char **argv) {
   */
 
 	return EXIT_SUCCESS;
+}
+
+
+
+void monEvalTrace(Monitor *M, const std::string& trace) {
+  std::ifstream stream(trace);
+  if (!stream.is_open()) {
+    std::cerr << "Failed opening file: " << trace << "\n";
+    abort();
+  }
+
+  std::string symbol;
+  while (stream) {
+    stream >> symbol;
+    std::cout << symbol << " -> " << M->next(symbol) << "\n";
+  }
+
 }
 

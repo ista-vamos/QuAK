@@ -26,3 +26,6 @@ add_library(quakso SHARED sharedlib.cpp)
 target_link_libraries(quakso PUBLIC quak)
 set_target_properties(quakso PROPERTIES OUTPUT_NAME quak)
 
+# set_property(TARGET quak PROPERTY POSITION_INDEPENDENT_CODE ON)
+# set_property(TARGET quakso PROPERTY POSITION_INDEPENDENT_CODE ON)
+

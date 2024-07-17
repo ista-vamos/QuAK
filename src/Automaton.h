@@ -19,7 +19,9 @@ typedef enum {
 	Sup,
 	LimInf,
 	LimSup,
-	LimAvg
+	LimAvg,
+  // only for monitoring
+  Avg
 } value_function_t;
 
 typedef enum {

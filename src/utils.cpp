@@ -10,6 +10,7 @@ value_function_t getValueFunction(const char *str) {
     if (CMP("LimInf")) { return LimInf; }
     if (CMP("LimSup")) { return LimSup; }
     if (CMP("LimAvg")) { return LimAvg; }
+    if (CMP("Avg")) { return Avg; }
 #undef CMP
 
     std::cerr << "Unknown value function: " << str << "\n";
@@ -23,6 +24,7 @@ const char *valueFunctionToStr(value_function_t v) {
     case LimInf: return "LimInf";
     case LimSup: return "LimSup";
     case LimAvg: return "LimAvg";
+    case Avg: return "Avg";
   }
   abort();
 }
