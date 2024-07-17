@@ -94,7 +94,7 @@ static weight_t getWeight(const char *str, bool& succ) {
 Options parseArgs(int argc, char *argv[]) {
 #define streq(s, cs) (strncmp(s, cs, sizeof(cs)) == 0)
 
-  unsigned idx = 1;
+  int idx = 1;
   if (argc < 2) {
     return Options::createError("No automaton given");
   }
