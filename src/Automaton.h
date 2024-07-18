@@ -78,7 +78,12 @@ private:
 	weight_t top_LimAvg (weight_t* top_values) const;
 
 
-	void Automaton::top_LimAvg_cycle (weight_t* top_values, SetList<Edge*>** scc_cycles) const;
+//	void top_LimAvg_cycle (weight_t* top_values, SetList<Edge*>** scc_cycles) const;
+//	State* top_cycle_explore (State* state, bool* spot, weight_t (*f)(weight_t,weight_t), weight_t* top_values, SetList<Edge*>** scc_cycles) const;
+//	void top_cycle (weight_t (*f)(weight_t,weight_t), weight_t* scc_values, weight_t* top_values, SetList<Edge*>** scc_cycles) const;
+//	void top_LimInf_cycle (weight_t* top_values, SetList<Edge*>** scc_cycles) const;
+//	void top_LimSup_cycle (weight_t* top_values, SetList<Edge*>** scc_cycles) const;
+
 
 	bool isIncludedIn_booleanized (const Automaton* B, value_function_t f);
 	bool isIncludedIn_antichains (const Automaton* B, value_function_t f);
