@@ -278,10 +278,10 @@ Parser* parse_trim_complete(const Automaton* A, value_function_t f) {
 
 	weight_t sinkvalue;
 	switch(f) {
-		case Inf: case LimInf : case LimAvg:
+		case Inf: case LimInf : case LimAvg://TODO: LimInfAvg
 			sinkvalue = A->getMaxDomain();
 			break;
-		case Sup: case LimSup:
+		case Sup: case LimSup://TODO: LimSupAvg
 			sinkvalue = A->getMinDomain();
 			break;
 		default: fail("case value function");
@@ -1371,8 +1371,7 @@ void Automaton::top_reachably_scc (State* state, bool in_scc, bool* spot, weight
 }
 
 
-weight_t Automaton::top_reachably (bool in_scc, weight_t* top_values) const {
-	weight_t values[this->states->size()];
+weight_t Automaton::top_reachably (bool in_scc, weight_t* values, weight_t* top_values) const {
 	bool spot[this->states->size()];
 	bool done[this->nb_SCCs];
 
@@ -1393,12 +1392,14 @@ weight_t Automaton::top_reachably (bool in_scc, weight_t* top_values) const {
 
 
 weight_t Automaton::top_Sup (weight_t* top_values) const {
-	return top_reachably(false, top_values);
+	weight_t values[this->states->size()];
+	return top_reachably(false, values, top_values);
 }
 
 
 weight_t Automaton::top_LimSup (weight_t* top_values) const {
-	return top_reachably(true, top_values);
+	weight_t values[this->states->size()];
+	return top_reachably(true, values, top_values);
 }
 
 
@@ -1512,9 +1513,8 @@ void Automaton::top_safety_scc (weight_t* values, bool in_scc) const {
 }
 
 
-weight_t Automaton::top_safety (bool in_scc, weight_t* top_values) const {
+weight_t Automaton::top_safety (bool in_scc, weight_t* values, weight_t* top_values) const {
 	bool done[this->nb_SCCs];
-	weight_t values[this->states->size()];
 	top_safety_scc(values, in_scc);
 	for (unsigned int scc_id = 0; scc_id < this->nb_SCCs; ++scc_id) {
 		done[scc_id] = false;
@@ -1526,12 +1526,15 @@ weight_t Automaton::top_safety (bool in_scc, weight_t* top_values) const {
 
 
 weight_t Automaton::top_Inf (weight_t* top_values) const {
-	return top_safety(false, top_values);
+	weight_t values[this->states->size()];
+	return top_safety(false, values, top_values);
 }
 
 weight_t Automaton::top_LimInf (weight_t* top_values) const {
-	return top_safety(true, top_values);
+	weight_t values[this->states->size()];
+	return top_safety(true, values, top_values);
 }
+
 
 
 weight_t Automaton::top_LimAvg (weight_t* top_values) const {
@@ -1607,6 +1610,180 @@ weight_t Automaton::top_LimAvg (weight_t* top_values) const {
 	top_dag(this->SCCs[this->initial->getTag()], done, top_values);
 	return top_values[this->initial->getTag()];
 }
+
+
+
+//void Automaton::top_LimAvg_cycle (weight_t* top_values, SetList<Edge*>** scc_cycles) const {
+//	unsigned int size = this->states->size();
+//	Edge* back_distance[size + 1][size];
+//	weight_t distance[size + 1][size];
+//	weight_t infinity = std::max((weight_t)1, -(size*this->min_domain) + 1);
+//
+//	// O(n)
+//	for (unsigned int length = 0; length <= size; ++length) {
+//		for (unsigned int state_id = 0; state_id < size; ++state_id) {
+//			distance[length][state_id] = infinity;
+//			back_distance[length][state_id] = nullptr;
+//		}
+//	}
+//
+//
+//	//O(n)
+//	auto initialize_distances = [] (SCC_Dag* dag, weight_t* distance, auto &rec) -> void {
+//		distance[dag->origin->getId()] = 0;
+//		for (auto iter = dag->nexts->begin(); iter != dag->nexts->end(); ++iter) {
+//			rec(*iter, distance, rec);
+//		}
+//	};
+//	initialize_distances(this->SCCs[this->initial->getTag()], distance[0], initialize_distances);
+//
+//
+//	// O(n.m)
+//	for (unsigned int len = 1; len <= size; ++len) {
+//		for (unsigned int state_id = 0; state_id < size; ++state_id)	{
+//			for (Symbol* symbol : *(states->at(state_id)->getAlphabet())) {
+//				for (Edge* edge : *(states->at(state_id)->getSuccessors(symbol->getId()))) {
+//					if (edge->getFrom()->getTag() == edge->getTo()->getTag()) {
+//						if (distance[len-1][edge->getFrom()->getId()] != infinity) {
+//							weight_t old_value = distance[len-1][edge->getTo()->getId()];
+//							weight_t new_value = distance[len-1][edge->getFrom()->getId()] - edge->getWeight()->getValue();
+//							if (old_value == infinity || new_value < old_value) {
+//								distance[len][edge->getTo()->getId()] = new_value;
+//								back_distance[len][edge->getTo()->getId()] = edge;
+//							}
+//						}
+//					}
+//				}
+//			}
+//		}
+//	}
+//
+//	//O(n.m)
+//	bool done[this->nb_SCCs];
+//	State* scc_back[this->nb_SCCs];
+//	weight_t scc_values[this->nb_SCCs];
+//	for (unsigned int scc_id = 0; scc_id < this->nb_SCCs; ++scc_id) {
+//		done[scc_id] = false;
+//		top_values[scc_id] = this->min_domain;
+//		scc_values[scc_id] = this->min_domain;
+//		scc_back[scc_id] = nullptr;
+//	}
+//
+//	for (unsigned int state_id = 0; state_id < size; ++state_id) {
+//		weight_t min_lenght_avg = this->max_domain;
+//		bool len_flag = false;
+//		if (distance[size][state_id] != infinity) { // => id has an ongoing edge (inside its SCC)
+//			for (unsigned int length = 0; length < size; ++length) { // hence the nested loop is call at most O(m) times
+//				if (distance[length][state_id] != infinity) {
+//					weight_t avg = (distance[length][state_id] - distance[size][state_id] + 0.0) / (size - length + 0.0);
+//					min_lenght_avg = std::min(min_lenght_avg, avg);
+//					len_flag = true;
+//				}
+//			}
+//		}
+//		if (len_flag && top_values[this->states->at(state_id)->getTag()] < min_lenght_avg) {
+//			top_values[this->states->at(state_id)->getTag()] = min_lenght_avg;
+//			scc_values[this->states->at(state_id)->getTag()] = min_lenght_avg;
+//			scc_back[this->states->at(state_id)->getTag()] = this->states->at(state_id);
+//		}
+//	}
+//
+//	top_dag(this->SCCs[this->initial->getTag()], done, top_values);
+//
+//	for (unsigned int scc_id = 0; scc_id < this->nb_SCCs; ++scc_id) {
+//		scc_cycles[scc_id] = nullptr;
+//		if (scc_values[scc_id] == top_values[scc_id]){
+//			State* seek_state = scc_back[scc_id];
+//			int length = this->states->size();
+//			while(seek_state != nullptr && distance[0][seek_state->getId()] == 1) {
+//				distance[0][seek_state->getId()] = 1;//spot[seek_state] = true
+//				seek_state = back_distance[length][seek_state->getId()]->getFrom();
+//				length--;
+//			}
+//			if (seek_state == nullptr) continue;//impossible?
+//
+//			State* state = scc_back[scc_id];
+//			length = this->states->size();
+//			while (state != seek_state) {
+//				state = back_distance[length][state->getId()]->getFrom();
+//				length--;
+//			}
+//			while (state != seek_state) {
+//				scc_cycles[scc_id]->push(back_distance[length][state->getId()]);
+//				state = back_distance[length][state->getId()]->getFrom();
+//				length--;
+//			}
+//		}
+//	}
+//}
+//
+//
+//State* Automaton::top_cycle_explore (State* state, bool* spot, weight_t (*f)(weight_t,weight_t), weight_t* top_values, SetList<Edge*>** scc_cycles) const {
+//	if (spot[state->getId()] == true) return state;
+//
+//	spot[state->getId()] = true;
+//	for (Symbol* symbol : state->getAlphabet()){
+//		for (Edge* edge : state->getSuccessors(symbol->getId())){
+//			if (scc_cycles[state->getTag()] != nullptr) break;
+//			if (edge->getFrom()->getTag() != edge->getTo()->getTag()) continue;
+//			weight_t value = f(edge->getWeight()->getValue(), top_values[edge->getTo()->getTag()]);
+//			if (value != top_values[edge->getTo()->getTag()]) continue;
+//			State* seek_state = top_cycle_explore(edge->getTo(), spot, top_values, scc_cycles);
+//			if (seek_state != nullptr) {
+//				scc_cycles[seek_state->getTag()]->push(edge);
+//				if (seek_state != state) {
+//					return seek_state;
+//				}
+//				else {
+//					return nullptr;
+//				}
+//			}
+//		}
+//	}
+//
+//	return nullptr;
+//}
+//
+//
+//void Automaton::top_cycle (weight_t (*f)(weight_t,weight_t), weight_t* scc_values, weight_t* top_values, SetList<Edge*>** scc_cycles) const {
+//	bool spot[this->states->size()];
+//
+//	for (unsigned int state_id = 0 ; this->states->size(); ++state_id) {
+//		spot[state_id] = false;
+//	}
+//
+//	for (unsigned int scc_id = 0 ; this->nb_SCCs; ++scc_id) {
+//		scc_cycles[scc_id] = nullptr;
+//	}
+//
+//	for (unsigned int state_id = 0 ; this->states->size(); ++state_id) {
+//		if (scc_values[this->states->at(state_id)->getTag()] != top_values[this->states->at(state_id)->getTag()]) continue;
+//		if (scc_cycles[this->states->at(state_id)->getTag()] != nullptr) continue;
+//		top_cycle_explore (this->states->at(state_id), spot, f, top_values, scc_cycles);
+//	}
+//}
+//
+//void Automaton::top_LimInf_cycle (weight_t* top_values, SetList<Edge*>** scc_cycles) const {
+//	/*weight_t (*f)(weight_t,weight_t) = [] (weight_t x, weight_t y) -> weight_t {
+//		return std::max(x, y);
+//	}*/
+//	weight_t scc_values[this->states->size()];
+//	top_safety(true, scc_values, top_values);
+//	top_cycle(std::max, scc_values, top_values, scc_cycles);
+//}
+//
+//void Automaton::top_LimSup_cycle (weight_t* top_values, SetList<Edge*>** scc_cycles) const {
+//	/*weight_t (*f)(weight_t,weight_t) = [] (weight_t x, weight_t y) -> weight_t {
+//		return std::min(x, y);
+//	}*/
+//	weight_t scc_values[this->states->size()];
+//	top_reachably(true, scc_values, top_values);
+//	top_cycle(std::min, scc_values, top_values, scc_cycles);
+//}
+
+
+
+
 
 weight_t Automaton::compute_Top (value_function_t f, weight_t* top_values) const {
 	switch (f) {
