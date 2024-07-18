@@ -1,3 +1,4 @@
+#include <iostream>
 
 #include "Monitor.h"
 #include "utility.h"
@@ -41,7 +42,7 @@ void Monitor::initializeSymbols() {
 weight_t Monitor::next(const std::string& a) {
   auto it = symbols.find(a);
   if (it == symbols.end()) {
-    assert(false && "Unknown symbol");
+    std::cerr << "Unknown symbol: '" << a << "'\n";
     abort();
   }
 

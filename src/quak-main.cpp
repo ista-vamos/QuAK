@@ -49,7 +49,7 @@ enum class Operation {
 
 static void printUsage(const char *bin) {
   std::cerr << "Usage: " << bin
-            << " [-cputime] [-v] automaton-file" << " [ACTION ACTION ...]\n";
+            << " [-v] automaton-file" << " [ACTION ACTION ...]\n";
   std::cerr << "Where ACTIONs are the following, with VALF = <Inf | Sup | LimInf | LimSup | LimAvg>:\n";
   std::cerr << "  empty VALF <weight>\n";
   std::cerr << "  non-empty VALF <weight>\n";
@@ -375,7 +375,8 @@ void monEvalTrace(Monitor *M, const std::string& trace) {
   std::string symbol;
   while (stream) {
     stream >> symbol;
-    std::cout << symbol << " -> " << M->next(symbol) << "\n";
+    std::cout << symbol << " -> " << M->next(symbol) << "\n" << std::flush;
+
   }
 
 }
