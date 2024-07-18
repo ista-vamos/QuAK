@@ -67,12 +67,12 @@ private:
 
 	void top_dag (SCC_Dag* dag, bool* done, weight_t* top_values) const;
 	void top_reachably_scc (State* state, bool in_scc, bool* spot, weight_t* values) const;
-	weight_t top_reachably (bool in_scc, weight_t* top_values) const;
+	weight_t top_reachably (bool in_scc, weight_t* values, weight_t* top_values) const;
 	weight_t top_Sup (weight_t* top_values) const;
 	weight_t top_LimSup (weight_t* top_values) const;
 	void top_safety_scc_recursive(Edge* edge, SetStd<Edge*>* done_edge, bool in_scc, int* done_symbol, weight_t* values, weight_t** value_symbol, int** counters) const;
 	void top_safety_scc (weight_t* values, bool in_scc) const;
-	weight_t top_safety (bool in_scc, weight_t* top_values) const;
+	weight_t top_safety (bool in_scc, weight_t* values, weight_t* top_values) const;
 	weight_t top_Inf (weight_t* top_values) const;
 	weight_t top_LimInf (weight_t* top_values) const;
 	weight_t top_LimAvg (weight_t* top_values) const;
