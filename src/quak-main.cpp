@@ -307,7 +307,7 @@ int main(int argc, char **argv) {
                   << ") = ";
         {
         auto B = std::unique_ptr<Automaton>(
-            new Automaton(std::get<std::string>(act.args[1])));
+            new Automaton(std::get<std::string>(act.args[1]), A.get()));
         std::cout << A->isIncludedIn(B.get(), value_fun,
                                      act.op == Operation::isIncludedBool);
         }
