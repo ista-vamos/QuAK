@@ -82,7 +82,7 @@ Automaton::Automaton (
 		max_domain(max_domain),
 		initial(initial)
 {
-  assert(isComplete() && "The automaton is not complete.");
+  //assert(isComplete() && "The automaton is not complete.");
 	compute_SCC();
 }
 
@@ -247,7 +247,6 @@ Automaton* Automaton::product(const Automaton* A, aggregator_t f, const Automato
 
 Parser* parse_trim_complete(const Automaton* A, value_function_t f) {
 	Parser* parser = new Parser(A->getMinDomain(), A->getMaxDomain());
-
 	for (unsigned int stateA_id = 0; stateA_id < A->getStates()->size(); ++stateA_id) {
 		if (A->getStates()->at(stateA_id)->getTag() == -1) continue;
 		parser->states.insert(A->getStates()->at(stateA_id)->getName());
@@ -306,7 +305,6 @@ Parser* parse_trim_complete(const Automaton* A, value_function_t f) {
 	}
 
 	parser->initial = A->getInitial()->getName();
-
 	return parser;
 }
 
@@ -689,9 +687,10 @@ Automaton* Automaton::livenessComponent_prefixIndependent (const Automaton* A, v
 		fail("invalid automaton type for liveness component (nondeterministic)");
 	}
 
-	State::RESET();
-	Symbol::RESET();
-	Weight::RESET();
+
+	//Symbol::RESET();
+	//Weight::RESET();
+	State::RESET(A->states->size());
 
 	std::string newname = "LiveOf(" + A->getName() + ")";
 
@@ -702,7 +701,7 @@ Automaton* Automaton::livenessComponent_prefixIndependent (const Automaton* A, v
 
 	unsigned int size_of_cycles = 0;
 	for (unsigned int scc_id = 0; scc_id < A->nb_SCCs; ++scc_id) {
-		if (scc_cycles[scc_id] != nullptr) {
+		if (scc_cycles[scc_id]->size() != 0) {
 			size_of_cycles += scc_cycles[scc_id]->size();
 		}
 	}
@@ -715,18 +714,17 @@ Automaton* Automaton::livenessComponent_prefixIndependent (const Automaton* A, v
 
 	MapStd<unsigned int, State*> state_register;
 	for (unsigned int scc_id = 0; scc_id < A->nb_SCCs; ++scc_id) {
-		if (scc_cycles[scc_id] != nullptr) {
+		if (scc_cycles[scc_id]->size() != 0) {
 			for (Edge* edge : *(scc_cycles[scc_id])) {
 				std::string statename = "copy_" + edge->getFrom()->getName();
 				State* state = new State(statename, A->alphabet->size(), A->min_domain, A->max_domain);
-				A->states->insert(state->getId(), state);
+				newstates->insert(state->getId(), state);
 				state_register.insert(edge->getFrom()->getId(), state);
 			}
 		}
 	}
 	State* sink_state = new State("#sink#", A->alphabet->size(), A->min_domain, A->max_domain);
-	A->states->insert(sink_state->getId(), sink_state);
-
+	newstates->insert(sink_state->getId(), sink_state);
 
 	weight_t newmin_domain = A->min_domain;
 	weight_t newmax_domain = A->max_domain;
@@ -753,7 +751,7 @@ Automaton* Automaton::livenessComponent_prefixIndependent (const Automaton* A, v
 	}
 
 	for (unsigned int scc_id = 0; scc_id < A->nb_SCCs; ++scc_id) {
-		if (scc_cycles[scc_id] != nullptr) {
+		if (scc_cycles[scc_id]->size() != 0) {
 			for (Edge* edge : *(scc_cycles[scc_id])) {
 				Symbol* new_symbol;
 				State* new_from;
@@ -800,7 +798,14 @@ Automaton* Automaton::livenessComponent_prefixIndependent (const Automaton* A, v
 		new_to->addPredecessor(new_edge);
 	}
 
-	return new Automaton(newname, newalphabet, newstates, newweights, newmin_domain, newmax_domain, newinitial);
+	for (unsigned int scc_id = 0; scc_id < A->nb_SCCs; ++scc_id) {
+		delete scc_cycles[scc_id];
+	}
+
+	Automaton* that = new Automaton(newname, newalphabet, newstates, newweights, newmin_domain, newmax_domain, newinitial);
+	Automaton* AA = copy_trim_complete(that, f);
+	delete that;
+	return AA;
 }
 
 
@@ -887,6 +892,7 @@ void explore_LimInf (
 }
 
 
+/* old toLimSup
 Automaton* Automaton::toLimSup (const Automaton* A, value_function_t f) {
 
   using std::pair;
@@ -946,23 +952,27 @@ Automaton* Automaton::toLimSup (const Automaton* A, value_function_t f) {
 	for (unsigned int weight_id = 0; weight_id < A->weights->size(); ++weight_id) {
 		newweights->insert(weight_id, new Weight(A->weights->at(weight_id)));
 	}
+
+
+
+
 	
 	// collect the weights that actually occur in the new automaton
-/*	std::set<unsigned int> tempWeightIds;
+	std::set<unsigned int> tempWeightIds;
 	for (const auto &edge : set_of_edges) {
 		tempWeightIds.insert(edge.second.second.second->getId());
 	}
-*/
-  /*
-  std::map<unsigned, unsigned> newweights_mapping;
-	MapArray<Weight*>* newweights = new MapArray<Weight*>(tempWeightIds.size());
-	int ctr = 0;
-	for (auto weight_id : tempWeightIds) {
-		newweights->insert(ctr, new Weight(A->weights->at(weight_id)));
-    newweights_mapping[weight_id] = ctr;
-		ctr++;
-	}
-  */
+
+
+//  std::map<unsigned, unsigned> newweights_mapping;
+//	MapArray<Weight*>* newweights = new MapArray<Weight*>(tempWeightIds.size());
+//	int ctr = 0;
+//	for (auto weight_id : tempWeightIds) {
+//		newweights->insert(ctr, new Weight(A->weights->at(weight_id)));
+//    newweights_mapping[weight_id] = ctr;
+//		ctr++;
+//	}
+
 
 	// MapArray<State*>* newstates = new MapArray<State*>(set_of_states.size());
 	MapStd<pair<State*, Weight*>, State*> state_register;
@@ -985,6 +995,9 @@ Automaton* Automaton::toLimSup (const Automaton* A, value_function_t f) {
 		from->addSuccessor(edge);
 		to->addPredecessor(edge);
 	}
+
+
+
 
 	// add a sink state if incomplete 
 	bool isComplete = true;
@@ -1028,6 +1041,84 @@ Automaton* Automaton::toLimSup (const Automaton* A, value_function_t f) {
 	}
 
 	return new Automaton(newname, newalphabet, newstates, newweights, newmin_domain, newmax_domain, newinitial);
+}
+*/
+
+Automaton* Automaton::toLimSup (const Automaton* A, value_function_t f) {
+	using std::pair;
+	State::RESET();
+	Symbol::RESET();
+	Weight::RESET();
+
+	int initWeightId;
+	void (*explore)(
+			pair<State*, Weight*> &from,
+			SetStd<pair<State*, Weight*>> &set_of_states,
+			SetStd<pair<Symbol*, pair<pair<State*, Weight*>, pair<State*, Weight*>>>> &set_of_edges
+	);
+	switch(f) {
+	case Inf:
+		explore = explore_Inf;
+		initWeightId = A->getWeights()->size() - 1;
+		break;
+	case Sup:
+		explore = explore_Sup;
+		initWeightId = 0;
+		break;
+	case LimInf:
+		explore = explore_LimInf;
+		initWeightId = 0;
+		break;
+	case LimSup: case LimInfAvg: case LimSupAvg:
+		fail("invalid translation to LimSup");
+	default:
+		fail("invalid value function");
+	}
+
+	std::string newname = "LimSup(" + A->getName() + ")";
+
+	MapArray<Symbol*>* newalphabet = new MapArray<Symbol*>(A->alphabet->size());
+	for (unsigned int symbol_id = 0; symbol_id < A->alphabet->size(); ++symbol_id) {
+		newalphabet->insert(symbol_id, new Symbol(A->alphabet->at(symbol_id)));
+	}
+
+	MapArray<Weight*>* newweights = new MapArray<Weight*>(A->weights->size());
+	for (unsigned int weight_id = 0; weight_id < A->weights->size(); ++weight_id) {
+		newweights->insert(weight_id, new Weight(A->weights->at(weight_id)));
+	}
+
+	weight_t newmin_domain = A->min_domain;
+	weight_t newmax_domain = A->max_domain;
+
+	SetStd<pair<State*, Weight*>> set_of_states;
+	SetStd<pair<Symbol*, pair<pair<State*, Weight*>, pair<State*, Weight*>>>> set_of_edges;
+	auto start = pair<State*, Weight*>(A->initial, A->weights->at(initWeightId));
+	explore(start, set_of_states, set_of_edges);
+
+	MapArray<State*>* newstates = new MapArray<State*>(set_of_states.size());
+	MapStd<pair<State*, Weight*>, State*> state_register;
+	for (const pair<State*, Weight*> &weighted_state : set_of_states) {
+		std::string statename = "(" + weighted_state.first->getName() + ", " + std::to_string(weighted_state.second->getValue()) + ")";
+		State* state = new State(statename, newalphabet->size(), newmin_domain, newmax_domain);
+		newstates->insert(state->getId(), state);
+		state_register.insert(weighted_state, state);
+	}
+	State* newinitial = state_register.at(start);
+
+	for (const auto &edgeA : set_of_edges) {
+		Symbol* symbol = newalphabet->at(edgeA.first->getId());
+    	Weight* weight = newweights->at(edgeA.second.second.second->getId());
+		State* from = state_register.at(edgeA.second.first);
+		State* to = state_register.at(edgeA.second.second);
+		Edge *edge = new Edge(symbol, weight, from, to);
+		from->addSuccessor(edge);
+		to->addPredecessor(edge);
+	}
+
+	Automaton* that = new Automaton(newname, newalphabet, newstates, newweights, newmin_domain, newmax_domain, newinitial);
+	Automaton* AA = copy_trim_complete(that, f);
+	delete that;
+	return AA;
 }
 
 
@@ -1138,8 +1229,6 @@ Automaton* Automaton::determinizeInf (const Automaton* A) {
 	Automaton* AA = copy_trim_complete(that, Inf);
 	delete that;
 	return AA;
-
-
 }
 
 
@@ -1264,28 +1353,27 @@ bool Automaton::isLimAvgConstant() const {
 
 	Automaton* Dist = new Automaton(newname, newalphabet, newstates, newweights, 0, 1, newinitial);
 	bool out = Dist->isUniversal(LimInf, 1);
-	// Dist->print();
 	delete Dist;
 	return out;
 }
 
 
 bool Automaton::isConstant (value_function_t f) {
-	if ((f == LimSupAvg || f== LimInfAvg) && isDeterministic() == false) {
+	if ((f == LimSupAvg || f == LimInfAvg) && isDeterministic() == false) {
 		return isLimAvgConstant();
 	}
 	else {
-		// std::cout << getTopValue(f) << " " << getBottomValue(f) << std::endl;
 		return (getTopValue(f) == getBottomValue(f));
 	}
 }
 
 bool Automaton::isIncludedIn(const Automaton* B, value_function_t f, bool booleanized) {
-    if (booleanized) {
+    if (booleanized == true) {
         return isIncludedIn_booleanized(B, f);
     }
-
-    return isIncludedIn_antichains(B, f);
+    else {
+    	return isIncludedIn_antichains(B, f);
+    }
 }
 
 bool Automaton::isIncludedIn_antichains(const Automaton* B, value_function_t f) {
@@ -1530,7 +1618,6 @@ void Automaton::top_safety_scc (weight_t* values, bool in_scc) const {
 		counters[state_id] = new int[this->alphabet->size()];
 		value_symbol[state_id] = new weight_t[this->alphabet->size()];
 		done_symbol[state_id] = 0;
-		values[state_id] = this->max_domain;
 		for (unsigned int symbol_id = 0; symbol_id < this->alphabet->size(); ++symbol_id) {
 			value_symbol[state_id][symbol_id] = this->min_domain;
 			counters[state_id][symbol_id] = 0;
@@ -1544,6 +1631,12 @@ void Automaton::top_safety_scc (weight_t* values, bool in_scc) const {
 				}
 			}
 			if (flag == true) done_symbol[state_id]++;
+		}
+		if (done_symbol[state_id] == 0) {
+			values[state_id] = this->min_domain;
+		}
+		else {
+			values[state_id] = this->max_domain;
 		}
 	}
 
@@ -1572,6 +1665,7 @@ void Automaton::top_safety_scc (weight_t* values, bool in_scc) const {
 weight_t Automaton::top_safety (bool in_scc, weight_t* values, weight_t* top_values) const {
 	bool done[this->nb_SCCs];
 	top_safety_scc(values, in_scc);
+
 	for (unsigned int scc_id = 0; scc_id < this->nb_SCCs; ++scc_id) {
 		done[scc_id] = false;
 		top_values[scc_id] = values[this->SCCs[scc_id]->origin->getId()];
@@ -1723,6 +1817,7 @@ void Automaton::top_LimAvg_cycles (weight_t* top_values, SetList<Edge*>** scc_cy
 		top_values[scc_id] = this->min_domain;
 		scc_values[scc_id] = this->min_domain;
 		scc_back[scc_id] = nullptr;
+		scc_cycles[scc_id] = new SetList<Edge*>();
 	}
 
 	for (unsigned int state_id = 0; state_id < size; ++state_id) {
@@ -1747,7 +1842,6 @@ void Automaton::top_LimAvg_cycles (weight_t* top_values, SetList<Edge*>** scc_cy
 	top_dag(this->SCCs[this->initial->getTag()], done, top_values);
 
 	for (unsigned int scc_id = 0; scc_id < this->nb_SCCs; ++scc_id) {
-		scc_cycles[scc_id] = nullptr;
 		if (scc_values[scc_id] == top_values[scc_id]){
 			State* seek_state = scc_back[scc_id];
 			int length = this->states->size();
@@ -1756,7 +1850,7 @@ void Automaton::top_LimAvg_cycles (weight_t* top_values, SetList<Edge*>** scc_cy
 				seek_state = back_distance[length][seek_state->getId()]->getFrom();
 				length--;
 			}
-			if (seek_state == nullptr) continue;//impossible?
+			//if (seek_state == nullptr) continue;//impossible?
 
 			State* state = scc_back[scc_id];
 			length = this->states->size();
@@ -1764,11 +1858,11 @@ void Automaton::top_LimAvg_cycles (weight_t* top_values, SetList<Edge*>** scc_cy
 				state = back_distance[length][state->getId()]->getFrom();
 				length--;
 			}
-			while (state != seek_state) {
+			do {
 				scc_cycles[scc_id]->push(back_distance[length][state->getId()]);
 				state = back_distance[length][state->getId()]->getFrom();
 				length--;
-			}
+			} while (state != seek_state);
 		}
 	}
 }
@@ -1780,18 +1874,21 @@ State* Automaton::top_cycles_explore (State* state, bool* spot, weight_t (*filte
 	spot[state->getId()] = true;
 	for (Symbol* symbol : *(state->getAlphabet())){
 		for (Edge* edge : *(state->getSuccessors(symbol->getId()))){
-			if (scc_cycles[state->getTag()] != nullptr) break;
-			if (edge->getFrom()->getTag() != edge->getTo()->getTag()) continue;
-			weight_t value = filter(edge->getWeight()->getValue(), top_values[edge->getTo()->getTag()]);
-			if (value != top_values[edge->getTo()->getTag()]) continue;
-			State* seek_state = top_cycles_explore(edge->getTo(), spot, filter, top_values, scc_cycles);
-			if (seek_state != nullptr) {
-				scc_cycles[seek_state->getTag()]->push(edge);
-				if (seek_state != state) {
-					return seek_state;
-				}
-				else {
-					return nullptr;
+			if (scc_cycles[state->getTag()]->size() == 0) {
+				if (edge->getFrom()->getTag() == edge->getTo()->getTag()) {
+					weight_t value = filter(edge->getWeight()->getValue(), top_values[edge->getTo()->getTag()]);
+					if (value == top_values[edge->getTo()->getTag()]) {
+						State* seek_state = top_cycles_explore(edge->getTo(), spot, filter, top_values, scc_cycles);
+						if (seek_state != nullptr) {
+							scc_cycles[seek_state->getTag()]->push(edge);
+							if (seek_state != state) {
+								return seek_state;
+							}
+							else {
+								return nullptr;
+							}
+						}
+					}
 				}
 			}
 		}
@@ -1804,18 +1901,19 @@ State* Automaton::top_cycles_explore (State* state, bool* spot, weight_t (*filte
 void Automaton::top_cycles (weight_t (*filter)(weight_t,weight_t), weight_t* scc_values, weight_t* top_values, SetList<Edge*>** scc_cycles) const {
 	bool spot[this->states->size()];
 
-	for (unsigned int state_id = 0 ; this->states->size(); ++state_id) {
+	for (unsigned int state_id = 0 ; state_id < this->states->size(); ++state_id) {
 		spot[state_id] = false;
 	}
 
-	for (unsigned int scc_id = 0 ; this->nb_SCCs; ++scc_id) {
-		scc_cycles[scc_id] = nullptr;
+	for (unsigned int scc_id = 0 ; scc_id < this->nb_SCCs; ++scc_id) {
+		scc_cycles[scc_id] = new SetList<Edge*>();
 	}
 
-	for (unsigned int state_id = 0 ; this->states->size(); ++state_id) {
-		if (scc_values[this->states->at(state_id)->getTag()] != top_values[this->states->at(state_id)->getTag()]) continue;
-		if (scc_cycles[this->states->at(state_id)->getTag()] != nullptr) continue;
-		top_cycles_explore (this->states->at(state_id), spot, filter, top_values, scc_cycles);
+	for (unsigned int state_id = 0 ; state_id < this->states->size(); ++state_id) {
+		if (this->states->at(state_id)->getTag() == -1) continue;
+		if (scc_values[this->states->at(state_id)->getId()] != top_values[this->states->at(state_id)->getTag()]) continue;
+		if (scc_cycles[this->states->at(state_id)->getTag()]->size() != 0) continue;
+		top_cycles_explore(this->states->at(state_id), spot, filter, top_values, scc_cycles);
 	}
 }
 

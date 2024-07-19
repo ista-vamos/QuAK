@@ -8,7 +8,6 @@ SRCDIR = src
 SRC0 = $(filter-out $(SRCDIR)/quak-main.cpp, $(wildcard $(SRCDIR)/*.c) $(wildcard $(SRCDIR)/*.cpp))
 SRC1 = $(wildcard $(SRCDIR)/*/*.c) $(wildcard $(SRCDIR)/*/*.cpp)
 SRC = $(SRC0) $(SRC1)
-#SRC = $(SRC0)
 
 OBJDIR = obj
 OBJ = $(SRC:$(SRCDIR)/%=$(OBJDIR)/%.o)
@@ -40,5 +39,4 @@ $(OBJDIR)/%.cpp.o: $(SRCDIR)/%.cpp
 clean:
 	rm -f $(wildcard $(OBJDIR)/*.o) $(wildcard $(OBJDIR)/*/*.o)
 	rm -f $(BIN)
-
 

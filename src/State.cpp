@@ -6,6 +6,7 @@
 
 unsigned int ID_of_States = 0;
 void State::State::RESET() { ID_of_States = 0; }
+void State::State::RESET(unsigned int n) { ID_of_States = n; }
 
 
 State::~State () {
