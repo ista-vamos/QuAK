@@ -79,11 +79,11 @@ private:
 	weight_t top_LimAvg (weight_t* top_values) const;
 
 
-//	void top_LimAvg_cycle (weight_t* top_values, SetList<Edge*>** scc_cycles) const;
-//	State* top_cycle_explore (State* state, bool* spot, weight_t (*f)(weight_t,weight_t), weight_t* top_values, SetList<Edge*>** scc_cycles) const;
-//	void top_cycle (weight_t (*f)(weight_t,weight_t), weight_t* scc_values, weight_t* top_values, SetList<Edge*>** scc_cycles) const;
-//	void top_LimInf_cycle (weight_t* top_values, SetList<Edge*>** scc_cycles) const;
-//	void top_LimSup_cycle (weight_t* top_values, SetList<Edge*>** scc_cycles) const;
+	void top_LimAvg_cycles (weight_t* top_values, SetList<Edge*>** scc_cycles) const;
+	State* top_cycles_explore (State* state, bool* spot, weight_t (*filter)(weight_t,weight_t), weight_t* top_values, SetList<Edge*>** scc_cycles) const;
+	void top_cycles (weight_t (*filter)(weight_t,weight_t), weight_t* scc_values, weight_t* top_values, SetList<Edge*>** scc_cycles) const;
+	void top_LimInf_cycles (weight_t* top_values, SetList<Edge*>** scc_cycles) const;
+	void top_LimSup_cycles (weight_t* top_values, SetList<Edge*>** scc_cycles) const;
 
 
 	bool isIncludedIn_booleanized (const Automaton* B, value_function_t f);
@@ -105,7 +105,7 @@ public:
 	static Automaton* from_file_sync_alphabet(std::string filename, Automaton* other = nullptr);
 	static Automaton* safetyClosure(const Automaton* A, value_function_t value_function);
 	static Automaton* livenessComponent_deterministic (const Automaton* A, value_function_t type);
-	// static Automaton* livenessComponent_prefixIndependent (const Automaton* A, value_function_t type);
+	static Automaton* livenessComponent_prefixIndependent (const Automaton* A, value_function_t type);
 	static Automaton* toLimSup (const Automaton* A, value_function_t f); // TODO: make private
 	bool isLimAvgConstant() const; // TODO: make private
 	static Automaton* product(const Automaton* A, aggregator_t aggregator, const Automaton* B); // TODO: make private
@@ -148,7 +148,7 @@ public:
 	MapArray<Symbol*>* getAlphabet() const;
 	MapArray<State*>* getStates() const;
 	MapArray<Weight*>* getWeights() const;
-	unsigned getAlphabetSize() const;
+	unsigned int getAlphabetSize() const;
 };
 
 #endif /* AUTOMATON_H_ */

@@ -1,8 +1,6 @@
-#include <set>
 #include <string>
 #include <vector>
 #include <memory>
-#include <unordered_map>
 #include <cassert>
 
 #include "Automaton.h"
@@ -32,8 +30,6 @@ public:
 
 
 Automaton::~Automaton () {
-	delete_verbose("@Memory: Automaton deletion started (automaton %s)\n", this->name.c_str());
-	// delete_verbose("@Detail: %u Edges will be deleted (automaton %s)\n", this->edges_size, this->name.c_str());
 	for (unsigned int state_id = 0; state_id < states->size(); ++state_id) {
 		for (Symbol* symbol : *(states->at(state_id)->getAlphabet())) {
 			for (Edge* edge : *(states->at(state_id)->getSuccessors(symbol->getId()))) {
@@ -41,29 +37,22 @@ Automaton::~Automaton () {
 			}
 		}
 	}
-	delete_verbose("@Detail: %u Symbols will be deleted (automaton %s)\n", this->alphabet->size(), this->name.c_str());
 	for (unsigned int symbol_id = 0; symbol_id < this->alphabet->size(); ++symbol_id) {
 		delete this->alphabet->at(symbol_id);
 	}
-	delete_verbose("@Detail: 1 MapVec (alphabet) will be deleted (automaton %s)\n", this->name.c_str());
 	delete alphabet;
-	delete_verbose("@Detail: %u States will be deleted (automaton %s)\n", this->states->size(), this->name.c_str());
 	for (unsigned int state_id = 0; state_id < this->states->size(); ++state_id) {
 		delete this->states->at(state_id);
 	}
-	delete_verbose("@Detail: 1 MapVec (states) will be deleted (automaton %s)\n", this->name.c_str());
 	delete states;
-	delete_verbose("@Detail: %u Weights will be deleted (automaton %s)\n", this->weights->size(), this->name.c_str());
 	for (unsigned int weight_id = 0; weight_id < this->weights->size(); ++weight_id) {
 		delete this->weights->at(weight_id);
 	}
-	delete_verbose("@Detail: 1 MapVec (weights) will be deleted (automaton %s)\n", this->name.c_str());
 	delete weights;
 	for (unsigned int scc_id = 0; scc_id < this->nb_SCCs; ++scc_id) {
 		delete this->SCCs[scc_id];
 	}
 	delete[] this->SCCs;
-	delete_verbose("@Memory: Automaton deletion finished (%s)\n", this->name.c_str());
 }
 
 
@@ -457,10 +446,7 @@ weight_t Automaton::getMinDomain () const { return this->min_domain; }
 weight_t Automaton::getMaxDomain () const { return this->max_domain; }
 State* Automaton::getInitial () const { return initial; }
 std::string Automaton::getName() const { return this->name; }
-
-unsigned Automaton::getAlphabetSize() const {
-    return alphabet->size();
-}
+unsigned int Automaton::getAlphabetSize() const { return alphabet->size(); }
 
 
 
@@ -592,8 +578,8 @@ Automaton* Automaton::safetyClosure(const Automaton* A, value_function_t f) {
 	for (unsigned int scc_id = 0; scc_id < A->nb_SCCs; ++scc_id) {
 		weight_values.insert(top_values[scc_id]);
 	}
-	weight_t newmin_domain = A->min_domain;//domain does not change
-	weight_t newmax_domain = A->max_domain;//domain does not depend on weights
+	weight_t newmin_domain = A->min_domain;
+	weight_t newmax_domain = A->max_domain;
 
 	MapArray<Weight*>* newweights = new MapArray<Weight*>(weight_values.size());
 	for (weight_t value : weight_values) {
@@ -622,7 +608,7 @@ Automaton* Automaton::safetyClosure(const Automaton* A, value_function_t f) {
 
 
 Automaton* Automaton::livenessComponent_deterministic (const Automaton* A, value_function_t f) {
-	if (!((f == Sup || f == LimInf || f == LimSup) && A->isDeterministic())) {
+	if (A->isDeterministic() == false || f == Inf || f == LimInfAvg || f == LimSupAvg) {
 		fail("invalid automaton type for liveness component (deterministic)");
 	}
 
@@ -630,7 +616,7 @@ Automaton* Automaton::livenessComponent_deterministic (const Automaton* A, value
 	Symbol::RESET();
 	Weight::RESET();
 
-	std::string name = "LiveOf(" + A->getName() + ")";
+	std::string newname = "LiveOf(" + A->getName() + ")";
 
 	MapArray<Symbol*>* newalphabet = new MapArray<Symbol*>(A->alphabet->size());
 	for (unsigned int symbol_id = 0; symbol_id < A->alphabet->size(); ++symbol_id) {
@@ -651,8 +637,8 @@ Automaton* Automaton::livenessComponent_deterministic (const Automaton* A, value
 	for (unsigned int weight_id = 0; weight_id < A->weights->size(); ++weight_id) {
 		weight_values.insert(A->weights->at(weight_id)->getValue());
 	}
-	weight_t newmin_domain = A->min_domain;//domain does not change
-	weight_t newmax_domain = A->max_domain;//domain does not depend on weights
+	weight_t newmin_domain = A->min_domain;
+	weight_t newmax_domain = A->max_domain;
 
 	MapStd<weight_t, Weight*> weight_register;
 	MapArray<Weight*>* newweights = new MapArray<Weight*>(weight_values.size());
@@ -682,76 +668,142 @@ Automaton* Automaton::livenessComponent_deterministic (const Automaton* A, value
 		}
 	}
 
-	return new Automaton(name, newalphabet, newstates, newweights, newmin_domain, newmax_domain, newinitial);
+	return new Automaton(newname, newalphabet, newstates, newweights, newmin_domain, newmax_domain, newinitial);
 }
 
 
 
-// TODO
-/*Automaton* Automaton::livenessComponent_prefixIndependent (const Automaton* A, value_function_t f) {
-	if (!(f == LimInf || f == LimSup || f == LimInfAvg || f == LimSupAvg)) {
-		fail("invalid automaton type for liveness component (prefix independent)");
+Automaton* Automaton::livenessComponent_prefixIndependent (const Automaton* A, value_function_t f) {
+	weight_t top_values[A->nb_SCCs];
+	SetList<Edge*>* scc_cycles[A->nb_SCCs];
+	if (f == LimInf) {
+		A->top_LimInf_cycles(top_values, scc_cycles);
+	}
+	else if (f == LimSup) {
+		A->top_LimSup_cycles(top_values, scc_cycles);
+	}
+	else if (f == LimInfAvg || f == LimSupAvg) {
+		A->top_LimAvg_cycles(top_values, scc_cycles);
+	}
+	else {
+		fail("invalid automaton type for liveness component (nondeterministic)");
 	}
 
 	State::RESET();
 	Symbol::RESET();
 	Weight::RESET();
 
-	// std::string name = "LiveOf(" + A->getName() + ")";
+	std::string newname = "LiveOf(" + A->getName() + ")";
 
-	// MapArray<Symbol*>* newalphabet = new MapArray<Symbol*>(A->alphabet->size());
-	// for (unsigned int symbol_id = 0; symbol_id < A->alphabet->size(); ++symbol_id) {
-	// 	newalphabet->insert(symbol_id, new Symbol(A->alphabet->at(symbol_id)));
-	// }
+	MapArray<Symbol*>* newalphabet = new MapArray<Symbol*>(A->alphabet->size());
+	for (unsigned int symbol_id = 0; symbol_id < A->alphabet->size(); ++symbol_id) {
+		newalphabet->insert(symbol_id, new Symbol(A->alphabet->at(symbol_id)));
+	}
 
-	
-	// MapArray<State*>* newstates = new MapArray<State*>(A->states->size());
-	// for (unsigned int state_id = 0; state_id < A->states->size(); ++state_id) {
-	// 	newstates->insert(state_id, new State(A->states->at(state_id)));
-	// }
-	// State* newinitial = newstates->at(A->initial->getId());
+	unsigned int size_of_cycles = 0;
+	for (unsigned int scc_id = 0; scc_id < A->nb_SCCs; ++scc_id) {
+		if (scc_cycles[scc_id] != nullptr) {
+			size_of_cycles += scc_cycles[scc_id]->size();
+		}
+	}
 
-	// weight_t top_values[A->nb_SCCs];
-	// A->compute_Top(f, top_values);
+	MapArray<State*>* newstates = new MapArray<State*>(A->states->size() + size_of_cycles + 1);
+	for (unsigned int state_id = 0; state_id < A->states->size(); ++state_id) {
+		newstates->insert(state_id, new State(A->states->at(state_id)));
+	}
+	State* newinitial = newstates->at(A->initial->getId());
 
-	// SetStd<weight_t> weight_values;
-	// weight_values.insert(top_values[A->initial->getTag()]);
-	// for (unsigned int weight_id = 0; weight_id < A->weights->size(); ++weight_id) {
-	// 	weight_values.insert(A->weights->at(weight_id)->getValue());
-	// }
-	// weight_t newmin_domain = A->min_domain;//domain does not change
-	// weight_t newmax_domain = A->max_domain;//domain does not depend on weights
+	MapStd<unsigned int, State*> state_register;
+	for (unsigned int scc_id = 0; scc_id < A->nb_SCCs; ++scc_id) {
+		if (scc_cycles[scc_id] != nullptr) {
+			for (Edge* edge : *(scc_cycles[scc_id])) {
+				std::string statename = "copy_" + edge->getFrom()->getName();
+				State* state = new State(statename, A->alphabet->size(), A->min_domain, A->max_domain);
+				A->states->insert(state->getId(), state);
+				state_register.insert(edge->getFrom()->getId(), state);
+			}
+		}
+	}
+	State* sink_state = new State("#sink#", A->alphabet->size(), A->min_domain, A->max_domain);
+	A->states->insert(sink_state->getId(), sink_state);
 
-	// MapStd<weight_t, Weight*> weight_register;
-	// MapArray<Weight*>* newweights = new MapArray<Weight*>(weight_values.size());
-	// for (weight_t value : weight_values) {
-	// 	Weight* weight = new Weight(value);
-	// 	newweights->insert(weight->getId(), weight);
-	// 	weight_register.insert(weight->getValue(), weight);
-	// }
 
-	// for (unsigned int state_id = 0; state_id < A->states->size(); ++state_id) {
-	// 	for (Symbol* symbol : *(A->states->at(state_id)->getAlphabet())) {
-	// 		for (Edge* edge : *(A->states->at(state_id)->getSuccessors(symbol->getId()))) {
-	// 			State* from = newstates->at(edge->getFrom()->getId());
-	// 			State* to = newstates->at(edge->getTo()->getId());
-	// 			weight_t value;
-	// 			if (edge->getWeight()->getValue() == top_values[from->getTag()]) {
-	// 				value = top_values[A->initial->getTag()];
-	// 			}
-	// 			else {
-	// 				value = edge->getWeight()->getValue();
-	// 			}
-	// 			Weight* weight = weight_register.at(value);
-	// 			Edge* new_edge = new Edge(newalphabet->at(symbol->getId()), weight, from, to);
-	// 			from->addSuccessor(new_edge);
-	// 			to->addPredecessor(new_edge);
-	// 		}
-	// 	}
-	// }
+	weight_t newmin_domain = A->min_domain;
+	weight_t newmax_domain = A->max_domain;
 
-	// return new Automaton(name, newalphabet, newstates, newweights, newmin_domain, newmax_domain, newinitial);
-}*/
+	MapArray<Weight*>* newweights = new MapArray<Weight*>(A->weights->size());
+	for (unsigned int weight_id = 0; weight_id < A->weights->size(); ++weight_id) {
+		newweights->insert(weight_id, new Weight(A->weights->at(weight_id)));
+	}
+	Weight* lowest = newweights->at(0);
+	Weight* greatest = newweights->at(newweights->size()-1);
+
+	for (unsigned int state_id = 0; state_id < A->states->size(); ++state_id) {
+		for (Symbol* symbol : *(A->states->at(state_id)->getAlphabet())) {
+			for (Edge* edge : *(A->states->at(state_id)->getSuccessors(symbol->getId()))) {
+				Symbol* new_symbol = newalphabet->at(symbol->getId());
+				State* new_from = newstates->at(edge->getFrom()->getId());
+				State* new_to = newstates->at(edge->getTo()->getId());
+				Weight* new_weight = newweights->at(edge->getWeight()->getId());
+				Edge* new_edge = new Edge(new_symbol, new_weight, new_from, new_to);
+				new_from->addSuccessor(new_edge);
+				new_to->addPredecessor(new_edge);
+			}
+		}
+	}
+
+	for (unsigned int scc_id = 0; scc_id < A->nb_SCCs; ++scc_id) {
+		if (scc_cycles[scc_id] != nullptr) {
+			for (Edge* edge : *(scc_cycles[scc_id])) {
+				Symbol* new_symbol;
+				State* new_from;
+				State* new_to;
+				Weight* new_weight = greatest;
+				Edge* new_edge;
+
+				//edge of the cycle
+				new_symbol = newalphabet->at(edge->getSymbol()->getId());
+				new_from = state_register.at(edge->getFrom()->getId());
+				new_to = state_register.at(edge->getTo()->getId());
+				new_edge = new Edge(new_symbol, new_weight, new_from, new_to);
+				new_from->addSuccessor(new_edge);
+				new_to->addPredecessor(new_edge);
+
+				//edge to the sink
+				for (unsigned int symbol_id = 0; symbol_id < A->alphabet->size(); ++symbol_id) {
+					new_symbol = newalphabet->at(symbol_id);
+					new_from = state_register.at(edge->getFrom()->getId());
+					new_to = sink_state;
+					new_edge = new Edge(new_symbol, new_weight, new_from, new_to);
+					new_from->addSuccessor(new_edge);
+					new_to->addPredecessor(new_edge);
+				}
+
+				//edge from automaton
+				new_symbol = newalphabet->at(edge->getSymbol()->getId());
+				new_from = newstates->at(edge->getFrom()->getId());
+				new_to = state_register.at(edge->getTo()->getId());
+				new_edge = new Edge(new_symbol, new_weight, new_from, new_to);
+				new_from->addSuccessor(new_edge);
+				new_to->addPredecessor(new_edge);
+			}
+		}
+	}
+
+	for (unsigned int symbol_id = 0; symbol_id < A->alphabet->size(); ++symbol_id) {
+		Symbol* new_symbol = newalphabet->at(symbol_id);
+		State* new_from = sink_state;
+		State* new_to = sink_state;
+		Weight* new_weight = lowest;
+		Edge* new_edge = new Edge(new_symbol, new_weight, new_from, new_to);
+		new_from->addSuccessor(new_edge);
+		new_to->addPredecessor(new_edge);
+	}
+
+	return new Automaton(newname, newalphabet, newstates, newweights, newmin_domain, newmax_domain, newinitial);
+}
+
+
 
 
 void explore_monotonically (
@@ -896,11 +948,11 @@ Automaton* Automaton::toLimSup (const Automaton* A, value_function_t f) {
 	}
 	
 	// collect the weights that actually occur in the new automaton
-	std::set<unsigned int> tempWeightIds;
+/*	std::set<unsigned int> tempWeightIds;
 	for (const auto &edge : set_of_edges) {
 		tempWeightIds.insert(edge.second.second.second->getId());
 	}
-
+*/
   /*
   std::map<unsigned, unsigned> newweights_mapping;
 	MapArray<Weight*>* newweights = new MapArray<Weight*>(tempWeightIds.size());
@@ -978,6 +1030,8 @@ Automaton* Automaton::toLimSup (const Automaton* A, value_function_t f) {
 	return new Automaton(newname, newalphabet, newstates, newweights, newmin_domain, newmax_domain, newinitial);
 }
 
+
+
 std::vector<unsigned int> int2function (unsigned int id, unsigned int n, unsigned int m) {
 	std::vector<unsigned int> func(n, 0);
 	for (int i = n - 1; i >= 0; i--) {
@@ -998,7 +1052,6 @@ unsigned int function2int (std::vector<unsigned int> func, unsigned int n, unsig
 }
 
 
-// TODO: finish
 Automaton* Automaton::determinizeInf (const Automaton* A) {
 	State::RESET();
 	Symbol::RESET();
@@ -1009,11 +1062,15 @@ Automaton* Automaton::determinizeInf (const Automaton* A) {
 		newalphabet->insert(symbol_id, new Symbol(A->alphabet->at(symbol_id)));
 	}
 
-	std::unordered_map<weight_t, unsigned int> weightInverseMap;
+	weight_t top_value_of_A = A->getTopValue(Inf);
+	Weight* top_weight_of_A = nullptr;
 	MapArray<Weight*>* newweights = new MapArray<Weight*>(A->weights->size());
 	for (unsigned int weight_id = 0; weight_id < A->weights->size(); ++weight_id) {
-		newweights->insert(weight_id, new Weight(A->weights->at(weight_id)));
-		weightInverseMap[A->weights->at(weight_id)->getValue()] = weight_id;
+		Weight* weight = new Weight(A->weights->at(weight_id));
+		newweights->insert(weight_id, weight);
+		if (weight->getValue() == top_value_of_A) {
+			top_weight_of_A = weight;
+		}
 	}
 
 	weight_t newmin_domain = A->min_domain;
@@ -1039,9 +1096,8 @@ Automaton* Automaton::determinizeInf (const Automaton* A) {
 		newstates->insert(state->getId(), state);
 	}
 
-	weight_t top_values[A->nb_SCCs];
 	std::vector<unsigned int> funcFrom(n, 0);
-	funcFrom[A->getInitial()->getId()] = weightInverseMap[A->compute_Top(Inf, top_values)];
+	funcFrom[A->getInitial()->getId()] = top_weight_of_A->getId();
 	unsigned int initIndex = function2int(funcFrom, n, m);
 	State* newinitial = newstates->at(initIndex);
 
@@ -1613,173 +1669,173 @@ weight_t Automaton::top_LimAvg (weight_t* top_values) const {
 
 
 
-//void Automaton::top_LimAvg_cycle (weight_t* top_values, SetList<Edge*>** scc_cycles) const {
-//	unsigned int size = this->states->size();
-//	Edge* back_distance[size + 1][size];
-//	weight_t distance[size + 1][size];
-//	weight_t infinity = std::max((weight_t)1, -(size*this->min_domain) + 1);
-//
-//	// O(n)
-//	for (unsigned int length = 0; length <= size; ++length) {
-//		for (unsigned int state_id = 0; state_id < size; ++state_id) {
-//			distance[length][state_id] = infinity;
-//			back_distance[length][state_id] = nullptr;
-//		}
-//	}
-//
-//
-//	//O(n)
-//	auto initialize_distances = [] (SCC_Dag* dag, weight_t* distance, auto &rec) -> void {
-//		distance[dag->origin->getId()] = 0;
-//		for (auto iter = dag->nexts->begin(); iter != dag->nexts->end(); ++iter) {
-//			rec(*iter, distance, rec);
-//		}
-//	};
-//	initialize_distances(this->SCCs[this->initial->getTag()], distance[0], initialize_distances);
-//
-//
-//	// O(n.m)
-//	for (unsigned int len = 1; len <= size; ++len) {
-//		for (unsigned int state_id = 0; state_id < size; ++state_id)	{
-//			for (Symbol* symbol : *(states->at(state_id)->getAlphabet())) {
-//				for (Edge* edge : *(states->at(state_id)->getSuccessors(symbol->getId()))) {
-//					if (edge->getFrom()->getTag() == edge->getTo()->getTag()) {
-//						if (distance[len-1][edge->getFrom()->getId()] != infinity) {
-//							weight_t old_value = distance[len-1][edge->getTo()->getId()];
-//							weight_t new_value = distance[len-1][edge->getFrom()->getId()] - edge->getWeight()->getValue();
-//							if (old_value == infinity || new_value < old_value) {
-//								distance[len][edge->getTo()->getId()] = new_value;
-//								back_distance[len][edge->getTo()->getId()] = edge;
-//							}
-//						}
-//					}
-//				}
-//			}
-//		}
-//	}
-//
-//	//O(n.m)
-//	bool done[this->nb_SCCs];
-//	State* scc_back[this->nb_SCCs];
-//	weight_t scc_values[this->nb_SCCs];
-//	for (unsigned int scc_id = 0; scc_id < this->nb_SCCs; ++scc_id) {
-//		done[scc_id] = false;
-//		top_values[scc_id] = this->min_domain;
-//		scc_values[scc_id] = this->min_domain;
-//		scc_back[scc_id] = nullptr;
-//	}
-//
-//	for (unsigned int state_id = 0; state_id < size; ++state_id) {
-//		weight_t min_lenght_avg = this->max_domain;
-//		bool len_flag = false;
-//		if (distance[size][state_id] != infinity) { // => id has an ongoing edge (inside its SCC)
-//			for (unsigned int length = 0; length < size; ++length) { // hence the nested loop is call at most O(m) times
-//				if (distance[length][state_id] != infinity) {
-//					weight_t avg = (distance[length][state_id] - distance[size][state_id] + 0.0) / (size - length + 0.0);
-//					min_lenght_avg = std::min(min_lenght_avg, avg);
-//					len_flag = true;
-//				}
-//			}
-//		}
-//		if (len_flag && top_values[this->states->at(state_id)->getTag()] < min_lenght_avg) {
-//			top_values[this->states->at(state_id)->getTag()] = min_lenght_avg;
-//			scc_values[this->states->at(state_id)->getTag()] = min_lenght_avg;
-//			scc_back[this->states->at(state_id)->getTag()] = this->states->at(state_id);
-//		}
-//	}
-//
-//	top_dag(this->SCCs[this->initial->getTag()], done, top_values);
-//
-//	for (unsigned int scc_id = 0; scc_id < this->nb_SCCs; ++scc_id) {
-//		scc_cycles[scc_id] = nullptr;
-//		if (scc_values[scc_id] == top_values[scc_id]){
-//			State* seek_state = scc_back[scc_id];
-//			int length = this->states->size();
-//			while(seek_state != nullptr && distance[0][seek_state->getId()] == 1) {
-//				distance[0][seek_state->getId()] = 1;//spot[seek_state] = true
-//				seek_state = back_distance[length][seek_state->getId()]->getFrom();
-//				length--;
-//			}
-//			if (seek_state == nullptr) continue;//impossible?
-//
-//			State* state = scc_back[scc_id];
-//			length = this->states->size();
-//			while (state != seek_state) {
-//				state = back_distance[length][state->getId()]->getFrom();
-//				length--;
-//			}
-//			while (state != seek_state) {
-//				scc_cycles[scc_id]->push(back_distance[length][state->getId()]);
-//				state = back_distance[length][state->getId()]->getFrom();
-//				length--;
-//			}
-//		}
-//	}
-//}
-//
-//
-//State* Automaton::top_cycle_explore (State* state, bool* spot, weight_t (*f)(weight_t,weight_t), weight_t* top_values, SetList<Edge*>** scc_cycles) const {
-//	if (spot[state->getId()] == true) return state;
-//
-//	spot[state->getId()] = true;
-//	for (Symbol* symbol : state->getAlphabet()){
-//		for (Edge* edge : state->getSuccessors(symbol->getId())){
-//			if (scc_cycles[state->getTag()] != nullptr) break;
-//			if (edge->getFrom()->getTag() != edge->getTo()->getTag()) continue;
-//			weight_t value = f(edge->getWeight()->getValue(), top_values[edge->getTo()->getTag()]);
-//			if (value != top_values[edge->getTo()->getTag()]) continue;
-//			State* seek_state = top_cycle_explore(edge->getTo(), spot, top_values, scc_cycles);
-//			if (seek_state != nullptr) {
-//				scc_cycles[seek_state->getTag()]->push(edge);
-//				if (seek_state != state) {
-//					return seek_state;
-//				}
-//				else {
-//					return nullptr;
-//				}
-//			}
-//		}
-//	}
-//
-//	return nullptr;
-//}
-//
-//
-//void Automaton::top_cycle (weight_t (*f)(weight_t,weight_t), weight_t* scc_values, weight_t* top_values, SetList<Edge*>** scc_cycles) const {
-//	bool spot[this->states->size()];
-//
-//	for (unsigned int state_id = 0 ; this->states->size(); ++state_id) {
-//		spot[state_id] = false;
-//	}
-//
-//	for (unsigned int scc_id = 0 ; this->nb_SCCs; ++scc_id) {
-//		scc_cycles[scc_id] = nullptr;
-//	}
-//
-//	for (unsigned int state_id = 0 ; this->states->size(); ++state_id) {
-//		if (scc_values[this->states->at(state_id)->getTag()] != top_values[this->states->at(state_id)->getTag()]) continue;
-//		if (scc_cycles[this->states->at(state_id)->getTag()] != nullptr) continue;
-//		top_cycle_explore (this->states->at(state_id), spot, f, top_values, scc_cycles);
-//	}
-//}
-//
-//void Automaton::top_LimInf_cycle (weight_t* top_values, SetList<Edge*>** scc_cycles) const {
-//	/*weight_t (*f)(weight_t,weight_t) = [] (weight_t x, weight_t y) -> weight_t {
-//		return std::max(x, y);
-//	}*/
-//	weight_t scc_values[this->states->size()];
-//	top_safety(true, scc_values, top_values);
-//	top_cycle(std::max, scc_values, top_values, scc_cycles);
-//}
-//
-//void Automaton::top_LimSup_cycle (weight_t* top_values, SetList<Edge*>** scc_cycles) const {
-//	/*weight_t (*f)(weight_t,weight_t) = [] (weight_t x, weight_t y) -> weight_t {
-//		return std::min(x, y);
-//	}*/
-//	weight_t scc_values[this->states->size()];
-//	top_reachably(true, scc_values, top_values);
-//	top_cycle(std::min, scc_values, top_values, scc_cycles);
-//}
+void Automaton::top_LimAvg_cycles (weight_t* top_values, SetList<Edge*>** scc_cycles) const {
+	unsigned int size = this->states->size();
+	Edge* back_distance[size + 1][size];
+	weight_t distance[size + 1][size];
+	weight_t infinity = std::max((weight_t)1, -(size*this->min_domain) + 1);
+
+	// O(n)
+	for (unsigned int length = 0; length <= size; ++length) {
+		for (unsigned int state_id = 0; state_id < size; ++state_id) {
+			distance[length][state_id] = infinity;
+			back_distance[length][state_id] = nullptr;
+		}
+	}
+
+
+	//O(n)
+	auto initialize_distances = [] (SCC_Dag* dag, weight_t* distance, auto &rec) -> void {
+		distance[dag->origin->getId()] = 0;
+		for (auto iter = dag->nexts->begin(); iter != dag->nexts->end(); ++iter) {
+			rec(*iter, distance, rec);
+		}
+	};
+	initialize_distances(this->SCCs[this->initial->getTag()], distance[0], initialize_distances);
+
+
+	// O(n.m)
+	for (unsigned int len = 1; len <= size; ++len) {
+		for (unsigned int state_id = 0; state_id < size; ++state_id)	{
+			for (Symbol* symbol : *(states->at(state_id)->getAlphabet())) {
+				for (Edge* edge : *(states->at(state_id)->getSuccessors(symbol->getId()))) {
+					if (edge->getFrom()->getTag() == edge->getTo()->getTag()) {
+						if (distance[len-1][edge->getFrom()->getId()] != infinity) {
+							weight_t old_value = distance[len-1][edge->getTo()->getId()];
+							weight_t new_value = distance[len-1][edge->getFrom()->getId()] - edge->getWeight()->getValue();
+							if (old_value == infinity || new_value < old_value) {
+								distance[len][edge->getTo()->getId()] = new_value;
+								back_distance[len][edge->getTo()->getId()] = edge;
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+
+	//O(n.m)
+	bool done[this->nb_SCCs];
+	State* scc_back[this->nb_SCCs];
+	weight_t scc_values[this->nb_SCCs];
+	for (unsigned int scc_id = 0; scc_id < this->nb_SCCs; ++scc_id) {
+		done[scc_id] = false;
+		top_values[scc_id] = this->min_domain;
+		scc_values[scc_id] = this->min_domain;
+		scc_back[scc_id] = nullptr;
+	}
+
+	for (unsigned int state_id = 0; state_id < size; ++state_id) {
+		weight_t min_lenght_avg = this->max_domain;
+		bool len_flag = false;
+		if (distance[size][state_id] != infinity) { // => id has an ongoing edge (inside its SCC)
+			for (unsigned int length = 0; length < size; ++length) { // hence the nested loop is call at most O(m) times
+				if (distance[length][state_id] != infinity) {
+					weight_t avg = (distance[length][state_id] - distance[size][state_id] + 0.0) / (size - length + 0.0);
+					min_lenght_avg = std::min(min_lenght_avg, avg);
+					len_flag = true;
+				}
+			}
+		}
+		if (len_flag && top_values[this->states->at(state_id)->getTag()] < min_lenght_avg) {
+			top_values[this->states->at(state_id)->getTag()] = min_lenght_avg;
+			scc_values[this->states->at(state_id)->getTag()] = min_lenght_avg;
+			scc_back[this->states->at(state_id)->getTag()] = this->states->at(state_id);
+		}
+	}
+
+	top_dag(this->SCCs[this->initial->getTag()], done, top_values);
+
+	for (unsigned int scc_id = 0; scc_id < this->nb_SCCs; ++scc_id) {
+		scc_cycles[scc_id] = nullptr;
+		if (scc_values[scc_id] == top_values[scc_id]){
+			State* seek_state = scc_back[scc_id];
+			int length = this->states->size();
+			while(seek_state != nullptr && distance[0][seek_state->getId()] == 1) {
+				distance[0][seek_state->getId()] = 1;//spot[seek_state] = true
+				seek_state = back_distance[length][seek_state->getId()]->getFrom();
+				length--;
+			}
+			if (seek_state == nullptr) continue;//impossible?
+
+			State* state = scc_back[scc_id];
+			length = this->states->size();
+			while (state != seek_state) {
+				state = back_distance[length][state->getId()]->getFrom();
+				length--;
+			}
+			while (state != seek_state) {
+				scc_cycles[scc_id]->push(back_distance[length][state->getId()]);
+				state = back_distance[length][state->getId()]->getFrom();
+				length--;
+			}
+		}
+	}
+}
+
+
+State* Automaton::top_cycles_explore (State* state, bool* spot, weight_t (*filter)(weight_t,weight_t), weight_t* top_values, SetList<Edge*>** scc_cycles) const {
+	if (spot[state->getId()] == true) return state;
+
+	spot[state->getId()] = true;
+	for (Symbol* symbol : *(state->getAlphabet())){
+		for (Edge* edge : *(state->getSuccessors(symbol->getId()))){
+			if (scc_cycles[state->getTag()] != nullptr) break;
+			if (edge->getFrom()->getTag() != edge->getTo()->getTag()) continue;
+			weight_t value = filter(edge->getWeight()->getValue(), top_values[edge->getTo()->getTag()]);
+			if (value != top_values[edge->getTo()->getTag()]) continue;
+			State* seek_state = top_cycles_explore(edge->getTo(), spot, filter, top_values, scc_cycles);
+			if (seek_state != nullptr) {
+				scc_cycles[seek_state->getTag()]->push(edge);
+				if (seek_state != state) {
+					return seek_state;
+				}
+				else {
+					return nullptr;
+				}
+			}
+		}
+	}
+
+	return nullptr;
+}
+
+
+void Automaton::top_cycles (weight_t (*filter)(weight_t,weight_t), weight_t* scc_values, weight_t* top_values, SetList<Edge*>** scc_cycles) const {
+	bool spot[this->states->size()];
+
+	for (unsigned int state_id = 0 ; this->states->size(); ++state_id) {
+		spot[state_id] = false;
+	}
+
+	for (unsigned int scc_id = 0 ; this->nb_SCCs; ++scc_id) {
+		scc_cycles[scc_id] = nullptr;
+	}
+
+	for (unsigned int state_id = 0 ; this->states->size(); ++state_id) {
+		if (scc_values[this->states->at(state_id)->getTag()] != top_values[this->states->at(state_id)->getTag()]) continue;
+		if (scc_cycles[this->states->at(state_id)->getTag()] != nullptr) continue;
+		top_cycles_explore (this->states->at(state_id), spot, filter, top_values, scc_cycles);
+	}
+}
+
+void Automaton::top_LimInf_cycles (weight_t* top_values, SetList<Edge*>** scc_cycles) const {
+	weight_t (*filter)(weight_t,weight_t) = [] (weight_t x, weight_t y) -> weight_t {
+		return std::max(x, y);
+	};
+	weight_t scc_values[this->states->size()];
+	top_safety(true, scc_values, top_values);
+	top_cycles(filter, scc_values, top_values, scc_cycles);
+}
+
+void Automaton::top_LimSup_cycles (weight_t* top_values, SetList<Edge*>** scc_cycles) const {
+	weight_t (*filter)(weight_t,weight_t) = [] (weight_t x, weight_t y) -> weight_t {
+		return std::min(x, y);
+	};
+	weight_t scc_values[this->states->size()];
+	top_reachably(true, scc_values, top_values);
+	top_cycles(filter, scc_values, top_values, scc_cycles);
+}
 
 
 
