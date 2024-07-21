@@ -222,6 +222,13 @@ Options parseArgs(int argc, char *argv[]) {
   return O;
 }
 
+#define TIMER_INIT struct timespec start_time{0}, end_time{0};
+#define TIMER_START if (opts.cputime) { clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &start_time); }
+#define TIMER_END if (opts.cputime) { clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &end_time); }
+#define TIMER_GET static_cast<uint64_t>((end_time.tv_sec * 1000) + (end_time.tv_nsec / 1000000.0))
+#define TIMER_PRINT(msg) if (opts.cputime) { std::cout << msg << TIMER_GET << " ms\n"; }
+#define PRINT_DIV { std::cout << "----------\n"; }
+
 int main(int argc, char **argv) {
 
     auto opts = parseArgs(argc, argv);
@@ -236,7 +243,12 @@ int main(int argc, char **argv) {
       return -1;
     }   
 
+    TIMER_INIT
+
+    TIMER_START
     auto A =  std::unique_ptr<Automaton>(new Automaton(opts.automaton));
+    TIMER_END
+    TIMER_PRINT("Cputime of building the automaton: ")
 
     if (opts.verbose) {
       unsigned n_states, n_edges;
@@ -245,19 +257,47 @@ int main(int argc, char **argv) {
                 << " states and " << n_edges << " edges.\n";
     }
 
+    if (opts.dump) {
+      A->print();
+    }
+
+    PRINT_DIV
+
     value_function_t value_fun;
     weight_t weight;
+
+
     for (auto& act : opts.actions) {
       switch (act.op) {
+      case Operation::stats:
+        {
+          unsigned n_states, n_edges;
+          std::tie(n_states, n_edges) = getAutomatonStats(A.get());
+          std::cout << "Input automaton has " << n_states
+                    << " states and " << n_edges << " edges.\n";
+          PRINT_DIV
+        }
+        break;
+      case Operation::dump:
+        {
+           A->print();
+          PRINT_DIV
+        }
+        break;
       case Operation::isEmpty:
         value_fun = std::get<value_function_t>(act.args[0]);
         weight = std::get<weight_t>(act.args[1]);
         std::cout << "isEmpty("
                   << valueFunctionToStr(value_fun)
                   << ", weight=" << weight << ") = ";
-
-        std::cout << !A->isNonEmpty(value_fun, weight);
-        std::cout << "\n";
+        {
+        TIMER_START
+        auto r = !A->isNonEmpty(value_fun, weight);
+        TIMER_END
+        std::cout << r << "\n";
+        TIMER_PRINT("Cputime: ")
+        PRINT_DIV
+        }
         break;
 
       case Operation::isNonempty:
@@ -266,9 +306,14 @@ int main(int argc, char **argv) {
         std::cout << "isNonEmpty("
                   << valueFunctionToStr(value_fun)
                   << ", weight=" << weight << ") = ";
-
-        std::cout << A->isNonEmpty(value_fun, weight);
-        std::cout << "\n";
+        {
+        TIMER_START
+        auto r = A->isNonEmpty(value_fun, weight);
+        TIMER_END
+        std::cout << r << "\n";
+        TIMER_PRINT("Cputime: ")
+        PRINT_DIV
+        }
         break;
 
       case Operation::isUniversal:
@@ -277,9 +322,15 @@ int main(int argc, char **argv) {
         std::cout << "isUniversal("
                   << valueFunctionToStr(value_fun)
                   << ", weight=" << weight << ") = ";
+        {
+        TIMER_START
+        auto r = A->isUniversal(value_fun, weight);
+        TIMER_END
+        std::cout << r << "\n";
+        TIMER_PRINT("Cputime: ")
+        PRINT_DIV
+        }
 
-        std::cout << A->isUniversal(value_fun, weight);
-        std::cout << "\n";
         break;
 
       case Operation::isConstant:
@@ -287,9 +338,14 @@ int main(int argc, char **argv) {
         std::cout << "isConstant("
                   << valueFunctionToStr(value_fun)
                   << ") = ";
-
-        std::cout << A->isConstant(value_fun);
-        std::cout << "\n";
+        {
+        TIMER_START
+        auto r = A->isConstant(value_fun);
+        TIMER_END
+        std::cout << r << "\n";
+        TIMER_PRINT("Cputime: ")
+        PRINT_DIV
+        }
         break;
 
       case Operation::isSafe:
@@ -297,9 +353,15 @@ int main(int argc, char **argv) {
         std::cout << "isSafe("
                   << valueFunctionToStr(value_fun)
                   << ") = ";
+        {
+        TIMER_START
+        auto r = A->isSafe(value_fun);
+        TIMER_END
+        std::cout << r << "\n";
+        TIMER_PRINT("Cputime: ")
+        PRINT_DIV
+        }
 
-        std::cout << A->isConstant(value_fun);
-        std::cout << "\n";
         break;
 
       case Operation::isLive:
@@ -307,33 +369,52 @@ int main(int argc, char **argv) {
         std::cout << "isLive("
                   << valueFunctionToStr(value_fun)
                   << ") = ";
-
-        std::cout << A->isConstant(value_fun);
-        std::cout << "\n";
+        {
+        TIMER_START
+        auto r = A->isLive(value_fun);
+        TIMER_END
+        std::cout << r << "\n";
+        TIMER_PRINT("Cputime: ")
+        PRINT_DIV
+        }
         break;
 
       case Operation::isIncluded:
       case Operation::isIncludedBool:
+        {
+        TIMER_START
+        auto B = std::unique_ptr<Automaton>(
+            new Automaton(std::get<std::string>(act.args[1]), A.get()));
+        TIMER_END
+        TIMER_PRINT("Cputime of building the right-hand side automaton: ")
+
+        if (opts.dump) {
+          B->print();
+        }
+
+        TIMER_START
         value_fun = std::get<value_function_t>(act.args[0]);
         std::cout << "isIncluded(";
         if (act.op == Operation::isIncludedBool)
           std::cout << "bool, ";
         std::cout << valueFunctionToStr(value_fun)
                   << ") = ";
-        {
-        auto B = std::unique_ptr<Automaton>(
-            new Automaton(std::get<std::string>(act.args[1]), A.get()));
-        std::cout << A->isIncludedIn(B.get(), value_fun,
-                                     act.op == Operation::isIncludedBool);
+
+        TIMER_START
+        auto r =  A->isIncludedIn(B.get(), value_fun,
+                                  act.op == Operation::isIncludedBool);
+        TIMER_END
+        std::cout << r << "\n";
+        TIMER_PRINT("Cputime: ")
+        PRINT_DIV
         }
-        std::cout << "\n";
         break;
 
       case Operation::monitor:
         value_fun = std::get<value_function_t>(act.args[0]);
         std::cout << "monitor("
                   << valueFunctionToStr(value_fun)
-                  << ") = ";
+                  << ") =\n";
 
         {
           auto M = std::unique_ptr<Monitor>(
@@ -341,7 +422,11 @@ int main(int argc, char **argv) {
           );
 
           auto trace = std::get<std::string>(act.args[1]);
+          TIMER_START
           monEvalTrace(M.get(), trace);
+          TIMER_END
+          TIMER_PRINT("Cputime (incl. prints): ")
+          PRINT_DIV
         }
         break;
       default:
