@@ -443,7 +443,7 @@ MapArray<Weight*>* Automaton::getWeights() const { return this->weights; }
 weight_t Automaton::getMinDomain () const { return this->min_domain; }
 weight_t Automaton::getMaxDomain () const { return this->max_domain; }
 State* Automaton::getInitial () const { return initial; }
-std::string Automaton::getName() const { return this->name; }
+const std::string &Automaton::getName() const { return this->name; }
 unsigned int Automaton::getAlphabetSize() const { return alphabet->size(); }
 
 

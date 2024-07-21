@@ -129,7 +129,7 @@ public:
 
 
 	void print () const;
-	std::string getName() const;
+	const std::string &getName() const;
 
 	bool isNonEmpty (value_function_t f, weight_t x); 				// checks if A(w) >= v for some w
 	bool isUniversal (value_function_t f, weight_t x);			// checks if A(w) >= v for all w
