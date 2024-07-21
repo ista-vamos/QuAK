@@ -2,6 +2,7 @@
 #include <memory>
 #include <cstring>
 #include <variant>
+#include <ctime>
 
 #include "Automaton.h"
 #include "Map.h"
@@ -33,6 +34,8 @@ getAutomatonStats(const Automaton *A) {
 
 enum class Operation {
   INVALID,
+  stats,
+  dump,
   isEmpty,
   isNonempty,
   isUniversal,
@@ -49,8 +52,10 @@ enum class Operation {
 
 static void printUsage(const char *bin) {
   std::cerr << "Usage: " << bin
-            << " [-v] automaton-file" << " [ACTION ACTION ...]\n";
+            << " [-cputime] [-v] [-d] automaton-file" << " [ACTION ACTION ...]\n";
   std::cerr << "Where ACTIONs are the following, with VALF = <Inf | Sup | LimInf | LimSup | LimAvg>:\n";
+  std::cerr << "  stats\n";
+  std::cerr << "  dump\n";
   std::cerr << "  empty VALF <weight>\n";
   std::cerr << "  non-empty VALF <weight>\n";
   std::cerr << "  universal VALF <weight>\n";
@@ -76,6 +81,7 @@ struct Options {
   std::string error;
   bool cputime{false};
   bool verbose{false};
+  bool dump{false};
 
   static Options createError(const std::string& err) {
     Options O;
@@ -110,6 +116,8 @@ Options parseArgs(int argc, char *argv[]) {
       O.cputime = true;
     else if (streq(argv[idx], "-v"))
       O.verbose = true;
+    else if (streq(argv[idx], "-d"))
+      O.dump = true;
     else if (argv[idx][0] != '-')
       break;
 
@@ -125,7 +133,11 @@ Options parseArgs(int argc, char *argv[]) {
   while (idx < argc) {
     OperationClosure cl;
 
-    if (streq(argv[idx], "empty")) {
+    if (streq(argv[idx], "stats")) {
+      cl.op = Operation::stats;
+    } else if (streq(argv[idx], "dump")) {
+      cl.op = Operation::dump;
+    } else if (streq(argv[idx], "empty")) {
       cl.op = Operation::isEmpty;
     } else if (streq(argv[idx], "non-empty")) {
       cl.op = Operation::isNonempty;
@@ -146,7 +158,10 @@ Options parseArgs(int argc, char *argv[]) {
     }
 
 
-    if (cl.op == Operation::isNonempty ||
+    if (cl.op == Operation::stats || cl.op == Operation::dump) {
+         O.actions.push_back(cl);
+         ++idx;
+    } else if (cl.op == Operation::isNonempty ||
         cl.op == Operation::isEmpty ||
         cl.op == Operation::isUniversal) {
       if (idx + 2 >= argc) {
