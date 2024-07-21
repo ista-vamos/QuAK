@@ -20,9 +20,9 @@ FixpointLoop::FixpointLoop (Symbol* initSymbol, State* initA, TargetOf* initB, u
 
 	for (State* fromB : *initB) {
 		for (Edge* edgeB : *(fromB->getSuccessors(initSymbol->getId()))) {
-			#ifdef INCLUSION_SCC_SEARCH_ACTIVE
-				if (edgeB->getFrom()->getTag() != edgeB->getTo()->getTag()) continue;
-			#endif
+		  // #ifdef INCLUSION_SCC_SEARCH_ACTIVE
+		  // 	if (edgeB->getFrom()->getTag() != edgeB->getTo()->getTag()) continue;
+		  // #endif
 			init_setB->add(fromB, edgeB->getTo(), edgeB->getWeight()->getId());
 		}
 	}
