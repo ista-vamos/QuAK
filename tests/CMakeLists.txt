@@ -306,7 +306,7 @@ set(TEST_NAME test-inclusion-rand-limsup-1state)
 add_exe(${TEST_NAME})
 target_compile_definitions(${TEST_NAME} PUBLIC
 				VALUE_FUNCTION=LimSup
-				STATES_NUM=2
+				STATES_NUM=1
 				EDGES_NUM=0
 				ALPHABET_SIZE=2
 				MIN_WEIGHT=-10.0
