@@ -9,7 +9,8 @@ value_function_t getValueFunction(const char *str) {
     if (CMP("Sup")) { return Sup; }
     if (CMP("LimInf")) { return LimInf; }
     if (CMP("LimSup")) { return LimSup; }
-    if (CMP("LimAvg")) { return LimAvg; }
+    if (CMP("LimInfAvg")) { return LimInfAvg; }
+    if (CMP("LimSupAvg")) { return LimSupAvg; }
     if (CMP("Avg")) { return Avg; }
 #undef CMP
 
@@ -23,7 +24,6 @@ const char *valueFunctionToStr(value_function_t v) {
     case Sup: return "Sup";
     case LimInf: return "LimInf";
     case LimSup: return "LimSup";
-    case LimAvg: return "LimAvg";
     case Avg: return "Avg";
   }
   abort();

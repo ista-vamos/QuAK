@@ -278,10 +278,10 @@ Parser* parse_trim_complete(const Automaton* A, value_function_t f) {
 
 	weight_t sinkvalue;
 	switch(f) {
-		case Inf: case LimInf : case LimAvg://TODO: LimInfAvg
+		case Inf: case LimInf : case LimInfAvg:
 			sinkvalue = A->getMaxDomain();
 			break;
-		case Sup: case LimSup://TODO: LimSupAvg
+		case Sup: case LimSup: case LimSupAvg:
 			sinkvalue = A->getMinDomain();
 			break;
 		default: fail("case value function");
@@ -689,7 +689,7 @@ Automaton* Automaton::livenessComponent_deterministic (const Automaton* A, value
 
 // TODO
 /*Automaton* Automaton::livenessComponent_prefixIndependent (const Automaton* A, value_function_t f) {
-	if (!(f == LimInf || f == LimSup || f == LimAvg)) {
+	if (!(f == LimInf || f == LimSup || f == LimInfAvg || f == LimSupAvg)) {
 		fail("invalid automaton type for liveness component (prefix independent)");
 	}
 
@@ -862,7 +862,7 @@ Automaton* Automaton::toLimSup (const Automaton* A, value_function_t f) {
 		explore = explore_LimInf;
 		initWeightId = 0;
 		break;
-	case LimSup: case LimAvg:
+	case LimSup: case LimInfAvg: case LimSupAvg:
 		fail("invalid translation to LimSup");
 	default:
 		fail("invalid value function");
@@ -1119,7 +1119,7 @@ bool Automaton::isComplete () const {
 
 
 bool Automaton::isLimAvgConstant() const {
-	weight_t top = getTopValue(LimAvg);
+	weight_t top = getTopValue(LimSupAvg);//top of LimSupAvg and LimInfAvg coincide
 
     int dist[this->getStates()->size()];
     for (unsigned int state_id = 0; state_id < this->getStates()->size(); ++state_id) {
@@ -1215,7 +1215,7 @@ bool Automaton::isLimAvgConstant() const {
 
 
 bool Automaton::isConstant (value_function_t f) {
-	if (f == LimAvg && isDeterministic() == false) {
+	if ((f == LimSupAvg || f== LimInfAvg) && isDeterministic() == false) {
 		return isLimAvgConstant();
 	}
 	else {
@@ -1233,7 +1233,7 @@ bool Automaton::isIncludedIn(const Automaton* B, value_function_t f, bool boolea
 }
 
 bool Automaton::isIncludedIn_antichains(const Automaton* B, value_function_t f) {
-	if (f == LimAvg) {
+	if (f == LimSupAvg || f == LimInfAvg) {
 		if (B->isDeterministic()) {
 			Automaton* C = Automaton::product(this, Minus, B);
 			C->print();
@@ -1302,7 +1302,7 @@ bool Automaton::isSafe (value_function_t f) {
 	Automaton* S = Automaton::safetyClosure(this, f);
 	bool out;
 
-	if (f == LimAvg && !this->isDeterministic()) {
+	if ((f == LimSupAvg || f== LimInfAvg) && !this->isDeterministic()) {
 		Automaton* SS = Automaton::determinizeInf(S);
 		Automaton* C = Automaton::product(this, Minus, SS);
 		out = C->isLimAvgConstant();
@@ -1795,7 +1795,7 @@ weight_t Automaton::compute_Top (value_function_t f, weight_t* top_values) const
 			return top_LimInf(top_values);
 		case LimSup:
 			return top_LimSup(top_values);
-		case LimAvg:
+		case LimInfAvg: case LimSupAvg:
 			return top_LimAvg(top_values);
 		default:
 			fail("automata top");
