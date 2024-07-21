@@ -24,6 +24,8 @@ const char *valueFunctionToStr(value_function_t v) {
     case Sup: return "Sup";
     case LimInf: return "LimInf";
     case LimSup: return "LimSup";
+    case LimInfAvg: return "LimInfAvg";
+    case LimSupAvg: return "LimSupAvg";
     case Avg: return "Avg";
   }
   abort();

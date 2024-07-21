@@ -222,7 +222,7 @@ Options parseArgs(int argc, char *argv[]) {
   return O;
 }
 
-#define TIMER_INIT struct timespec start_time{0}, end_time{0};
+#define TIMER_INIT struct timespec start_time{0, 0}, end_time{0, 0};
 #define TIMER_START if (opts.cputime) { clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &start_time); }
 #define TIMER_END if (opts.cputime) { clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &end_time); }
 #define TIMER_GET static_cast<uint64_t>((end_time.tv_sec * 1000) + (end_time.tv_nsec / 1000000.0))
