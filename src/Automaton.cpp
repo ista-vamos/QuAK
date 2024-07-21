@@ -1368,6 +1368,8 @@ bool Automaton::isConstant (value_function_t f) {
 }
 
 bool Automaton::isIncludedIn(const Automaton* B, value_function_t f, bool booleanized) {
+    assert(alphabetsAreCompatible(B) && "Incompatible alphabets");
+
     if (booleanized == true) {
         return isIncludedIn_booleanized(B, f);
     }
@@ -2001,6 +2003,22 @@ void Automaton::setMinDomain (weight_t x) {
 }
 
 
+
+bool Automaton::alphabetsAreCompatible(const Automaton *B) const {
+  if (alphabet->size() != B->alphabet->size()) {
+    return false;
+  }
+
+  // same symbols must be at same indices
+  for (auto *symbol1 : *alphabet) {
+    auto *symbol2 = B->alphabet->at(symbol1->getId());
+    if (symbol1->getName() != symbol2->getName()) {
+      return false;
+    }
+  }
+
+  return true;
+}
 
 
 

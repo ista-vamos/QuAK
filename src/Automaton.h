@@ -83,6 +83,7 @@ private:
 
 	bool isIncludedIn_booleanized (const Automaton* B, value_function_t f);
 	bool isIncludedIn_antichains (const Automaton* B, value_function_t f);
+  bool alphabetsAreCompatible(const Automaton *B) const;
 
 protected:
 	Automaton(const Automaton* A, value_function_t f);
