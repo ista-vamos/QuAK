@@ -58,11 +58,6 @@ private:
 			weight_t max_domain,
 			State* initial
 	);
-	static Automaton* constantAutomaton (const Automaton* A, weight_t x);
-	static Automaton* booleanize(const Automaton* A, weight_t x);
-
-	bool isDeterministic () const;
-  bool isComplete () const;
 	void compute_SCC (void);
 	void invert_weights();
 
@@ -127,6 +122,11 @@ public:
                                     // or _at most_ `states_num` states?
                                     bool states_num_is_max=false);
 
+	static Automaton* constantAutomaton (const Automaton* A, weight_t x);
+	static Automaton* booleanize(const Automaton* A, weight_t x);
+
+	bool isDeterministic () const;
+  bool isComplete () const;
 
 	void print () const;
 	const std::string &getName() const;
