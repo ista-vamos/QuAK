@@ -1371,9 +1371,8 @@ bool Automaton::isIncludedIn(const Automaton* B, value_function_t f, bool boolea
     if (booleanized == true) {
         return isIncludedIn_booleanized(B, f);
     }
-    else {
-    	return isIncludedIn_antichains(B, f);
-    }
+
+    return isIncludedIn_antichains(B, f);
 }
 
 bool Automaton::isIncludedIn_antichains(const Automaton* B, value_function_t f) {
