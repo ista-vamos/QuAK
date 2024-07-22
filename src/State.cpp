@@ -2,6 +2,7 @@
 #include "State.h"
 #include "Symbol.h"
 #include "utility.h"
+#include "Automaton.h"
 
 
 unsigned int ID_of_States = 0;
@@ -11,9 +12,6 @@ void State::State::RESET(unsigned int n) { ID_of_States = n; }
 
 State::~State () {
 	delete_verbose("@Memory: State deletion start (%s)\n", this->toString().c_str());
-
-	delete_verbose("@Detail: 1 SetStd (alphabet) will be deleted (state %s)\n", this->toString().c_str());
-	delete alphabet;
 
 	delete_verbose("@Detail: %u SetStd (successors) will be deleted (state %s)\n", this->successors->size(), this->toString().c_str());
 	for (unsigned int symbol_id = 0; symbol_id  < this->successors->size(); ++symbol_id ) {
@@ -39,11 +37,9 @@ State::State (std::string name, unsigned int alphabet_size, weight_t automaton_m
 		my_scc(-1),
 		min_weight(automaton_max_weight),
 		max_weight(automaton_min_weight),
-		alphabet(nullptr),
 		successors(nullptr),
 		predecessors(nullptr)
 {
-	this->alphabet = new SetStd<Symbol*>();
 	this->successors = new MapArray<SetStd<Edge*>*>(alphabet_size);
 	this->predecessors = new MapArray<SetStd<Edge*>*>(alphabet_size);
 	for (unsigned int symbol_id = 0; symbol_id < alphabet_size; ++symbol_id) {
@@ -59,11 +55,9 @@ State::State (State* state) :
 		my_scc(state->my_scc),
 		min_weight(state->min_weight),
 		max_weight(state->max_weight),
-		alphabet(nullptr),
 		successors(nullptr),
 		predecessors(nullptr)
 {
-	this->alphabet = new SetStd<Symbol*>();
 	this->successors = new MapArray<SetStd<Edge*>*>(state->successors->size());
 	this->predecessors = new MapArray<SetStd<Edge*>*>(state->predecessors->size());
 	for (unsigned int symbol_id = 0; symbol_id < this->successors->size(); ++symbol_id) {
@@ -99,8 +93,9 @@ void State::setTag(int tag) {
 	this->my_scc = tag;
 }
 
-SetStd<Symbol*>* State::getAlphabet () const {
-	return this->alphabet;
+MapArray<Symbol*>* State::getAlphabet () const {
+  assert(automaton);
+	return automaton->getAlphabet();
 }
 
 
@@ -115,7 +110,6 @@ SetStd<Edge*>* State::getPredecessors(unsigned int symbol_id) const {
 
 
 void State::addSuccessor (Edge* edge) {
-	this->alphabet->insert(edge->getSymbol());
 	this->min_weight = std::min(this->min_weight, edge->getWeight()->getValue());
 	this->max_weight = std::max(this->max_weight, edge->getWeight()->getValue());
 	this->successors->at(edge->getSymbol()->getId())->insert(edge);

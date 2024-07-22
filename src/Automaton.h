@@ -59,6 +59,7 @@ private:
 			State* initial
 	);
 	void compute_SCC (void);
+  void appropriateStates();
 	void invert_weights();
 
 	void top_dag (SCC_Dag* dag, bool* done, weight_t* top_values) const;

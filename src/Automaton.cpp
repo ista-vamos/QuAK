@@ -82,8 +82,16 @@ Automaton::Automaton (
 		max_domain(max_domain),
 		initial(initial)
 {
-  //assert(isComplete() && "The automaton is not complete.");
+  assert(isComplete() && "The automaton is not complete.");
+  appropriateStates();
 	compute_SCC();
+}
+
+void Automaton::appropriateStates() {
+  for (auto *state : *states) {
+    assert(state->automaton == nullptr);
+    state->automaton = this;
+  }
 }
 
 
@@ -138,6 +146,8 @@ void Automaton::build(std::string newname, Parser* parser, MapStd<std::string, S
 		from->addSuccessor(edge);
 		to->addPredecessor(edge);
 	}
+
+  appropriateStates();
 
 	compute_SCC();
 }
@@ -276,6 +286,7 @@ Parser* parse_trim_complete(const Automaton* A, value_function_t f) {
 	}
 
 	bool sinkFlag = false;
+  /*
 	for (unsigned int stateA_id = 0; stateA_id < A->getStates()->size(); ++stateA_id) {
 		if (A->getStates()->at(stateA_id)->getTag() == -1) continue;
 		for (unsigned int symbol_id = 0; symbol_id < A->getAlphabet()->size(); ++symbol_id) {
@@ -292,6 +303,7 @@ Parser* parse_trim_complete(const Automaton* A, value_function_t f) {
 			sinkFlag = true;
 		}
 	}
+  */
 
 	if (sinkFlag) {
 		for (std::string symbolname: parser->alphabet) {

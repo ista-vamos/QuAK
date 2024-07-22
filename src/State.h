@@ -7,17 +7,21 @@
 #include "Map.h"
 #include "Edge.h"
 
+class Automaton;
 
 class State{
 private:
 	const unsigned int my_id;
 	std::string name;
+  Automaton *automaton{nullptr};
 	int my_scc;
 	weight_t min_weight;
 	weight_t max_weight;
-	SetStd<Symbol*>* alphabet;
 	MapArray<SetStd<Edge*>*>* successors;
 	MapArray<SetStd<Edge*>*>* predecessors;
+
+  friend class Automaton;
+
 public:
 	static void RESET();
 	static void RESET(unsigned int n);
@@ -33,7 +37,7 @@ public:
 	int getTag() const;
 	void setTag(int tag);
 
-	SetStd<Symbol*>* getAlphabet () const;
+	MapArray<Symbol*> *getAlphabet () const;
 
 	SetStd<Edge*>* getSuccessors(unsigned int symbol_id) const;
 	void addSuccessor (Edge* edge);
