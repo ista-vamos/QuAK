@@ -17,11 +17,12 @@ getAutomatonStats(const Automaton *A) {
     unsigned n_states = states->size();
     unsigned n_edges = 0;
 
+    auto *alphabet = A->getAlphabet();
+    assert(alphabet);
+
     for (unsigned s = 0; s < n_states; ++s) {
         auto *state = states->at(s);
         assert(state);
-        auto *alphabet = state->getAlphabet();
-        assert(alphabet);
 
         for (auto *symbol : *alphabet) {
             n_edges += state->getSuccessors(symbol->getId())->size();
