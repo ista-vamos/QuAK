@@ -34,18 +34,23 @@ int main(int argc, char **argv) {
 
         auto B = std::unique_ptr<Automaton>(
                 Automaton::safetyClosure(A.get(), LimInfAvg));
+        auto C = std::unique_ptr<Automaton>(Automaton::copy_trim_complete(B.get(), LimInfAvg));
 
         bool r1, r2;
 
-        r1 = B->isConstant(LimInfAvg);
-        r2 = B->isConstant(Inf);
+        r1 = C->isConstant(LimInfAvg);
+        r2 = C->isConstant(Inf);
 
         if (r1 != r2) {
           std::cerr << "Test FAILED!\n";
-          std::cerr << "Automaton and its safety closure give different `isConstant`:\n";
+          std::cerr << "Safety closure of an automaton gives different `isConstant` for LimInfAvg and Inf:\n";
           std::cerr << r1 <<  " != " << r2 << "\n";
-          std::cerr << "---------\n";
+          std::cerr << "----- Automaton ----\n";
+          A->print();
+          std::cerr << "----- Its safety closure ----\n";
           B->print();
+          std::cerr << "----- Trimmed and completed ----\n";
+          C->print();
           return EXIT_FAILURE;
         }
     }

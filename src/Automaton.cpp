@@ -82,7 +82,7 @@ Automaton::Automaton (
 		max_domain(max_domain),
 		initial(initial)
 {
-  assert(isComplete() && "The automaton is not complete.");
+  // assert(isComplete() && "The automaton is not complete.");
   appropriateStates();
 	compute_SCC();
 }
@@ -334,6 +334,8 @@ Automaton* Automaton::copy_trim_complete(const Automaton* A, value_function_t f)
 	Parser* parser = parse_trim_complete(A, f);
 	Automaton* that = new Automaton(A->name, parser, sync_register);
 	delete parser;
+
+  assert(that->isComplete() && "The automaton is not complete.");
 	return that;
 }
 

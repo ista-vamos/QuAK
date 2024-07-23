@@ -22,12 +22,12 @@ target_link_libraries(test-is-constant PRIVATE quak)
 add_test(test-is-constant test-is-constant)
 target_compile_definitions(test-is-constant PUBLIC
 				VALUE_FUNCTION=Inf
-				STATES_NUM=1000
+				STATES_NUM=3
 				EDGES_NUM=0
 				ALPHABET_SIZE=2
 				MIN_WEIGHT=-10.0
 				MAX_WEIGHT=10.0
-				REPETITIONS=100
+				REPETITIONS=1000
 				)
 
 
