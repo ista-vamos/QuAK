@@ -16,6 +16,22 @@ function(add_exe NAME)
 endfunction()
 
 
+add_executable(test-is-constant test-is-constant.cpp)
+target_include_directories(test-is-constant PRIVATE ${SRCDIR})
+target_link_libraries(test-is-constant PRIVATE quak)
+add_test(test-is-constant test-is-constant)
+target_compile_definitions(test-is-constant PUBLIC
+				VALUE_FUNCTION=Inf
+				STATES_NUM=1
+				EDGES_NUM=0
+				ALPHABET_SIZE=2
+				MIN_WEIGHT=-10.0
+				MAX_WEIGHT=10.0
+				REPETITIONS=10000
+				)
+
+
+
 
 ############################################################
 ### Inf
