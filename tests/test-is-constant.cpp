@@ -51,6 +51,14 @@ int main(int argc, char **argv) {
           B->print();
           std::cerr << "----- Trimmed and completed ----\n";
           C->print();
+          std::cerr << "----- --------------------- ----\n";
+          auto tInf =  C->getTopValue(Inf);
+          auto tInfAvg =  C->getTopValue(LimInfAvg);
+          std::cerr << "Top value Inf: " << tInf << "\n";
+          std::cerr << "Top value LimInfAvg: " << tInfAvg << "\n";
+          std::cerr << "Diff of top values: " << tInf - tInfAvg << "\n";
+          std::cerr << "Diff of top values != 0?: " << (tInf - tInfAvg > 0 || tInfAvg - tInf > 0) << "\n";
+          std::cerr << "isDeterministic: " << C->isDeterministic() << "\n";
           return EXIT_FAILURE;
         }
     }
