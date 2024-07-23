@@ -1364,31 +1364,6 @@ bool Automaton::isLimAvgConstant() const {
 	}
 	State* newinitial = newstates->at(this->initial->getId());
 
-	bool weightsSeen[2];
-	weightsSeen[0] = false;
-	weightsSeen[1] = false;
-	for (unsigned int state_id = 0; state_id < this->states->size(); ++state_id) {
-		for (Symbol* symbol : *(this->states->at(state_id)->getAlphabet())) {
-			for (Edge* edge : *(this->states->at(state_id)->getSuccessors(symbol->getId()))) {
-				unsigned int u = edge->getFrom()->getId();
-				unsigned int v = edge->getTo()->getId();
-				if ((edge->getWeight()->getValue() - dist[u] + dist[v]) == top) {
-					weightsSeen[1] = true;
-				}
-				else {
-					weightsSeen[0] = true;
-				}
-			}
-		}
-	}
-
-	if (weightsSeen[0] && !weightsSeen[1]) {
-		return false;
-	}
-	if (!weightsSeen[0] && weightsSeen[1]) {
-		return true; 
-	}
-
 	MapArray<Weight*>* newweights = new MapArray<Weight*>(2);
 	for (unsigned int weight_id = 0; weight_id < 2; ++weight_id) {
 		newweights->insert(weight_id, new Weight(weight_id));
