@@ -33,7 +33,7 @@ ContextOf::ContextOf (ContextOf* currentB, Symbol* symbol) : MapArray<StateRelat
 				  // #ifdef INCLUSION_SCC_SEARCH_ACTIVE
 				  // if (edgeB->getFrom()->getTag() != edgeB->getTo()->getTag()) continue;
 				  // #endif
-					weight_t max_weight_id = std::max(weight_id, edgeB->getWeight()->getId());
+					auto max_weight_id = std::max(weight_id, edgeB->getWeight()->getId());
 					add(pairB.first, edgeB->getTo(), max_weight_id);
 					// -- since weight are sorted
 					// -- id_1 < id_2 <==>  value_1 < value_2

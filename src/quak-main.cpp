@@ -93,7 +93,7 @@ struct Options {
 
 static weight_t getWeight(const char *str, bool& succ) {
   char *endptr;
-  static_assert(std::is_same<float, weight_t>::value,
+  static_assert(std::is_same<float, weight_t::T>::value,
                 "Weights are not floats, fix the code");
   double val = strtof(str, &endptr);
 

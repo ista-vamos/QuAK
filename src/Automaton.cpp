@@ -549,7 +549,7 @@ Automaton* Automaton::booleanize(const Automaton* A, weight_t x) {
 	for (unsigned int state_id = 0; state_id < A->states->size(); ++state_id) {
 		for (Symbol* symbol : *(A->states->at(state_id)->getAlphabet())) {
 			for (Edge* edge : *(A->states->at(state_id)->getSuccessors(symbol->getId()))) {
-				weight_t value = ((edge->getWeight()->getValue() >= x) ? 1 : 0);
+				auto value = ((edge->getWeight()->getValue() >= x) ? 1 : 0);
 				Weight* weight = newweights->at(value);
 				State* from = newstates->at(edge->getFrom()->getId());
 				State* to = newstates->at(edge->getTo()->getId());
@@ -1287,15 +1287,16 @@ bool Automaton::isLimAvgConstant() const {
 
     for (unsigned int state_id = 0; state_id < this->getStates()->size(); ++state_id) {
         for (Symbol* symbol : *(this->getStates()->at(state_id)->getAlphabet())) {
-        	for (Edge* edge : *(this->getStates()->at(state_id)->getSuccessors(symbol->getId()))) {
-    			unsigned int u = edge->getFrom()->getId();
-				unsigned int v = edge->getTo()->getId();
-				//weights are inversed AND shifted by 'top': -(edge-top) = top-edge
-				weight_t value = top - edge->getWeight()->getValue();
-				if (dist[u] + value < dist[v]) {
-					dist[v] = dist[u] + value;
-				}
-        	}
+          for (Edge* edge : *(this->getStates()->at(state_id)->getSuccessors(symbol->getId()))) {
+            unsigned int u = edge->getFrom()->getId();
+            unsigned int v = edge->getTo()->getId();
+            //weights are inversed AND shifted by 'top': -(edge-top) = top-edge
+            weight_t value = top - edge->getWeight()->getValue();
+            weight_t du = dist[u];
+            if (du + value < dist[v]) {
+              dist[v] = static_cast<int>(du + value);
+            }
+          }
         }
     }
 
@@ -1354,7 +1355,7 @@ bool Automaton::isLimAvgConstant() const {
 				//originally: -(edge-top) + from - to = 0
 				//inverted weights: (edge-top) - from + to = 0
 				//equivalently: edge - from + to = top
-				weight_t value = (((edge->getWeight()->getValue() - dist[u] + dist[v]) == top) ? 1 : 0);
+				auto value = (((edge->getWeight()->getValue() - dist[u] + dist[v]) == top) ? 1 : 0);
 				Weight* weight = newweights->at(value);
 				State* from = newstates->at(edge->getFrom()->getId());
 				State* to = newstates->at(edge->getTo()->getId());
@@ -1705,7 +1706,7 @@ weight_t Automaton::top_LimInf (weight_t* top_values) const {
 weight_t Automaton::top_LimAvg (weight_t* top_values) const {
 	unsigned int size = this->states->size();
 	weight_t distance[size + 1][size];
-	weight_t infinity = std::max((weight_t)1, -(size*this->min_domain) + 1); // TODO
+	weight_t infinity = std::max(weight_t(1), -(weight_t(size)*this->min_domain) + 1); // TODO
 
 	// O(n)
 	for (unsigned int length = 0; length <= size; ++length) {
@@ -1760,7 +1761,7 @@ weight_t Automaton::top_LimAvg (weight_t* top_values) const {
 		if (distance[size][state_id] != infinity) { // => id has an ongoing edge (inside its SCC)
 			for (unsigned int lenght = 0; lenght < size; ++lenght) { // hence the nested loop is call at most O(m) times
 				if (distance[lenght][state_id] != infinity) {
-					weight_t avg = (distance[lenght][state_id] - distance[size][state_id] + 0.0) / (size - lenght + 0.0);
+					weight_t avg = (distance[lenght][state_id] - distance[size][state_id] + 0.0) / weight_t(size - lenght + 0.0);
 					min_lenght_avg = std::min(min_lenght_avg, avg);
 					len_flag = true;
 				}
@@ -1782,7 +1783,7 @@ void Automaton::top_LimAvg_cycles (weight_t* top_values, SetList<Edge*>** scc_cy
 	unsigned int size = this->states->size();
 	Edge* back_distance[size + 1][size];
 	weight_t distance[size + 1][size];
-	weight_t infinity = std::max((weight_t)1, -(size*this->min_domain) + 1);
+	weight_t infinity = std::max(weight_t(1), -(this->min_domain*weight_t(size)) + 1);
 
 	// O(n)
 	for (unsigned int length = 0; length <= size; ++length) {

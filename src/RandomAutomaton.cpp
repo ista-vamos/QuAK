@@ -51,7 +51,7 @@ Automaton *Automaton::randomAutomaton(const std::string& name,
   }
 
   // generate edges
-  std::uniform_real_distribution<weight_t> rand_weight(min_weight, max_weight);
+  std::uniform_real_distribution<float> rand_weight(min_weight.to_float(), max_weight.to_float());
   std::uniform_int_distribution<unsigned> rand_state(0, states_num - 1);
   std::map<weight_t, Weight *> weights_register;
 
@@ -66,7 +66,7 @@ Automaton *Automaton::randomAutomaton(const std::string& name,
     for (auto state = 0U; state < states_num; ++state) {
       for (auto symbol = 0U; symbol < alphabet_size; ++symbol) {
         auto dest_state = rand_state(reng);
-        auto weight = rand_weight(reng);
+        auto weight = weight_t(rand_weight(reng));
 
         auto *W = weights_register[weight];
         if (W == nullptr) {
@@ -88,7 +88,7 @@ Automaton *Automaton::randomAutomaton(const std::string& name,
       while (edges_num > 0) {
         auto src_id = rand_state(reng);
         auto dest_id = rand_state(reng);
-        auto weight = rand_weight(reng);
+        auto weight = weight_t(rand_weight(reng));
         auto symbol = rand_symbol(reng);
 
         auto *W = weights_register[weight];
