@@ -54,7 +54,7 @@ enum class Operation {
 static void printUsage(const char *bin) {
   std::cerr << "Usage: " << bin
             << " [-cputime] [-v] [-d] automaton-file" << " [ACTION ACTION ...]\n";
-  std::cerr << "Where ACTIONs are the following, with VALF = <Inf | Sup | LimInf | LimSup | LimAvg>:\n";
+  std::cerr << "Where ACTIONs are the following, with VALF = <Inf | Sup | LimInf | LimSup | LimSupAvg | LimInfAvg>:\n";
   std::cerr << "  stats\n";
   std::cerr << "  dump\n";
   std::cerr << "  empty VALF <weight>\n";
