@@ -38,7 +38,7 @@ int main(int argc, char **argv) {
 
     if (argc != 3) {
         std::cerr << "Usage: " << argv[0]
-                  << " automaton1.txt <Inf | Sup | LimInf | LimSup | LimAvg>\n";
+                  << " automaton1.txt <Inf | Sup | LimInf | LimSup | LimInfAvg | LimSupAvg>\n";
         std::cerr << "  Compute if `automaton1.txt` is constant assuming the given value function\n";
         return -1;
     }
