@@ -140,7 +140,69 @@ void Automaton::build(std::string newname, Parser* parser, MapStd<std::string, S
 	}
 
 	compute_SCC();
+
+	// if there are unreachable states, construct a new automaton ignoring those states
+	unsigned int reachable = 0;
+	for (unsigned int state_id = 0; state_id < this->states->size(); ++state_id) {
+		if (this->states->at(state_id)->getTag() > -1) {
+			reachable++;
+		}
+	}
+	if (reachable < this->states->size()) {
+		Parser parserTrim = this->parse_trim();
+
+		for (unsigned int state_id = 0; state_id < states->size(); ++state_id) {
+			for (Symbol* symbol : *(states->at(state_id)->getAlphabet())) {
+				for (Edge* edge : *(states->at(state_id)->getSuccessors(symbol->getId()))) {
+					delete edge;
+				}
+			}
+		}
+		for (unsigned int symbol_id = 0; symbol_id < this->alphabet->size(); ++symbol_id) {
+			delete this->alphabet->at(symbol_id);
+		}
+		delete this->alphabet;
+		for (unsigned int state_id = 0; state_id < this->states->size(); ++state_id) {
+			delete this->states->at(state_id);
+		}
+		delete this->states;
+		for (unsigned int weight_id = 0; weight_id < this->weights->size(); ++weight_id) {
+			delete this->weights->at(weight_id);
+		}
+		delete this->weights;
+		for (unsigned int scc_id = 0; scc_id < this->nb_SCCs; ++scc_id) {
+			delete this->SCCs[scc_id];
+		}
+		delete[] this->SCCs;
+
+		build(newname, &parserTrim, sync_register);
+	}
 }
+
+Parser Automaton::parse_trim() {
+    Parser parser(this->getMinDomain(), this->getMaxDomain());
+    for (unsigned int stateA_id = 0; stateA_id < this->getStates()->size(); ++stateA_id) {
+    	if (this->getStates()->at(stateA_id)->getTag() == -1) {
+			continue;
+		}
+		parser.states.insert(this->getStates()->at(stateA_id)->getName());
+        for (Symbol* symbol : *(this->getStates()->at(stateA_id)->getAlphabet())) {
+			parser.alphabet.insert(symbol->getName());
+			for (Edge* edgeA : *(this->getStates()->at(stateA_id)->getSuccessors(symbol->getId()))) {
+				parser.weights.insert(edgeA->getWeight()->getValue());
+				std::pair<std::pair<std::string, weight_t>,std::pair<std::string, std::string>> edge;
+				edge.first.first = edgeA->getSymbol()->getName();
+				edge.first.second = edgeA->getWeight()->getValue();
+				edge.second.first = edgeA->getFrom()->getName();
+				edge.second.second = edgeA->getTo()->getName();
+				parser.edges.insert(edge);
+			}
+	    }
+    }
+    parser.initial = this->getInitial()->getName();
+    return parser;
+}
+
 
 
 
