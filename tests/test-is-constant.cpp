@@ -21,9 +21,11 @@ int main(int argc, char **argv) {
 
     for (auto n = 0U; n < REPETITIONS; ++n) {
         auto A =  std::unique_ptr<Automaton>(
-                Automaton::randomAutomaton("random", STATES_NUM,
+                Automaton::randomAutomaton("random",
+                                           STATES_NUM,
                                            alphabet.get(),
-                                           MIN_WEIGHT, MAX_WEIGHT,
+                                           MIN_WEIGHT,
+                                           MAX_WEIGHT,
                                            EDGES_NUM,
                                            /* complete=*/ true,
                                            STATES_NUM_IS_MAX
