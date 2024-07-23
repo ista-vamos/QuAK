@@ -4,6 +4,12 @@ add_executable(inclusion inclusion.cpp)
 target_include_directories(inclusion PRIVATE ${SRCDIR})
 target_link_libraries(inclusion PUBLIC quak quak-private)
 
+
+add_executable(constant constant.cpp)
+target_include_directories(constant PRIVATE ${SRCDIR})
+target_link_libraries(constant PUBLIC quak quak-private)
+
+
 add_executable(measure-inclusion measure-inclusion.cpp)
 target_include_directories(measure-inclusion PRIVATE ${SRCDIR})
 target_link_libraries(measure-inclusion PUBLIC quak quak-private)
