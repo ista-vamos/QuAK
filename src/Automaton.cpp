@@ -1677,6 +1677,7 @@ void Automaton::top_safety_scc (weight_t* values, bool in_scc) const {
 	}*/
 }
 
+
 /*
 weight_t Automaton::top_safety (bool in_scc, weight_t* values, weight_t* top_values) const {
 	bool done[this->nb_SCCs];
@@ -1691,9 +1692,27 @@ weight_t Automaton::top_safety (bool in_scc, weight_t* values, weight_t* top_val
 }
 */
 
-weight_t Automaton::top_safety (bool in_scc, weight_t* values, weight_t* top_values) const {
+
+
+weight_t Automaton::top_Inf (weight_t* top_values) const {
+	weight_t values[this->states->size()];
 	bool done[this->nb_SCCs];
-	top_safety_scc(values, in_scc);
+	top_safety_scc(values, true);
+
+	for (unsigned int scc_id = 0; scc_id < this->nb_SCCs; ++scc_id) {
+		done[scc_id] = false;
+		top_values[scc_id] = values[this->SCCs[scc_id]->origin->getId()];
+	}
+
+	top_dag(this->SCCs[this->initial->getTag()], done, top_values);
+	return top_values[this->initial->getTag()];
+}
+
+
+weight_t Automaton::top_LimInf (weight_t* top_values) const {
+	weight_t values[this->states->size()];
+	bool done[this->nb_SCCs];
+	top_safety_scc(values, false);
 
 	for (unsigned int scc_id = 0; scc_id < this->nb_SCCs; ++scc_id) {
 		done[scc_id] = false;
@@ -1711,16 +1730,6 @@ weight_t Automaton::top_safety (bool in_scc, weight_t* values, weight_t* top_val
 	return top_values[this->initial->getTag()];
 }
 
-
-weight_t Automaton::top_Inf (weight_t* top_values) const {
-	weight_t values[this->states->size()];
-	return top_safety(false, values, top_values);
-}
-
-weight_t Automaton::top_LimInf (weight_t* top_values) const {
-	weight_t values[this->states->size()];
-	return top_safety(true, values, top_values);
-}
 
 
 
