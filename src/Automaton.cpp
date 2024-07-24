@@ -1677,7 +1677,7 @@ void Automaton::top_safety_scc (weight_t* values, bool in_scc) const {
 	}*/
 }
 
-
+/*
 weight_t Automaton::top_safety (bool in_scc, weight_t* values, weight_t* top_values) const {
 	bool done[this->nb_SCCs];
 	top_safety_scc(values, in_scc);
@@ -1686,6 +1686,27 @@ weight_t Automaton::top_safety (bool in_scc, weight_t* values, weight_t* top_val
 		done[scc_id] = false;
 		top_values[scc_id] = values[this->SCCs[scc_id]->origin->getId()];
 	}
+	top_dag(this->SCCs[this->initial->getTag()], done, top_values);
+	return top_values[this->initial->getTag()];
+}
+*/
+
+weight_t Automaton::top_safety (bool in_scc, weight_t* values, weight_t* top_values) const {
+	bool done[this->nb_SCCs];
+	top_safety_scc(values, in_scc);
+
+	for (unsigned int scc_id = 0; scc_id < this->nb_SCCs; ++scc_id) {
+		done[scc_id] = false;
+		top_values[scc_id] = this->min_domain;
+	}
+
+	for (unsigned int state_id = 0; state_id < this->states->size(); ++state_id) {
+		top_values[this->states->at(state_id)->getTag()] = std::max(
+				top_values[this->states->at(state_id)->getTag()],
+				values[state_id]
+		);
+	}
+
 	top_dag(this->SCCs[this->initial->getTag()], done, top_values);
 	return top_values[this->initial->getTag()];
 }
