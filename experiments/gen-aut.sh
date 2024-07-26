@@ -38,7 +38,7 @@ for I in `seq 1 500`; do
 			--states-num $STATES_NUM\
 			--max-weight 10\
 			--min-weight -10\
-			--edges-num $(($STATES_NUM * 2 + $RANDOM % 2*$STATES_NUM))\
+			--edges-num $(($STATES_NUM * 2 + ($RANDOM % 2*$STATES_NUM) + 1))\
 			> automata-large-4-sym/A${I}-${STATES_NUM}.txt;
 	done;
 done
@@ -50,9 +50,36 @@ for I in `seq 501 1000`; do
 			--states-num $STATES_NUM\
 			--max-weight 10\
 			--min-weight -10\
-			--edges-num $(($STATES_NUM * 2 + $RANDOM % 2*$STATES_NUM))\
+			--edges-num $(($STATES_NUM * 2 + ($RANDOM % 2*$STATES_NUM) + 1))\
 			--constant\
 			> automata-large-4-sym/A${I}-${STATES_NUM}.txt;
+	done;
+done
+
+mkdir -p automata-large-16-sym
+rm automata-large-16-sym/*.txt
+for I in `seq 1 500`; do
+	for STATES_NUM in 250 500 750 1000; do
+		python ./rand_automaton.py\
+			--alphabet a1,a2,a3,a4,a5,a6,a7,a8,a9,a10,a11,a12,a13,a14,a15,a16\
+			--states-num $STATES_NUM\
+			--max-weight 10\
+			--min-weight -10\
+			--edges-num $(($STATES_NUM * 2 + ($RANDOM % 2*$STATES_NUM) + 1))\
+			> automata-large-16-sym/A${I}-${STATES_NUM}.txt;
+	done;
+done
+
+for I in `seq 501 1000`; do
+	for STATES_NUM in 250 500 750 1000; do
+		python ./rand_automaton.py\
+			--alphabet a1,a2,a3,a4,a5,a6,a7,a8,a9,a10,a11,a12,a13,a14,a15,a16\
+			--states-num $STATES_NUM\
+			--max-weight 10\
+			--min-weight -10\
+			--edges-num $(($STATES_NUM * 2 + ($RANDOM % 2*$STATES_NUM) + 1))\
+			--constant\
+			> automata-large-16-sym/A${I}-${STATES_NUM}.txt;
 	done;
 done
 
