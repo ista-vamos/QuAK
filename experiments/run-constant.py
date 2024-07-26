@@ -46,7 +46,7 @@ def run_constant(A, value_fun):
     assert err is not None, cmd
 
     data = dict()
-    if p.returncode in (0, 1):
+    if p.returncode == 0:
         try:
             status = "DONE"
             for line in out.splitlines():
