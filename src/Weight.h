@@ -51,6 +51,8 @@ public:
 
   float to_float() const { return value; }
 
+  T operator*() const { return value; }
+
   bool operator==(weight_t rhs) const { return fabs(value - rhs.value) < EPSILON; }
   bool operator!=(weight_t rhs) const { return fabs(value - rhs.value) >= EPSILON; }
 

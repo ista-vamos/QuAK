@@ -51,9 +51,9 @@ int main(int argc, char **argv) {
           std::cerr << "Inclusion for these " tostr(VALUE_FUNCTION) " automata gives different results with and without booleanization:\n";
           std::cerr << "Result for antichains: " << included <<  " and for booleanized: " << included_bool << "\n";
           std::cerr << "---------\n";
-          A1->print();
+          A1->print(/*full=*/true);
           std::cerr << "---------\n";
-          A2->print();
+          A2->print(/*full=*/true);
           std::cerr << "---------\n";
           return EXIT_FAILURE;
         }

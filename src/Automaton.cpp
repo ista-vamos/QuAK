@@ -2,6 +2,8 @@
 #include <vector>
 #include <memory>
 #include <cassert>
+#include <iomanip>
+#include <limits>
 
 #include "Automaton.h"
 #include "Parser.h"
@@ -1396,7 +1398,6 @@ bool Automaton::isIncludedIn_antichains(const Automaton* B, value_function_t f) 
 	if (f == LimSupAvg || f == LimInfAvg) {
 		if (B->isDeterministic()) {
 			Automaton* C = Automaton::product(this, Minus, B);
-			C->print();
 			weight_t Ctop = C->getTopValue(f);
 			delete C;
 			return (Ctop <= 0);
@@ -2100,7 +2101,7 @@ bool Automaton::alphabetsAreCompatible(const Automaton *B) const {
 // -------------------------------- toStrings -------------------------------- //
 
 
-void Automaton::print () const {
+void Automaton::print (bool full) const {
 	std::cout << "automaton (" << this->name << "):\n";
 	std::cout << "\talphabet (" << this->alphabet->size() << "):";
 	std::cout << this->alphabet->toString(Symbol::toString) << "\n";
@@ -2119,10 +2120,20 @@ void Automaton::print () const {
 			nb_edge += states->at(state_id)->getSuccessors(symbol->getId())->size();
 		}
 	}
-	std::cout << "\tedges (" << nb_edge << "):";
+	std::cout << "\tedges (" << nb_edge << "):\n";
 	for (unsigned int state_id = 0; state_id < states->size(); ++state_id) {
 		for (Symbol* symbol : *(states->at(state_id)->getAlphabet())) {
-			std::cout << states->at(state_id)->getSuccessors(symbol->getId())->toString(Edge::toString);
+            auto *state = states->at(state_id);
+            for (auto *edge : *state->getSuccessors(symbol->getId())) {
+                std::cout << "\t\t" << edge->getSymbol()->toString() << " : ";
+                if (full) {
+                  std::cout << std::setprecision(std::numeric_limits<weight_t::T>::max_digits10)
+                            << std::fixed;
+                }
+                std::cout << *edge->getWeight()->getValue() << ", "
+                          << edge->getFrom()->getName() << " -> "
+                          << edge->getTo()->getName() << "\n";
+            }
 		}
 	}
 	std::cout << "\n";

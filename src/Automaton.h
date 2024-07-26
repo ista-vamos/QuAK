@@ -130,7 +130,7 @@ public:
 	bool isDeterministic () const;
   bool isComplete () const;
 
-	void print () const;
+	void print (bool full = false) const;
 	const std::string &getName() const;
 
 	bool isNonEmpty (value_function_t f, weight_t x); 				// checks if A(w) >= v for some w
