@@ -55,6 +55,12 @@ int main(int argc, char **argv) {
     auto A1 =  std::unique_ptr<Automaton>(new Automaton(argv[1]));
     auto A2 =  std::unique_ptr<Automaton>(new Automaton(argv[2], A1.get()));
 
+    unsigned n_states, n_edges;
+    std::tie(n_states, n_edges) = getAutomatonStats(A1.get());
+    std::cout << "A1 states/edges: " << n_states << "," << n_edges << "\n";
+    std::tie(n_states, n_edges) = getAutomatonStats(A2.get());
+    std::cout << "A2 states/edges: " << n_states << "," << n_edges << std::endl;
+
     auto value_fun = getValueFunction(argv[3]);
 
     bool included;
@@ -67,11 +73,6 @@ int main(int argc, char **argv) {
     end_time.tv_sec -= start_time.tv_sec;
     end_time.tv_nsec -= start_time.tv_nsec;
 
-    unsigned n_states, n_edges;
-    std::tie(n_states, n_edges) = getAutomatonStats(A1.get());
-    std::cout << "A1 states/edges: " << n_states << "," << n_edges << "\n";
-    std::tie(n_states, n_edges) = getAutomatonStats(A2.get());
-    std::cout << "A2 states/edges: " << n_states << "," << n_edges << "\n";
     std::cout << "Is included: " << included << "\n";
     std::cout << "Cputime: "
               << static_cast<uint64_t>((end_time.tv_sec * 1000000) +

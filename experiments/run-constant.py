@@ -8,7 +8,6 @@ from sys import argv, stderr
 from multiprocessing import Pool, Lock
 import argparse
 
-lock = Lock()
 
 bindir = f"{dirname(realpath(__file__))}/"
 binary = join(bindir, "constant")
@@ -27,6 +26,7 @@ def run_one(arg):
     run_constant(A, value_fun)
 
 def run_constant(A, value_fun):
+    global lock
 
    #with lock:
    #    print("\033[1;32m-- Running on ", A1, A2, "\033[0m", file=stderr)
@@ -41,27 +41,28 @@ def run_constant(A, value_fun):
         status = "TIMEOUT"
         p.kill()
         out, err = p.communicate()
+        assert p.returncode != 0
     #assert p.returncode == 0, p
     # assert out is not None, cmd
     assert err is not None, cmd
 
     data = dict()
     if p.returncode == 0:
-        try:
-            status = "DONE"
-            for line in out.splitlines():
-                line = line.strip()
-                if line.startswith(b"Is constant"):
-                    data['constant'] = int(line.split()[2]) == 1
-                elif line.startswith(b"Cputime"):
-                    data['cputime'] = int(line.split()[1])
-                elif line.startswith(b"states/"):
-                    nums = line.split()[1].split(b",")
-                    data['states'], data['edges'] = int(nums[0]),int(nums[1])
-        except Exception as e:
-            print("ERROR parsing line:", file=stderr)
-            print(line, file=stderr)
-            raise e
+        status = "DONE"
+    try:
+        for line in out.splitlines():
+            line = line.strip()
+            if line.startswith(b"Is constant"):
+                data['constant'] = int(line.split()[2]) == 1
+            elif line.startswith(b"Cputime"):
+                data['cputime'] = int(line.split()[1])
+            elif line.startswith(b"states/"):
+                nums = line.split()[1].split(b",")
+                data['states'], data['edges'] = int(nums[0]),int(nums[1])
+    except Exception as e:
+        print("ERROR parsing line:", file=stderr)
+        print(line, file=stderr)
+        raise e
 
     with lock:
         print(A, value_fun, status,
@@ -79,10 +80,17 @@ def get_params(automata_dir, value_fun):
             #for value_fun in ("Sup", "Inf"):
             yield f"{automata_dir}/{f1}", value_fun
 
+
+def init_lock(l):
+    global lock
+    lock = l
+
+
 def run_all(args):
     #print(f"\033[1;34mRunning trace_len={trace_len}, bits={bits} [using {args.j} workers]\033[0m", file=stderr)
 
-    with Pool(processes=args.j) as pool:
+    lock = Lock()
+    with Pool(processes=args.j, initializer=init_lock, initargs=(lock,)) as pool:
         result = pool.map(run_one, get_params(args.dir, args.value_fun))
 
 parser = argparse.ArgumentParser()
