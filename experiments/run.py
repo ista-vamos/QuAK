@@ -72,6 +72,10 @@ def run_inclusion(A1, A2, value_fun, booleanize=False):
             nums = line.split()[2].split(b",")
             data['A2-states'], data['A2-edges'] = int(nums[0]),int(nums[1])
 
+    # pandas takes Inf as infinity, so rename it
+    if value_fun == "Inf":
+        value_fun = "Infim"
+
     with lock:
         print(A1, A2, value_fun, status, booleanize,
               data.get('included'),

@@ -64,6 +64,9 @@ def run_constant(A, value_fun):
         print(line, file=stderr)
         raise e
 
+    if value_fun == "Inf":
+        value_fun = "Infim"
+
     with lock:
         print(A, value_fun, status,
               data.get('constant'),
