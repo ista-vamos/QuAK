@@ -288,7 +288,7 @@ Parser* parse_trim_complete(const Automaton* A, value_function_t f) {
 	}
 
 	bool sinkFlag = false;
-	
+
 	for (unsigned int stateA_id = 0; stateA_id < A->getStates()->size(); ++stateA_id) {
 		if (A->getStates()->at(stateA_id)->getTag() == -1) continue;
 		for (unsigned int symbol_id = 0; symbol_id < A->getAlphabet()->size(); ++symbol_id) {
@@ -1132,7 +1132,7 @@ Automaton* Automaton::toLimSup (const Automaton* A, value_function_t f) {
 	}
 
 	Automaton* that = new Automaton(newname, newalphabet, newstates, newweights, newmin_domain, newmax_domain, newinitial);
-	Automaton* AA = copy_trim_complete(that, f);
+	Automaton* AA = copy_trim_complete(that, LimSup);
 	delete that;
 	return AA;
 }
