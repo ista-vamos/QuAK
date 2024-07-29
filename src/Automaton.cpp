@@ -1721,10 +1721,12 @@ weight_t Automaton::top_LimInf (weight_t* top_values) const {
 	}
 
 	for (unsigned int state_id = 0; state_id < this->states->size(); ++state_id) {
-		top_values[this->states->at(state_id)->getTag()] = std::max(
-				top_values[this->states->at(state_id)->getTag()],
-				values[state_id]
-		);
+		if (this->states->at(state_id)->getTag() > -1) {
+			top_values[this->states->at(state_id)->getTag()] = std::max(
+							top_values[this->states->at(state_id)->getTag()],
+							values[state_id]
+					);
+		}
 	}
 
 	top_dag(this->SCCs[this->initial->getTag()], done, top_values);
@@ -1978,7 +1980,7 @@ void Automaton::top_LimInf_cycles (weight_t* top_values, SetList<Edge*>** scc_cy
 
 void Automaton::top_LimInf_cycles (weight_t* top_values, SetList<Edge*>** scc_cycles) const {
 	weight_t (*filter)(weight_t,weight_t) = [] (weight_t x, weight_t y) -> weight_t {
-		return std::max(x, y);
+		return std::min(x, y);
 	};
 	weight_t scc_values[this->states->size()];
 
@@ -2004,7 +2006,7 @@ void Automaton::top_LimInf_cycles (weight_t* top_values, SetList<Edge*>** scc_cy
 
 void Automaton::top_LimSup_cycles (weight_t* top_values, SetList<Edge*>** scc_cycles) const {
 	weight_t (*filter)(weight_t,weight_t) = [] (weight_t x, weight_t y) -> weight_t {
-		return std::min(x, y);
+		return std::max(x, y);
 	};
 	weight_t scc_values[this->states->size()];
 	top_reachably(true, scc_values, top_values);
@@ -2138,14 +2140,3 @@ void Automaton::print (bool full) const {
 	}
 	std::cout << "\n";
 }
-
-
-
-
-
-// -------------------------------- Nicolas -------------------------------- //
-
-
-
-
-
