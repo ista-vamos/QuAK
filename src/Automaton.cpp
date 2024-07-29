@@ -288,12 +288,13 @@ Parser* parse_trim_complete(const Automaton* A, value_function_t f) {
 	}
 
 	bool sinkFlag = false;
-  /*
+	
 	for (unsigned int stateA_id = 0; stateA_id < A->getStates()->size(); ++stateA_id) {
 		if (A->getStates()->at(stateA_id)->getTag() == -1) continue;
 		for (unsigned int symbol_id = 0; symbol_id < A->getAlphabet()->size(); ++symbol_id) {
 			if (parser->alphabet.contains(A->getAlphabet()->at(symbol_id)->getName()) == false) continue;
-			if (A->getStates()->at(stateA_id)->getAlphabet()->contains(A->getAlphabet()->at(symbol_id)) == true) continue;
+			if (A->getStates()->at(stateA_id)->getSuccessors(symbol_id)->size() > 0) continue;
+			// if (A->getStates()->at(stateA_id)->getAlphabet()->contains(A->getAlphabet()->at(symbol_id)) == true) continue;
 			parser->states.insert("#sink#");
 			parser->weights.insert(sinkvalue);
 			std::pair<std::pair<std::string, weight_t>,std::pair<std::string, std::string>> edge;
@@ -305,7 +306,6 @@ Parser* parse_trim_complete(const Automaton* A, value_function_t f) {
 			sinkFlag = true;
 		}
 	}
-  */
 
 	if (sinkFlag) {
 		for (std::string symbolname: parser->alphabet) {
