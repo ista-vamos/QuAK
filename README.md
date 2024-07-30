@@ -190,80 +190,71 @@ TODO
 <!-- ```cpp
 M->read(letter);
 ``` -->
-
+<!-- 
 At any point, the monitor can provide the highest and lowest values achievable from the current state of its input automaton:
 ```cpp
 weight_t h = M->getHighest(); 
 weight_t l = M->getLowest();
-```
+``` -->
 
 ## Using QuAK (as a tool)
 
-To use the tool directly, simply compile and use commands detailed below.
+To use the tool directly, simply compile and follow the instructions below.
 
-Similarly as above, we consider below two $\mathsf{Val}$ automata $\mathcal{A}$ and $\mathcal{B}$ with a rational number $v \in \mathbb{Q}$.
-
-
-### Non-emptiness Check
-To check the non-emptiness of $\mathcal{A}$ with respect to $v$, use the following:
 ```
-TODO
-```
-
-### Universality Check
-To check the universality of $\mathcal{A}$ with respect to $v$, use the following:
-```
-TODO
-```
-
-### Inclusion Check
-To check the inclusion of $\mathcal{A}$ in $\mathcal{B}$, use the following:
-```
-TODO
+Usage: ./quak [-cputime] [-v] [-d] automaton-file [ACTION ACTION ...]
+Where ACTIONs are the following, with VALF = <Inf | Sup | LimInf | LimSup | LimSupAvg | LimInfAvg>:
+  stats
+  dump 
+  empty VALF <weight>
+  non-empty VALF <weight>
+  universal VALF <weight>
+  constant VALF
+  safe VALF
+  live VALF
+  isIncluded VALF automaton2-file
+  isIncludedBool VALF automaton2-file
+  monitor <Inf | Sup | Avg> word-file
+  monitor-vamos <Inf | Sup | Avg> shmkey
 ```
 
-### Constant-function Check
-To check if $\mathcal{A}$ defines a constant function, use the following:
-```
-TODO
-```
+The commands *stats* prints the size of the automaton and *dump* prints the automaton.
+The remaining commands implement the decision procedures and monitoring algorithms as expected.
+For monitoring, the word files must contain one symbol per line.
+Use the option *-cputime* to print the running time, *-v* to print the input size, and *-d* to print the automaton.
+An example is given below.
 
-### Safety Check
-To check if $\mathcal{A}$ defines a safety property, use the following:
 ```
-TODO
-```
+./quak -cputime -d  A.txt safe LimInfAvg
 
-### Liveness Check
-To check if $\mathcal{A}$ defines a liveness property, use the following:
-```
-TODO
-```
+Cputime of building the automaton: 3 ms
+automaton (A.txt):
+	alphabet (2):
+		0 -> a
+		1 -> b
+	weights (5):
+		0 -> -9.545000
+		1 -> -5.077000
+		2 -> 0.634000
+		3 -> 1.100000
+		4 -> 6.122000
+		MIN = -9.545000
+		MAX = 6.122000
+	states (2):
+		0 -> q0, scc: 0
+		1 -> q1, scc: -1
+		INITIAL = q0
+	SCCs (1):
+		q0
+	edges (5):
+		a : -9.545, q0 -> q0
+		b : 1.1, q0 -> q0
+		a : 0.634, q1 -> q1
+		a : 6.122, q1 -> q0
+		b : -5.077, q1 -> q0
 
-### Top-value Computation
-To compute the top value of $\mathcal{A}$, use the following:
+----------
+isSafe(LimInfAvg) = 0
+Cputime: 4 ms
+----------
 ```
-TODO
-```
-
-### Bottom-value Computation
-To compute the bottom value of $\mathcal{A}$, use the following:
-```
-TODO
-```
-
-### Safety Closure Construction
-To construct the safety closure of $\mathcal{A}$, use the following:
-```
-TODO
-```
-
-### Safety-Liveness Decomposition
-For the safety component of the decomposition, use the safety closure construction above.
-To construct the liveness component of the decomposition of $\mathcal{A}$, use the following:
-```
-TODO
-```
-
-<!-- ### Monitor Construction and Execution
-TODO -->
