@@ -1265,9 +1265,20 @@ bool Automaton::isNonEmpty (value_function_t f, weight_t x ) {
 	return (getTopValue(f) >= x);
 }
 
+// OLD
 bool Automaton::isUniversal (value_function_t f, weight_t x)  {
 	return (getBottomValue(f) >= x);
 }
+
+// NEW
+/*
+bool Automaton::isUniversal (value_function_t f, weight_t x)  {
+	Automaton* C = Automaton::constantAutomaton(this, x);
+	bool flag = C->isIncludedIn(this, f);
+	delete C;
+	return flag;
+}
+*/
 
 bool Automaton::isComplete () const {
 	for (unsigned int state_id = 0; state_id < this->states->size(); ++state_id) {
@@ -1374,7 +1385,7 @@ bool Automaton::isLimAvgConstant() const {
 	return out;
 }
 
-
+// OLD
 bool Automaton::isConstant (value_function_t f) {
 	if ((f == LimSupAvg || f == LimInfAvg) && isDeterministic() == false) {
 		return isLimAvgConstant();
@@ -1383,6 +1394,21 @@ bool Automaton::isConstant (value_function_t f) {
 		return (getTopValue(f) == getBottomValue(f));
 	}
 }
+
+// NEW
+/*
+bool Automaton::isConstant (value_function_t f) {
+	if (isDeterministic() == true) {
+		return (getTopValue(f) == getBottomValue(f));
+	}
+	else if ((f == LimSupAvg || f == LimInfAvg)) {
+		return isLimAvgConstant();
+	}
+	else {
+		return isUniversal(f, getTopValue(f));
+	}
+}
+*/
 
 bool Automaton::isIncludedIn(const Automaton* B, value_function_t f, bool booleanized) {
     assert(alphabetsAreCompatible(B) && "Incompatible alphabets");
