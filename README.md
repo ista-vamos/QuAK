@@ -16,7 +16,7 @@ Given two $\mathsf{Val}$ automata $\mathcal{A}$ and $\mathcal{B}$ with a rationa
 8. Compute the bottom value $\bot$ of $\mathcal{A}$.
 9. Compute the safety closure of $\mathcal{A}$.
 10. Compute the safety-liveness decomposition of $\mathcal{A}$.
-11. Construct and execute a monitor for extremal values of $\mathcal{A}$.
+11. Construct and execute a monitor for $\mathcal{A}$.
 
 
 ## Building from sources
