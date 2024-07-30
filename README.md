@@ -40,10 +40,9 @@ make -j4
 ```
 
 For debug builds, use `Debug` instead of `Release`. You can tweak compile time
-options that enable optimizations of algorithms, namely use
+options that enable the optimization of algorithms: use
 `-DENABLE_SCC_SEARCH_OPT=OFF` to turn off an SCC-based optimization of deciding
-language inclusion and use `-DENABLE_CONTEXT_REDUNDANCY_OPT=OFF` to turn off
-redundant contexts pruning in the same algorithm.
+language inclusion (and other problems where the inclusion algorithm is used as a subroutine).
 
 To compile the code with link-time (i.e., inter-procedural) optimizations,
 use the option `-DENABLE_IPO=ON`.
@@ -61,7 +60,7 @@ cmake . -Dvamos_DIR=/path/to/vamos/directory
 make -j4
 ```
 
-### Using old makefile
+<!-- ### Using old makefile
 
 To build the project with the old makefile, run
 
@@ -69,7 +68,7 @@ To build the project with the old makefile, run
 make -f Makefile.legacy
 ```
 
-This makefile does not support integration with VAMOS.
+This makefile does not support integration with VAMOS. -->
 
 ## Input Format
 
@@ -82,7 +81,7 @@ which encodes a transition from state $q$ to state $p$ with letter $a$ and weigh
 
 The initial state of the input automaton is the source state of the first transition in its text file.
 
-**Important:** QuAK requires that its input automata are total (a.k.a. complete), i.e., for every state $q$ and every letter $a$, there is at least one outgoing transition from $q$ with letter $a$.
+**Important:** QuAK requires that its input automata are complete (a.k.a. total), i.e., for every state $q$ and every letter $a$, there is at least one outgoing transition from $q$ with letter $a$.
 
 ## Using QuAK (as a library)
 
