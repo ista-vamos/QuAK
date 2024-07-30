@@ -182,14 +182,21 @@ Monitor* M = new Monitor("A.txt", Val);
 ```cpp
 Monitor* M = new Monitor(A, Val);
 ```
+where $\mathsf{Val} \in \{ \mathsf{Avg} \}$. 
 
-The monitor updates its state by reading a letter:
+The monitor updates its state by reading a letter of type *std::string* and returning the current value:
 ```cpp
-TODO
+weight_t t = M->next(letter);
 ```
-<!-- ```cpp
-M->read(letter);
-``` -->
+For example, a monitor can process a word file as follows: 
+```cpp
+std::ifstream stream("samples/wordfile.txt");
+std::string symbol;
+while (stream) {
+    stream >> symbol;
+    std::cout << symbol << " -> " << M->next(symbol) << "\n" << std::flush;
+}
+```
 <!-- 
 At any point, the monitor can provide the highest and lowest values achievable from the current state of its input automaton:
 ```cpp
