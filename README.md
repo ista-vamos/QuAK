@@ -182,7 +182,7 @@ Monitor* M = new Monitor("A.txt", Val);
 ```cpp
 Monitor* M = new Monitor(A, Val);
 ```
-where $\mathsf{Val} \in \{ \mathsf{Avg} \}$. 
+where $\mathsf{Val}$ is $\mathsf{Avg}$. 
 
 The monitor updates its state by reading a letter of type *std::string* and returning the current value:
 ```cpp
