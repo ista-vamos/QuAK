@@ -153,7 +153,7 @@ def dump_data(drone, trajectory, suff=""):
 
 
 # Inspired by code from https://medium.com/@jaems33/understanding-robot-motion-path-smoothing-5970c8363bc4
-def smooth(path, weight_data=0.5, weight_smooth=0.1, tolerance=0.000001):
+def smooth(path, weight_data=0.01, weight_smooth=0.95, tolerance=0.001):
     new = path[:]
     change = tolerance
 
@@ -197,7 +197,7 @@ if __name__ == "__main__":
 
     TARGET=(1000, 1000)
     print("-- Drone with random controller --")
-    drone = DroneRand(pos=(0,0), target=TARGET, sd=10)
+    drone = DroneRand(pos=(0,0), target=TARGET, sd=5)
     traj = Simulation(arena, drone).run()
     dump_data(drone, traj)
 

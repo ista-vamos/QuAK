@@ -8,7 +8,6 @@ from sys import argv, stderr
 from multiprocessing import Pool, Lock
 import argparse
 
-lock = Lock()
 
 bindir = f"{dirname(realpath(__file__))}/"
 inclusion_binary = join(bindir, "inclusion")
@@ -52,25 +51,30 @@ def run_inclusion(A1, A2, value_fun, booleanize=False):
         status = "TIMEOUT"
         p.kill()
         out, err = p.communicate()
-    #assert p.returncode == 0, p
+        assert p.returncode != 0, p
     # assert out is not None, cmd
     assert err is not None, cmd
 
     data = dict()
     if p.returncode in (0, 1):
         status = "DONE"
-        for line in out.splitlines():
-            line = line.strip()
-            if line.startswith(b"Is included"):
-                data['included'] = int(line.split()[2]) == 1
-            elif line.startswith(b"Cputime"):
-                data['cputime'] = int(line.split()[1])
-            elif line.startswith(b"A1 states"):
-                nums = line.split()[2].split(b",")
-                data['A1-states'], data['A1-edges'] = int(nums[0]),int(nums[1])
-            elif line.startswith(b"A2 states"):
-                nums = line.split()[2].split(b",")
-                data['A2-states'], data['A2-edges'] = int(nums[0]),int(nums[1])
+
+    for line in out.splitlines():
+        line = line.strip()
+        if line.startswith(b"Is included"):
+            data['included'] = int(line.split()[2]) == 1
+        elif line.startswith(b"Cputime"):
+            data['cputime'] = int(line.split()[1])
+        elif line.startswith(b"A1 states"):
+            nums = line.split()[2].split(b",")
+            data['A1-states'], data['A1-edges'] = int(nums[0]),int(nums[1])
+        elif line.startswith(b"A2 states"):
+            nums = line.split()[2].split(b",")
+            data['A2-states'], data['A2-edges'] = int(nums[0]),int(nums[1])
+
+    # pandas takes Inf as infinity, so rename it
+    if value_fun == "Inf":
+        value_fun = "Infim"
 
     with lock:
         print(A1, A2, value_fun, status, booleanize,
@@ -90,10 +94,19 @@ def get_params(automata_dir, value_fun):
                 #for value_fun in ("Sup", "Inf"):
                 yield f"{automata_dir}/{f1}", f"{automata_dir}/{f2}", value_fun
 
+def init_lock(l):
+    global lock
+    lock = l
+
+
+
+
 def run_all(args):
     #print(f"\033[1;34mRunning trace_len={trace_len}, bits={bits} [using {args.j} workers]\033[0m", file=stderr)
 
-    with Pool(processes=args.j) as pool:
+    lock = Lock()
+
+    with Pool(processes=args.j, initializer=init_lock, initargs=(lock,)) as pool:
         result = pool.map(run_one, get_params(args.dir, args.value_fun))
 
 parser = argparse.ArgumentParser()

@@ -47,6 +47,10 @@ int main(int argc, char **argv) {
 
     auto A =  std::unique_ptr<Automaton>(new Automaton(argv[1]));
 
+    unsigned n_states, n_edges;
+    std::tie(n_states, n_edges) = getAutomatonStats(A.get());
+    std::cout << "states/edges: " << n_states << "," << n_edges << std::endl;
+
     bool constant;
     struct timespec start_time, end_time;
 
@@ -57,9 +61,6 @@ int main(int argc, char **argv) {
     end_time.tv_sec -= start_time.tv_sec;
     end_time.tv_nsec -= start_time.tv_nsec;
 
-    unsigned n_states, n_edges;
-    std::tie(n_states, n_edges) = getAutomatonStats(A.get());
-    std::cout << "states/edges: " << n_states << "," << n_edges << "\n";
     std::cout << "Is constant: " << constant << "\n";
     std::cout << "Cputime: "
               << static_cast<uint64_t>((end_time.tv_sec * 1000000) +

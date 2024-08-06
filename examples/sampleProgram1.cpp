@@ -12,10 +12,10 @@ int main(int argc, char **argv) {
 	Automaton* B = new Automaton("samples/B.txt", A);
 	B->print();
 
-	//std::cout << "Taking Val = LimInf" << std::endl;
+	std::cout << "Taking Val = LimInf" << std::endl;
 
-	std::cout << "Is A(w) >= 4 for some word w? " << A->isNonEmpty(LimInf, 4) << std::endl;
-	std::cout << "Is A(w) >= 4 for every word w? " << A->isUniversal(LimInf, 4) << std::endl;
+	std::cout << "Is A(w) >= 3 for some word w? " << A->isNonEmpty(LimInf, 3) << std::endl;
+	std::cout << "Is A(w) >= 3 for every word w? " << A->isUniversal(LimInf, 3) << std::endl;
 	std::cout << "Does A define a constant function? " << A->isConstant(LimInf) << std::endl;
 	std::cout << "Is A included in B? (calling quantitative antichain) : " << A->isIncludedIn(B, LimInf) << std::endl;
 	std::cout << "Is A included in B? (calling boolean antichain) : " << A->isIncludedIn(B, LimInf, true) << std::endl;

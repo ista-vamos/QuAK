@@ -2,6 +2,8 @@
 #include <vector>
 #include <memory>
 #include <cassert>
+#include <iomanip>
+#include <limits>
 
 #include "Automaton.h"
 #include "Parser.h"
@@ -286,12 +288,13 @@ Parser* parse_trim_complete(const Automaton* A, value_function_t f) {
 	}
 
 	bool sinkFlag = false;
-  /*
+
 	for (unsigned int stateA_id = 0; stateA_id < A->getStates()->size(); ++stateA_id) {
 		if (A->getStates()->at(stateA_id)->getTag() == -1) continue;
 		for (unsigned int symbol_id = 0; symbol_id < A->getAlphabet()->size(); ++symbol_id) {
 			if (parser->alphabet.contains(A->getAlphabet()->at(symbol_id)->getName()) == false) continue;
-			if (A->getStates()->at(stateA_id)->getAlphabet()->contains(A->getAlphabet()->at(symbol_id)) == true) continue;
+			if (A->getStates()->at(stateA_id)->getSuccessors(symbol_id)->size() > 0) continue;
+			// if (A->getStates()->at(stateA_id)->getAlphabet()->contains(A->getAlphabet()->at(symbol_id)) == true) continue;
 			parser->states.insert("#sink#");
 			parser->weights.insert(sinkvalue);
 			std::pair<std::pair<std::string, weight_t>,std::pair<std::string, std::string>> edge;
@@ -303,7 +306,6 @@ Parser* parse_trim_complete(const Automaton* A, value_function_t f) {
 			sinkFlag = true;
 		}
 	}
-  */
 
 	if (sinkFlag) {
 		for (std::string symbolname: parser->alphabet) {
@@ -1130,7 +1132,7 @@ Automaton* Automaton::toLimSup (const Automaton* A, value_function_t f) {
 	}
 
 	Automaton* that = new Automaton(newname, newalphabet, newstates, newweights, newmin_domain, newmax_domain, newinitial);
-	Automaton* AA = copy_trim_complete(that, f);
+	Automaton* AA = copy_trim_complete(that, LimSup);
 	delete that;
 	return AA;
 }
@@ -1263,9 +1265,20 @@ bool Automaton::isNonEmpty (value_function_t f, weight_t x ) {
 	return (getTopValue(f) >= x);
 }
 
+// OLD
 bool Automaton::isUniversal (value_function_t f, weight_t x)  {
 	return (getBottomValue(f) >= x);
 }
+
+// NEW
+/*
+bool Automaton::isUniversal (value_function_t f, weight_t x)  {
+	Automaton* C = Automaton::constantAutomaton(this, x);
+	bool flag = C->isIncludedIn(this, f);
+	delete C;
+	return flag;
+}
+*/
 
 bool Automaton::isComplete () const {
 	for (unsigned int state_id = 0; state_id < this->states->size(); ++state_id) {
@@ -1372,7 +1385,7 @@ bool Automaton::isLimAvgConstant() const {
 	return out;
 }
 
-
+// OLD
 bool Automaton::isConstant (value_function_t f) {
 	if ((f == LimSupAvg || f == LimInfAvg) && isDeterministic() == false) {
 		return isLimAvgConstant();
@@ -1381,6 +1394,21 @@ bool Automaton::isConstant (value_function_t f) {
 		return (getTopValue(f) == getBottomValue(f));
 	}
 }
+
+// NEW
+/*
+bool Automaton::isConstant (value_function_t f) {
+	if (isDeterministic() == true) {
+		return (getTopValue(f) == getBottomValue(f));
+	}
+	else if ((f == LimSupAvg || f == LimInfAvg)) {
+		return isLimAvgConstant();
+	}
+	else {
+		return isUniversal(f, getTopValue(f));
+	}
+}
+*/
 
 bool Automaton::isIncludedIn(const Automaton* B, value_function_t f, bool booleanized) {
     assert(alphabetsAreCompatible(B) && "Incompatible alphabets");
@@ -1396,7 +1424,6 @@ bool Automaton::isIncludedIn_antichains(const Automaton* B, value_function_t f) 
 	if (f == LimSupAvg || f == LimInfAvg) {
 		if (B->isDeterministic()) {
 			Automaton* C = Automaton::product(this, Minus, B);
-			C->print();
 			weight_t Ctop = C->getTopValue(f);
 			delete C;
 			return (Ctop <= 0);
@@ -1720,10 +1747,12 @@ weight_t Automaton::top_LimInf (weight_t* top_values) const {
 	}
 
 	for (unsigned int state_id = 0; state_id < this->states->size(); ++state_id) {
-		top_values[this->states->at(state_id)->getTag()] = std::max(
-				top_values[this->states->at(state_id)->getTag()],
-				values[state_id]
-		);
+		if (this->states->at(state_id)->getTag() > -1) {
+			top_values[this->states->at(state_id)->getTag()] = std::max(
+							top_values[this->states->at(state_id)->getTag()],
+							values[state_id]
+					);
+		}
 	}
 
 	top_dag(this->SCCs[this->initial->getTag()], done, top_values);
@@ -1977,7 +2006,7 @@ void Automaton::top_LimInf_cycles (weight_t* top_values, SetList<Edge*>** scc_cy
 
 void Automaton::top_LimInf_cycles (weight_t* top_values, SetList<Edge*>** scc_cycles) const {
 	weight_t (*filter)(weight_t,weight_t) = [] (weight_t x, weight_t y) -> weight_t {
-		return std::max(x, y);
+		return std::min(x, y);
 	};
 	weight_t scc_values[this->states->size()];
 
@@ -2003,7 +2032,7 @@ void Automaton::top_LimInf_cycles (weight_t* top_values, SetList<Edge*>** scc_cy
 
 void Automaton::top_LimSup_cycles (weight_t* top_values, SetList<Edge*>** scc_cycles) const {
 	weight_t (*filter)(weight_t,weight_t) = [] (weight_t x, weight_t y) -> weight_t {
-		return std::min(x, y);
+		return std::max(x, y);
 	};
 	weight_t scc_values[this->states->size()];
 	top_reachably(true, scc_values, top_values);
@@ -2100,7 +2129,7 @@ bool Automaton::alphabetsAreCompatible(const Automaton *B) const {
 // -------------------------------- toStrings -------------------------------- //
 
 
-void Automaton::print () const {
+void Automaton::print (bool full) const {
 	std::cout << "automaton (" << this->name << "):\n";
 	std::cout << "\talphabet (" << this->alphabet->size() << "):";
 	std::cout << this->alphabet->toString(Symbol::toString) << "\n";
@@ -2119,22 +2148,21 @@ void Automaton::print () const {
 			nb_edge += states->at(state_id)->getSuccessors(symbol->getId())->size();
 		}
 	}
-	std::cout << "\tedges (" << nb_edge << "):";
+	std::cout << "\tedges (" << nb_edge << "):\n";
 	for (unsigned int state_id = 0; state_id < states->size(); ++state_id) {
 		for (Symbol* symbol : *(states->at(state_id)->getAlphabet())) {
-			std::cout << states->at(state_id)->getSuccessors(symbol->getId())->toString(Edge::toString);
+            auto *state = states->at(state_id);
+            for (auto *edge : *state->getSuccessors(symbol->getId())) {
+                std::cout << "\t\t" << edge->getSymbol()->toString() << " : ";
+                if (full) {
+                  std::cout << std::setprecision(std::numeric_limits<weight_t::T>::max_digits10)
+                            << std::fixed;
+                }
+                std::cout << *edge->getWeight()->getValue() << ", "
+                          << edge->getFrom()->getName() << " -> "
+                          << edge->getTo()->getName() << "\n";
+            }
 		}
 	}
 	std::cout << "\n";
 }
-
-
-
-
-
-// -------------------------------- Nicolas -------------------------------- //
-
-
-
-
-
