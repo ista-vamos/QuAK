@@ -83,24 +83,37 @@ def run_inclusion(A1, A2, value_fun, booleanize=False):
           data.get('cputime'),
           p.returncode)
 
+def list_automata(automata_dir, num):
+    n = 0
+    for a in listdir(automata_dir):
+        if not a.endswith(".txt"):
+            continue
+        if num is not None and n >= num:
+            break
 
-def get_params(automata_dir, value_fun):
-    for f1 in listdir(automata_dir):
-        for f2 in listdir(automata_dir):
-            if f1.endswith(".txt") and f2.endswith(".txt"):
-                #for value_fun in ("Sup", "Inf"):
-                yield f"{automata_dir}/{f1}", f"{automata_dir}/{f2}", value_fun
+        yield a
+        n += 1
+
+
+def get_params(args):
+    automata_dir, value_fun = args.dir, args.value_fun
+
+    for f1 in list_automata(automata_dir, args.num):
+        for f2 in list_automata(automata_dir, args.num):
+            yield f"{automata_dir}/{f1}", f"{automata_dir}/{f2}", value_fun
 
 
 def run_all(args):
-    #print(f"\033[1;34mRunning trace_len={trace_len}, bits={bits} [using {args.j} workers]\033[0m", file=stderr)
-
+    N = sum(1 for _ in list_automata(args.dir, args.num))**2
+    n = 0
     with open(args.out, "w") as out,\
          Pool(processes=args.j) as pool:
-        for r1, r2 in pool.imap_unordered(run_one, get_params(args.dir,
-                                                              args.value_fun)):
+        for r1, r2 in pool.imap_unordered(run_one, get_params(args)):
             print(",".join(map(str, r1)), file=out)
             print(",".join(map(str, r2)), file=out)
+            n += 1
+            print(f"Executed {n} configs ({100*(n/N) : 5.2f}%).", end="\r")
+        print("\nAll done!")
 
 
 parser = argparse.ArgumentParser()
@@ -109,10 +122,9 @@ parser.add_argument("--dir", help="Take automata from this dir.", action='store'
 parser.add_argument("--out", help="Output file", action='store', required=True)
 parser.add_argument("--value-fun", help="Value function: Sup, Inf, ...", action='store', required=True)
 parser.add_argument("--timeout", help="The timeout for one run (wall time)", action='store', type=int)
+parser.add_argument("--num", help="Number of automata to use", action='store', type=int)
 args = parser.parse_args()
 
 args.dir = abspath(args.dir)
-if args.timeout is not None:
-    TIMEOUT = args.timeout
 
 run_all(args)
