@@ -118,7 +118,8 @@ parser.add_argument("--bindir", help="Use binaries from this dir.", action='stor
                     default=f"{dirname(realpath(__file__))}")
 parser.add_argument("--out", help="Output file", action='store', required=True)
 parser.add_argument("--value-fun", help="Value function: Sup, Inf, ...", action='store', required=True)
-parser.add_argument("--timeout", help="The timeout for one run (wall time)", action='store', type=int)
+parser.add_argument("--timeout", help="The timeout for one run (wall time)",
+                    action='store', type=int, default=120)
 parser.add_argument("--num", help="Number of automata to use", action='store', type=int)
 args = parser.parse_args()
 
