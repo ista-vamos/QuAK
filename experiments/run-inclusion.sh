@@ -9,5 +9,6 @@ mkdir -p results
 for VALUE_FUN in Sup LimSup; do
 for S in 2-sym; do
 	python3 $BUILD/experiments/run-inclusion.py --dir experiments/automata-$S --out results/$VALUE_FUN-$S --value-fun $VALUE_FUN $@
+	python3 $BUILD_NO_SCC/experiments/run-inclusion.py --dir experiments/automata-$S --out results/$VALUE_FUN-$S --value-fun $VALUE_FUN $@
 done
 done
