@@ -9,11 +9,7 @@ from multiprocessing import Pool, Lock
 import argparse
 
 
-bindir = f"{dirname(realpath(__file__))}/"
-inclusion_binary = join(bindir, "inclusion")
-
 ABORT_ON_ERROR = True
-TIMEOUT = 10
 
 def errlog(*args):
     with open(join(dirname(__file__), "log.txt"), "a") as logf:
@@ -21,12 +17,12 @@ def errlog(*args):
             print(a, file=logf)
 
 def run_one(arg):
-    A1, A2, value_fun = arg
+    A1, A2, value_fun, args = arg
 
-    r1 = run_inclusion(A1, A2, value_fun)
+    r1 = run_inclusion(A1, A2, value_fun, args)
     s1, i1 = r1[3], r1[5]
 
-    r2 = run_inclusion(A1, A2, value_fun, booleanize=True)
+    r2 = run_inclusion(A1, A2, value_fun, args, booleanize=True)
     s2, i2 = r2[3], r2[5]
 
     if s1 == "DONE" and s2 == "DONE" and i1 != i2:
@@ -35,10 +31,9 @@ def run_one(arg):
             exit(1)
     return r1, r2
 
-def run_inclusion(A1, A2, value_fun, booleanize=False):
+def run_inclusion(A1, A2, value_fun, args, booleanize=False):
 
-   #with lock:
-   #    print("\033[1;32m-- Running on ", A1, A2, "\033[0m", file=stderr)
+    inclusion_binary = join(args.bindir, "inclusion")
     cmd = [inclusion_binary, A1, A2, value_fun]
     if booleanize:
         cmd.append("booleanize")
@@ -47,7 +42,7 @@ def run_inclusion(A1, A2, value_fun, booleanize=False):
     status = "FAIL"
     p = Popen(cmd, stderr=PIPE, stdout=PIPE)#, cwd=arg.dir)
     try:
-        out, err = p.communicate(timeout=TIMEOUT)
+        out, err = p.communicate(timeout=args.timeout)
     except TimeoutExpired:
         status = "TIMEOUT"
         p.kill()
@@ -100,7 +95,7 @@ def get_params(args):
 
     for f1 in list_automata(automata_dir, args.num):
         for f2 in list_automata(automata_dir, args.num):
-            yield f"{automata_dir}/{f1}", f"{automata_dir}/{f2}", value_fun
+            yield f"{automata_dir}/{f1}", f"{automata_dir}/{f2}", value_fun, args
 
 
 def run_all(args):
@@ -119,6 +114,8 @@ def run_all(args):
 parser = argparse.ArgumentParser()
 parser.add_argument("-j", metavar="PROC_NUM", action='store', type=int)
 parser.add_argument("--dir", help="Take automata from this dir.", action='store', required=True)
+parser.add_argument("--bindir", help="Use binaries from this dir.", action='store',
+                    default=f"{dirname(realpath(__file__))}")
 parser.add_argument("--out", help="Output file", action='store', required=True)
 parser.add_argument("--value-fun", help="Value function: Sup, Inf, ...", action='store', required=True)
 parser.add_argument("--timeout", help="The timeout for one run (wall time)", action='store', type=int)
