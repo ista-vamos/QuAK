@@ -18,7 +18,9 @@ RUN apt-get install -y --no-install-recommends\
         git
 
 
-COPY . /opt/quak
+# IMPORTANT: This dockerfile must be build from the top-level directory
+# of quak, otherwise the following command will fail.
+COPY .. /opt/quak
 WORKDIR /opt/quak/
 RUN git clean -xdf
 
@@ -33,3 +35,5 @@ RUN cmake .. -DCMAKE_BUILD_TYPE=Release -DENABLE_IPO=ON -DENABLE_SCC_SEARCH_OPT=
 RUN make -j2
 
 WORKDIR /opt/quak/experiments
+
+RUN bash ./gen-aut.sh
