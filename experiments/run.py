@@ -23,16 +23,17 @@ def errlog(*args):
 def run_one(arg):
     A1, A2, value_fun = arg
 
-    # run our monitor
-    s1, i1 = run_inclusion(A1, A2, value_fun)
+    r1 = run_inclusion(A1, A2, value_fun)
+    s1, i1 = r1[3], r1[5]
 
-    s2, i2 = run_inclusion(A1, A2, value_fun, booleanize=True)
+    r2 = run_inclusion(A1, A2, value_fun, booleanize=True)
+    s2, i2 = r2[3], r2[5]
 
     if s1 == "DONE" and s2 == "DONE" and i1 != i2:
-        with lock:
-            print("\033[1;31m-- Different result on ", A1, A2, "\033[0m", file=stderr)
-            if ABORT_ON_ERROR:
-                exit(1)
+        print("\033[1;31m-- Different result on ", A1, A2, "\033[0m", file=stderr)
+        if ABORT_ON_ERROR:
+            exit(1)
+    return r1, r2
 
 def run_inclusion(A1, A2, value_fun, booleanize=False):
 
@@ -52,7 +53,6 @@ def run_inclusion(A1, A2, value_fun, booleanize=False):
         p.kill()
         out, err = p.communicate()
         assert p.returncode != 0, p
-    # assert out is not None, cmd
     assert err is not None, cmd
 
     data = dict()
@@ -76,15 +76,12 @@ def run_inclusion(A1, A2, value_fun, booleanize=False):
     if value_fun == "Inf":
         value_fun = "Infim"
 
-    with lock:
-        print(A1, A2, value_fun, status, booleanize,
-              data.get('included'),
-              data.get('A1-states'), data.get('A1-edges'),
-              data.get('A2-states'), data.get('A2-edges'),
-              data.get('cputime'),
-              p.returncode)
-
-    return status, data.get('included')
+    return (A1, A2, value_fun, status, booleanize,
+          data.get('included'),
+          data.get('A1-states'), data.get('A1-edges'),
+          data.get('A2-states'), data.get('A2-edges'),
+          data.get('cputime'),
+          p.returncode)
 
 
 def get_params(automata_dir, value_fun):
@@ -94,24 +91,22 @@ def get_params(automata_dir, value_fun):
                 #for value_fun in ("Sup", "Inf"):
                 yield f"{automata_dir}/{f1}", f"{automata_dir}/{f2}", value_fun
 
-def init_lock(l):
-    global lock
-    lock = l
-
-
-
 
 def run_all(args):
     #print(f"\033[1;34mRunning trace_len={trace_len}, bits={bits} [using {args.j} workers]\033[0m", file=stderr)
 
-    lock = Lock()
+    with open(args.out, "w") as out,\
+         Pool(processes=args.j) as pool:
+        for r1, r2 in pool.imap_unordered(run_one, get_params(args.dir,
+                                                              args.value_fun)):
+            print(",".join(map(str, r1)), file=out)
+            print(",".join(map(str, r2)), file=out)
 
-    with Pool(processes=args.j, initializer=init_lock, initargs=(lock,)) as pool:
-        result = pool.map(run_one, get_params(args.dir, args.value_fun))
 
 parser = argparse.ArgumentParser()
 parser.add_argument("-j", metavar="PROC_NUM", action='store', type=int)
 parser.add_argument("--dir", help="Take automata from this dir.", action='store', required=True)
+parser.add_argument("--out", help="Output file", action='store', required=True)
 parser.add_argument("--value-fun", help="Value function: Sup, Inf, ...", action='store', required=True)
 parser.add_argument("--timeout", help="The timeout for one run (wall time)", action='store', type=int)
 args = parser.parse_args()
