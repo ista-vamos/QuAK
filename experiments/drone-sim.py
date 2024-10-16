@@ -1,6 +1,7 @@
 from math import sqrt
 from numpy.random import normal as normal_distr
 from gen_smooth import get_symbol
+import argparse
 
 MAX_FORCE = 10
 
@@ -180,28 +181,23 @@ def smooth(path, weight_data=0.01, weight_smooth=0.95, tolerance=0.001):
 
 
 if __name__ == "__main__":
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--sd", help="Standard deviation", action='store', type=int, default=1)
+    args = parser.parse_args()
+
     arena = Arena()
-
-   #TARGET=(100, 100)
-   #print("-- Drone with random controller --")
-   #drone = DroneRand(pos=(0,0), target=TARGET)
-   #traj = Simulation(arena, drone).run()
-   #dump_data(drone, traj)
-
-   #smooth_traj = smooth(traj)
-   #print("-- Drone follow smoothed traj --")
-   #drone = DroneFollow(pos=(0,0), target=TARGET, traj=smooth_traj)
-   #Simulation(arena, drone).run()
-   #dump_data(drone, traj, suff="-smooth")
-
 
     TARGET=(1000, 1000)
     print("-- Drone with random controller --")
-    drone = DroneRand(pos=(0,0), target=TARGET, sd=5)
+    drone = DroneRand(pos=(0,0), target=TARGET, sd=args.sd)
     traj = Simulation(arena, drone).run()
     dump_data(drone, traj)
 
+    print("(computing the smooth trajectory)", end=" ")
     smooth_traj = smooth(traj)
+    print("done!")
+
     print("-- Drone follow smoothed traj --")
     drone = DroneFollow(pos=(0,0), target=TARGET, traj=smooth_traj)
     Simulation(arena, drone).run()
