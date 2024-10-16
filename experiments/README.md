@@ -16,14 +16,18 @@ image is build, which may _slightly_ influence the results of the experiments.
 You can run the experiments inside the built image by the following command:
 
 ```
+# run the inclusion experiments (Figure 2 and Figure 3)
 docker run --rm -ti -v "$(pwd)/results":/opt/quak/experiments/results quak ./run-inclusion.sh
+
+# run the constant-check experiments (Figure 4)
+docker run --rm -ti -v "$(pwd)/results":/opt/quak/experiments/results quak ./run-constant.sh
 ```
 
-Running the experiments takes many hours on a multi-core system. If you want
-to run the experiments only on a subset of automata, you can specify the
-option `--num=X`, where `X` is the number of automata. Then, the experiments
-will run only on the first `X` generated automata, which means `X*X`
-configurations are going to be executed.
+Running the inclusion experiments takes many hours on a multi-core system. If
+you want to run the experiments only on a subset of automata, you can specify
+the option `--num=X`, where `X` is the number of automata. Then, the
+experiments will run only on the first `X` generated automata, which means
+`X*X` configurations are going to be executed.
 ```
 docker run --rm -ti -v "$(pwd)/results":/opt/quak/experiments/results quak ./run-inclusion.sh --num=3
 ```
