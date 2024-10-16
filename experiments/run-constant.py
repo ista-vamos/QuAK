@@ -5,7 +5,7 @@ from subprocess import Popen, PIPE, DEVNULL, run as runcmd, TimeoutExpired
 from os.path import dirname, realpath, basename, abspath, join, isfile, isdir
 from os import listdir, access, X_OK, environ as ENV, symlink, makedirs
 from sys import argv, stderr
-from multiprocessing import Pool, Lock
+from multiprocessing import Pool
 import argparse
 
 
@@ -23,11 +23,9 @@ def errlog(*args):
 def run_one(arg):
     A, value_fun = arg
 
-    run_constant(A, value_fun)
+    return run_constant(A, value_fun)
 
 def run_constant(A, value_fun):
-    global lock
-
    #with lock:
    #    print("\033[1;32m-- Running on ", A1, A2, "\033[0m", file=stderr)
     cmd = [binary, A, value_fun]
@@ -67,41 +65,44 @@ def run_constant(A, value_fun):
     if value_fun == "Inf":
         value_fun = "Infim"
 
-    with lock:
-        print(A, value_fun, status,
-              data.get('constant'),
-              data.get('states'), data.get('edges'),
-              data.get('cputime'),
-              p.returncode)
-
-    return status, data.get('constant')
+    return(A, value_fun, status,
+           data.get('constant'),
+           data.get('states'), data.get('edges'),
+           data.get('cputime'),
+           p.returncode)
 
 
-def get_params(automata_dir, value_fun):
+def get_params(automata_dir, value_fun, max_num):
+    n = 0
     for f1 in listdir(automata_dir):
         if f1.endswith(".txt"):
             #for value_fun in ("Sup", "Inf"):
             yield f"{automata_dir}/{f1}", value_fun
 
+            n += 1
+            if max_num is not None and n >= max_num:
+                break
 
-def init_lock(l):
-    global lock
-    lock = l
 
 
 def run_all(args):
     #print(f"\033[1;34mRunning trace_len={trace_len}, bits={bits} [using {args.j} workers]\033[0m", file=stderr)
 
-    lock = Lock()
-    with Pool(processes=args.j, initializer=init_lock, initargs=(lock,)) as pool:
-        result = pool.map(run_one, get_params(args.dir, args.value_fun))
+    with Pool(processes=args.j) as pool:
+        result = pool.imap_unordered(run_one, get_params(args.dir, args.value_fun, args.num))
+        for r in result:
+            print(' '.join(map(str, r)))
 
 parser = argparse.ArgumentParser()
 parser.add_argument("-j", metavar="PROC_NUM", action='store', type=int)
 parser.add_argument("--dir", help="Take automata from this dir.", action='store', required=True)
 parser.add_argument("--value-fun", help="Value function: Sup, Inf, ...", action='store', required=True)
+parser.add_argument("--num", help="Number of automata to run on", action='store', default=None)
 parser.add_argument("--timeout", help="The timeout for one run (wall time)", action='store', type=int)
 args = parser.parse_args()
+
+if args.num is not None:
+    args.num = int(args.num)
 
 args.dir = abspath(args.dir)
 if args.timeout is not None:
