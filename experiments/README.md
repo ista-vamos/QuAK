@@ -32,6 +32,10 @@ experiments will run only on the first `X` generated automata, which means
 docker run --rm -ti -v "$(pwd)/results":/opt/quak/experiments/results quak ./run-inclusion.sh --num=3
 ```
 
+# TODO 
+Running with `--num=X` should take XX with 4 cores and should give sufficiently
+close results to the figures from the paper.
+
 ## Description of the binaries
 
 Note that not all the binaries are used by the artifact built by Dockerfile.
