@@ -10,10 +10,17 @@ Quak), and run
 docker build . -t quak -f experiments/Dockerfile
 ```
 
+Building the artifact takes approximately 2 minutes on a laptop with 4 cores @ 2.8GHz.
 Note that the set of random automata is generated anew everytime the docker
-image is build, which may _slightly_ influence the results of the experiments.
+image is build, which may slightly influence the results of the experiments.
 
-You can run the experiments one by one inside the built image by the following command:
+You can run all the experiments with the following command:
+
+```
+docker run --rm -ti -v "$(pwd)/results":/opt/quak/experiments/results quak ./run-all.sh
+```
+
+Or you can run the experiments one by one by issuing the following commands:
 
 ```
 # run the inclusion experiments (Figure 2 and Figure 3)
@@ -26,11 +33,6 @@ docker run --rm -ti -v "$(pwd)/results":/opt/quak/experiments/results quak ./run
 docker run --rm -ti -v "$(pwd)/results":/opt/quak/experiments/results quak ./run-drone.sh
 ```
 
-Or you can run them all with the following command:
-```
-docker run --rm -ti -v "$(pwd)/results":/opt/quak/experiments/results quak ./run-all.sh
-```
-
 Running the inclusion experiments takes many hours on a multi-core system. If
 you want to run the experiments only on a subset of automata, you can specify
 the option `--num=X`, where `X` is the number of automata. Then, the
@@ -38,11 +40,23 @@ experiments will run only on the first `X` generated automata, which means
 `X*X` configurations are going to be executed.
 ```
 docker run --rm -ti -v "$(pwd)/results":/opt/quak/experiments/results quak ./run-inclusion.sh --num=3
+
+# you can use `--num` also with `run-all.sh`
+docker run --rm -ti -v "$(pwd)/results":/opt/quak/experiments/results quak ./run-all.sh --num=3
 ```
 
 # TODO 
 Running with `--num=X` should take XX with 4 cores and should give sufficiently
 close results to the figures from the paper.
+
+
+### Random automata
+
+Random automata are generated always when the docker image is built,
+so in order to re-generate the automata, you can re-build the docker image.
+Alternatively, you can start a docker container and re-build the automata
+using `gen-aut.sh` script in the `experiments/` directory.
+Note that the re-generated automata will be available only in this container.
 
 ## Description of the binaries
 

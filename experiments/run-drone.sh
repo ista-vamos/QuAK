@@ -6,7 +6,6 @@ DIR=$(dirname $0)/
 
 # we assume the docker build, adjust if necessary
 BUILD=$(dirname $0)/../build
-BUILD=$(dirname $0)/../
 
 mkdir -p results
 echo  "" > "results/drone.txt"
@@ -19,7 +18,7 @@ for SD in 1 5; do
 	echo ""
 	echo " -- Running experiments for sd=$SD --"
 	echo ""
-	python3 "$DIR/drone-sim.py" --sd=$SD $@ | tee -a "results/drone.txt"
+	python3 "$DIR/drone-sim.py" --sd=$SD | tee -a "results/drone.txt"
 
 	echo "-----"
 	$BUILD/quak $DIR/drone-monitor.txt monitor Avg forces.txt > monitor-sd$SD.log

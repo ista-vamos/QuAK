@@ -9,8 +9,6 @@ from multiprocessing import Pool
 import argparse
 
 
-bindir = f"{dirname(realpath(__file__))}/"
-binary = join(bindir, "constant")
 
 ABORT_ON_ERROR = True
 TIMEOUT = 10
@@ -21,11 +19,12 @@ def errlog(*args):
             print(a, file=logf)
 
 def run_one(arg):
-    A, value_fun = arg
+    A, value_fun, args = arg
 
-    return run_constant(A, value_fun)
+    return run_constant(A, value_fun, args)
 
-def run_constant(A, value_fun):
+def run_constant(A, value_fun, args):
+    binary = join(args.bindir, "constant")
    #with lock:
    #    print("\033[1;32m-- Running on ", A1, A2, "\033[0m", file=stderr)
     cmd = [binary, A, value_fun]
@@ -74,12 +73,14 @@ def run_constant(A, value_fun):
 def automata_num(automata_dir):
     return sum(1 for f in listdir(automata_dir) if f.endswith('.txt'))
 
-def get_params(automata_dir, value_fun, max_num):
+def get_params(args):
     n = 0
+    automata_dir = args.dir
+    max_num = args.num
     for f1 in listdir(automata_dir):
         if f1.endswith(".txt"):
             #for value_fun in ("Sup", "Inf"):
-            yield f"{automata_dir}/{f1}", value_fun
+            yield f"{automata_dir}/{f1}", args.value_fun, args
 
             n += 1
             if max_num is not None and n >= max_num:
@@ -93,7 +94,7 @@ def run_all(args):
     N = (args.num or automata_num(args.dir))
     n = 0
     with Pool(processes=args.j) as pool, open(args.out or '/dev/stdout', "w") as out:
-        result = pool.imap_unordered(run_one, get_params(args.dir, args.value_fun, args.num))
+        result = pool.imap_unordered(run_one, get_params(args))
         for r in result:
             print(' '.join(map(str, r)), file=out)
             n += 1
@@ -108,6 +109,8 @@ parser.add_argument("--value-fun", help="Value function: Sup, Inf, ...", action=
 parser.add_argument("--num", help="Number of automata to run on", action='store', default=None)
 parser.add_argument("--timeout", help="The timeout for one run (wall time)", action='store', type=int)
 parser.add_argument("--out", help="Output file (stdout is used if not given)", action='store', default=None)
+parser.add_argument("--bindir", help="Use binaries from this dir.", action='store',
+                    default=f"{dirname(realpath(__file__))}")
 
 args = parser.parse_args()
 
