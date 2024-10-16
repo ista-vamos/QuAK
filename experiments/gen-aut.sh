@@ -65,7 +65,7 @@ for STATES_NUM in 250 500 750 1000; do
 		--states-num $STATES_NUM\
 		--max-weight 10\
 		--min-weight -10\
-			--edges-num $((($STATES_NUM * 16) + ($RANDOM % (2*$STATES_NUM)) + 1))\
+		--edges-num $((($STATES_NUM * 16) + ($RANDOM % (2*$STATES_NUM)) + 1))\
 		> automata-large-16-sym/A${I}-${STATES_NUM}.txt;
 done;
 done
@@ -77,7 +77,7 @@ for STATES_NUM in 250 500 750 1000; do
 		--states-num $STATES_NUM\
 		--max-weight 10\
 		--min-weight -10\
-			--edges-num $((($STATES_NUM * 16) + ($RANDOM % (2*$STATES_NUM)) + 1))\
+		--edges-num $((($STATES_NUM * 16) + ($RANDOM % (2*$STATES_NUM)) + 1))\
 		--constant\
 		> automata-large-16-sym/A${I}-${STATES_NUM}.txt;
 done;
