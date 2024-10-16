@@ -71,6 +71,8 @@ def run_constant(A, value_fun):
            data.get('cputime'),
            p.returncode)
 
+def automata_num(automata_dir):
+    return sum(1 for f in listdir(automata_dir) if f.endswith('.txt'))
 
 def get_params(automata_dir, value_fun, max_num):
     n = 0
@@ -88,10 +90,16 @@ def get_params(automata_dir, value_fun, max_num):
 def run_all(args):
     #print(f"\033[1;34mRunning trace_len={trace_len}, bits={bits} [using {args.j} workers]\033[0m", file=stderr)
 
-    with Pool(processes=args.j) as pool:
+    N = (args.num or automata_num(args.dir))
+    n = 0
+    with Pool(processes=args.j) as pool, open(args.out or '/dev/stdout', "w") as out:
         result = pool.imap_unordered(run_one, get_params(args.dir, args.value_fun, args.num))
         for r in result:
-            print(' '.join(map(str, r)))
+            print(' '.join(map(str, r)), file=out)
+            n += 1
+            if args.out:
+                print(f"Executed {n} configs ({100*(n/N) : 5.2f}%).", end="\r")
+        print("\nAll done!")
 
 parser = argparse.ArgumentParser()
 parser.add_argument("-j", metavar="PROC_NUM", action='store', type=int)
@@ -99,6 +107,8 @@ parser.add_argument("--dir", help="Take automata from this dir.", action='store'
 parser.add_argument("--value-fun", help="Value function: Sup, Inf, ...", action='store', required=True)
 parser.add_argument("--num", help="Number of automata to run on", action='store', default=None)
 parser.add_argument("--timeout", help="The timeout for one run (wall time)", action='store', type=int)
+parser.add_argument("--out", help="Output file (stdout is used if not given)", action='store', default=None)
+
 args = parser.parse_args()
 
 if args.num is not None:
