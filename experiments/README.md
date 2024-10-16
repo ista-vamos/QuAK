@@ -13,7 +13,7 @@ docker build . -t quak -f experiments/Dockerfile
 Note that the set of random automata is generated anew everytime the docker
 image is build, which may _slightly_ influence the results of the experiments.
 
-You can run the experiments inside the built image by the following command:
+You can run the experiments one by one inside the built image by the following command:
 
 ```
 # run the inclusion experiments (Figure 2 and Figure 3)
@@ -21,6 +21,14 @@ docker run --rm -ti -v "$(pwd)/results":/opt/quak/experiments/results quak ./run
 
 # run the constant-check experiments (Figure 4)
 docker run --rm -ti -v "$(pwd)/results":/opt/quak/experiments/results quak ./run-constant.sh
+
+# run the drone simulation (Figure 5, table)
+docker run --rm -ti -v "$(pwd)/results":/opt/quak/experiments/results quak ./run-drone.sh
+```
+
+Or you can run them all with the following command:
+```
+docker run --rm -ti -v "$(pwd)/results":/opt/quak/experiments/results quak ./run-all.sh
 ```
 
 Running the inclusion experiments takes many hours on a multi-core system. If
