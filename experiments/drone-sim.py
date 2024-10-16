@@ -149,12 +149,13 @@ def dump_data(drone, trajectory, suff=""):
             x, y = int(p[0]), int(p[1])
             print(get_symbol(x,y), file=out)
 
-    print("Energy consumption: ", drone.energy_consumption)
+    #print("Energy consumption: ", drone.energy_consumption)
     print("Avg energy consumption per step: ", drone.energy_consumption / len(trajectory))
 
 
 # Inspired by code from https://medium.com/@jaems33/understanding-robot-motion-path-smoothing-5970c8363bc4
-def smooth(path, weight_data=0.01, weight_smooth=0.95, tolerance=0.001):
+def smooth(path, weight_data=0.5, weight_smooth=0.1, tolerance=0.000001):
+#def smooth(path, weight_data=0.01, weight_smooth=0.95, tolerance=0.001):
     new = path[:]
     change = tolerance
 
@@ -189,16 +190,16 @@ if __name__ == "__main__":
     arena = Arena()
 
     TARGET=(1000, 1000)
-    print("-- Drone with random controller --")
+    print("## Drone with random controller")
     drone = DroneRand(pos=(0,0), target=TARGET, sd=args.sd)
     traj = Simulation(arena, drone).run()
     dump_data(drone, traj)
 
-    print("(computing the smooth trajectory)", end=" ")
+    #print("(computing the smooth trajectory)", end=" ")
     smooth_traj = smooth(traj)
-    print("done!")
+    #print("done!")
 
-    print("-- Drone follow smoothed traj --")
+    print("\n## Drone follow smoothed traj")
     drone = DroneFollow(pos=(0,0), target=TARGET, traj=smooth_traj)
     Simulation(arena, drone).run()
     dump_data(drone, traj, suff="-smooth")

@@ -13,9 +13,14 @@ mkdir -p results
 for SD in 1 5; do
 	echo ""
 	echo " -- Running experiments for sd=$SD --"
+	echo ""
 	python3 "$DIR/drone-sim.py" --sd=$SD $@ | tee -a "results/drone.txt"
+
+	echo "-----"
 	$BUILD/quak $DIR/drone-monitor.txt monitor Avg forces.txt > monitor-sd$SD.log
 	$BUILD/quak $DIR/drone-monitor.txt monitor Avg forces-smooth.txt > monitor-sd$SD-smooth.log
- 	tail -n 2 monitor-sd$SD.log | head -n 1
- 	tail -n 2 monitor-sd$SD-smooth.log | head -n 1
+	SCORE=$(tail -n 2 monitor-sd$SD.log | head -n 1 | cut -d ' ' -f 3)
+	echo "Monitor score random: $SCORE"
+	SCORE=$(tail -n 2 monitor-sd$SD-smooth.log | head -n 1  | cut -d ' ' -f 3)
+	echo "Monitor score smoothed: $SCORE"
 done
