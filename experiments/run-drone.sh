@@ -32,4 +32,4 @@ done
 done
 
 python3 $DIR/drone-traj.py $DIR/traj.txt
-python3 $DIR/drone-tab.py results/drone.txt > results fig5-tab.txt
+python3 $DIR/drone-tab.py results/drone.txt > results/fig5-tab.txt
