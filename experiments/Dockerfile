@@ -10,6 +10,9 @@ RUN apt-get -y update
 RUN apt-get install -y --no-install-recommends\
         python3\
         python3-numpy\
+	python3-matplotlib\
+	python3-pandas\
+	python3-seaborn\
         g++\
         gcc\
         make\

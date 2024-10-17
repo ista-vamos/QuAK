@@ -2,7 +2,7 @@ mkdir -p automata-2-sym
 rm -f automata-2-sym/*.txt
 
 for I in `seq 1 20`; do
-	for STATES_NUM in 2 4 8 10; do
+	for STATES_NUM in 2 4 8 16 32; do
 		python3 ./rand_automaton.py\
 			--alphabet a,b\
 			--states-num $STATES_NUM\

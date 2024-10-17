@@ -22,13 +22,15 @@ def run_one(arg):
     r1 = run_inclusion(A1, A2, value_fun, args)
     s1, i1 = r1[3], r1[5]
 
-    r2 = run_inclusion(A1, A2, value_fun, args, booleanize=True)
-    s2, i2 = r2[3], r2[5]
+    r2 = None
+    if not args.no_booleanized:
+        r2 = run_inclusion(A1, A2, value_fun, args, booleanize=True)
+        s2, i2 = r2[3], r2[5]
 
-    if s1 == "DONE" and s2 == "DONE" and i1 != i2:
-        print("\033[1;31m-- Different result on ", A1, A2, "\033[0m", file=stderr)
-        if ABORT_ON_ERROR:
-            exit(1)
+        if s1 == "DONE" and s2 == "DONE" and i1 != i2:
+            print("\033[1;31m-- Different result on ", A1, A2, "\033[0m", file=stderr)
+            if ABORT_ON_ERROR:
+                exit(1)
     return r1, r2
 
 def run_inclusion(A1, A2, value_fun, args, booleanize=False):
@@ -105,7 +107,8 @@ def run_all(args):
          Pool(processes=args.j) as pool:
         for r1, r2 in pool.imap_unordered(run_one, get_params(args)):
             print(",".join(map(str, r1)), file=out)
-            print(",".join(map(str, r2)), file=out)
+            if r2:
+                print(",".join(map(str, r2)), file=out)
             n += 1
             print(f"Executed {n} configs ({100*(n/N) : 5.2f}%).", end="\r")
         print("\nAll done!")
@@ -121,6 +124,7 @@ parser.add_argument("--value-fun", help="Value function: Sup, Inf, ...", action=
 parser.add_argument("--timeout", help="The timeout for one run (wall time)",
                     action='store', type=int, default=120)
 parser.add_argument("--num", help="Number of automata to use", action='store', type=int)
+parser.add_argument("--no-booleanized", help="Do not compare with booleanized algorithm", action='store_true', default=False)
 args = parser.parse_args()
 
 args.dir = abspath(args.dir)
