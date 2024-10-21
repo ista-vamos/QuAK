@@ -12,6 +12,7 @@ private:
 public:
 	Symbol(std::string name);
 	Symbol(Symbol* symbol);
+	Symbol(const Symbol& other);
 	~Symbol();
 	std::string getName() const;
 	unsigned int getId() const;

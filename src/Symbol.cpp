@@ -16,6 +16,8 @@ Symbol::Symbol(std::string name) : my_id(ID_of_Symbols++), name(name) {}
 
 Symbol::Symbol(Symbol* symbol) : my_id(symbol->my_id), name(symbol->name) {}
 
+Symbol::Symbol(const Symbol& other) : my_id(other.my_id), name(other.name) {}
+
 
 std::string Symbol::getName() const { return this->name; }
 

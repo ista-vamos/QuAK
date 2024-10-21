@@ -5,7 +5,7 @@
 #include "../Automaton.h"
 
 
-bool inclusion (const Automaton* A, const Automaton* B);
+bool inclusion (const Automaton* A, const Automaton* B, UltimatelyPeriodicWord** witness = nullptr);
 void debug_test();
 void debug_test2();
 
