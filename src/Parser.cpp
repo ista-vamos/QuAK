@@ -55,9 +55,18 @@ std::string readEdge (std::string line, Parser* parser) {
 	if (weightname.empty()) abort("transition without weight");
 	std::istringstream string_to_weight(weightname);
 	weight_t weight;
-	string_to_weight >> weight;
+    if (weightname.size() > 2 && weightname[1] == 'x' && weightname[0] == '0') {
+        // the weight is given as a bitvector (unsigned number in hex)
+	    if (weightname.size() > 10) abort("wrong 32-bit hex number");
+        uint32_t tmp;
+	    string_to_weight >> std::hex >> tmp;
+        weight = weight_t::from_bv(tmp);
+    } else {
+	    string_to_weight >> weight;
+    }
 	parser->weights.insert(weight);
-	if (string_to_weight.eof() == false) abort("non-integer weight");
+	if (string_to_weight.eof() == false)
+        abort("invalid weight: " + weightname);
 	parser_verbose("Parser: Weight = '%s'\n", std::to_string(weight).c_str());
 
 	std::string fromname;
