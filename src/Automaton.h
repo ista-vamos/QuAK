@@ -67,10 +67,10 @@ private:
 	void invert_weights();
 
 	void top_dag (SCC_Dag* dag, bool* done, weight_t* top_values) const;
-	void top_reachably_scc (State* state, bool in_scc, bool* spot, weight_t* values) const;
-	weight_t top_reachably (bool in_scc, weight_t* values, weight_t* top_values) const;
+	void top_reachably_scc (State* state, bool in_scc, bool* spot, weight_t* values, UltimatelyPeriodicWord** witness = nullptr) const;
+	weight_t top_reachably (bool in_scc, weight_t* values, weight_t* top_values, std::vector<Edge*>* path_to_top_scc) const;
 	weight_t top_Sup (weight_t* top_values) const;
-	weight_t top_LimSup (weight_t* top_values) const;
+	weight_t top_LimSup (weight_t* top_values, UltimatelyPeriodicWord** witness = nullptr) const;
 	void top_safety_scc_recursive(Edge* edge, SetStd<Edge*>* done_edge, bool in_scc, int* done_symbol, weight_t* values, weight_t** value_symbol, int** counters) const;
 	void top_safety_scc (weight_t* values, bool in_scc) const;
 	//weight_t top_safety (bool in_scc, weight_t* values, weight_t* top_values) const;
@@ -83,7 +83,7 @@ private:
 	State* top_cycles_explore (State* state, bool* spot, weight_t (*filter)(weight_t,weight_t), weight_t* top_values, SetList<Edge*>** scc_cycles) const;
 	void top_cycles (weight_t (*filter)(weight_t,weight_t), weight_t* scc_values, weight_t* top_values, SetList<Edge*>** scc_cycles) const;
 	void top_LimInf_cycles (weight_t* top_values, SetList<Edge*>** scc_cycles) const;
-	void top_LimSup_cycles (weight_t* top_values, SetList<Edge*>** scc_cycles) const;
+	weight_t top_LimSup_cycles (weight_t* top_values, SetList<Edge*>** scc_cycles, UltimatelyPeriodicWord** witness = nullptr) const;
 
 
 	bool isIncludedIn_booleanized (const Automaton* B, value_function_t f, UltimatelyPeriodicWord** witness = nullptr);
@@ -92,7 +92,7 @@ private:
 
 protected:
 	Automaton(const Automaton* A, value_function_t f);
-	weight_t compute_Top (value_function_t f, weight_t* top_values) const;
+	weight_t compute_Top (value_function_t f, weight_t* top_values, UltimatelyPeriodicWord** witness = nullptr) const;
 	weight_t compute_Bottom (value_function_t f, weight_t* bot_values);
 	void setMaxDomain (weight_t x);
 	void setMinDomain (weight_t x);
@@ -146,7 +146,7 @@ public:
 	bool isConstant (value_function_t f);							// checks if Universal(A, Top_A)
 	bool isLive (value_function_t f);								// checks if SafetyClosure(A) = Top_A
 	
-	weight_t getTopValue (value_function_t f) const;
+	weight_t getTopValue (value_function_t f, UltimatelyPeriodicWord** witness = nullptr) const;
 	weight_t getBottomValue (value_function_t f);
 	weight_t getMaxDomain () const;
 	weight_t getMinDomain () const;
