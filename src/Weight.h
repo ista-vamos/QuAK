@@ -4,6 +4,7 @@
 
 #include <string>
 #include <cmath>
+#include <cstdint>
 #include <iostream>
 
 class weight_t {
@@ -25,6 +26,8 @@ public:
   //weight_t(weight_t&) = default;
   constexpr weight_t(T val) : value(val){};
   //weight_t(weight_t&&) = default;
+
+  static weight_t from_bv(uint32_t);
 
   weight_t operator+(const weight_t rhs) const { return weight_t(value + rhs.value); }
   weight_t operator-(const weight_t rhs) const { return weight_t(value - rhs.value); }
@@ -50,6 +53,7 @@ public:
   explicit operator float() const { return value; }
 
   float to_float() const { return value; }
+  uint32_t to_bv() const;
 
   T operator*() const { return value; }
 
