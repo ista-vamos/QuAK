@@ -44,8 +44,7 @@ Symbol* Word::at (unsigned int i) {
 std::string Word::toString() {
 	std::string s = "";
 	for (Symbol* symbol : *(this->all)) {
-		if (symbol)
-			s.append(symbol->toString());
+		s.append(symbol->toString());
 	}
 	return s;
 }
