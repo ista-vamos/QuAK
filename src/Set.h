@@ -63,6 +63,7 @@ public:
 	void pop() { all.erase(all.begin()); }
 	T_element head() { return *(all.begin()); };
 	unsigned int size() const { return all.size(); }
+	bool empty() const { return all.empty(); }
 
 	auto begin() -> auto { return all.begin(); };
 	auto end() -> auto { return all.end(); };

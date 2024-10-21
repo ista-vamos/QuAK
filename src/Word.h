@@ -19,6 +19,7 @@ public:
 	unsigned int getLength ();
 	Symbol* at (unsigned int i);
 	std::string toString();
+	void push_back(Symbol* symbol);
 };
 
 #endif /* WORD_H_ */

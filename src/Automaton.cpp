@@ -438,9 +438,9 @@ void Automaton::compute_SCC (void) {
 
 // -------------------------------- Getters -------------------------------- //
 
-weight_t Automaton::getTopValue (value_function_t f) const {
+weight_t Automaton::getTopValue (value_function_t f, UltimatelyPeriodicWord** witness) const {
 	weight_t top_values[this->nb_SCCs];
-	weight_t top = compute_Top(f, top_values);
+	weight_t top = compute_Top(f, top_values, witness);
 	/*for (unsigned int id = 0;id <this->nb_SCCs; id++) {
 		printf("top[%u] = %s\n", id, std::to_string(top_values[id]).c_str());
 	}*/
@@ -1544,7 +1544,7 @@ void Automaton::top_dag (SCC_Dag* dag, bool* done, weight_t* top_values) const {
 }
 
 
-void Automaton::top_reachably_scc (State* state, bool in_scc, bool* spot, weight_t* values) const {
+void Automaton::top_reachably_scc (State* state, bool in_scc, bool* spot, weight_t* values, UltimatelyPeriodicWord** witness) const {
 	if (spot[state->getId()] == true) return;
 	spot[state->getId()] = true;
 	for (Symbol* symbol : *(state->getAlphabet())) {
@@ -1562,7 +1562,7 @@ void Automaton::top_reachably_scc (State* state, bool in_scc, bool* spot, weight
 }
 
 
-weight_t Automaton::top_reachably (bool in_scc, weight_t* values, weight_t* top_values) const {
+weight_t Automaton::top_reachably (bool in_scc, weight_t* values, weight_t* top_values, std::vector<Edge*>* path_to_top_scc) const {
 	bool spot[this->states->size()];
 	bool done[this->nb_SCCs];
 
@@ -1578,19 +1578,45 @@ weight_t Automaton::top_reachably (bool in_scc, weight_t* values, weight_t* top_
 	}
 
 	top_dag(this->SCCs[this->initial->getTag()], done, top_values);
+
+    if (path_to_top_scc != nullptr) {
+        // Find the SCC with the top value
+        int top_scc_id = this->initial->getTag();
+        for (unsigned int scc_id = 0; scc_id < this->nb_SCCs; ++scc_id) {
+            if (top_values[scc_id] > top_values[top_scc_id]) {
+                top_scc_id = scc_id;
+            }
+        }
+
+        // Construct the path to the top SCC
+        State* current = this->initial;
+        while (current->getTag() != top_scc_id) {
+            for (Symbol* symbol : *(current->getAlphabet())) {
+                for (Edge* edge : *(current->getSuccessors(symbol->getId()))) {
+                    if (top_values[edge->getTo()->getTag()] == top_values[top_scc_id]) {
+                        path_to_top_scc->push_back(edge);
+                        current = edge->getTo();
+                        goto next_state;
+                    }
+                }
+            }
+            next_state:;
+        }
+    }
+
 	return top_values[this->initial->getTag()];
 }
 
 
 weight_t Automaton::top_Sup (weight_t* top_values) const {
 	weight_t values[this->states->size()];
-	return top_reachably(false, values, top_values);
+	return top_reachably(false, values, top_values, nullptr);
 }
 
 
-weight_t Automaton::top_LimSup (weight_t* top_values) const {
+weight_t Automaton::top_LimSup (weight_t* top_values, UltimatelyPeriodicWord** witness) const {
 	weight_t values[this->states->size()];
-	return top_reachably(true, values, top_values);
+	return top_reachably(true, values, top_values, nullptr);
 }
 
 
@@ -2034,20 +2060,60 @@ void Automaton::top_LimInf_cycles (weight_t* top_values, SetList<Edge*>** scc_cy
 }
 
 
-void Automaton::top_LimSup_cycles (weight_t* top_values, SetList<Edge*>** scc_cycles) const {
+weight_t Automaton::top_LimSup_cycles (weight_t* top_values, SetList<Edge*>** scc_cycles, UltimatelyPeriodicWord** witness) const {
 	weight_t (*filter)(weight_t,weight_t) = [] (weight_t x, weight_t y) -> weight_t {
 		return std::max(x, y);
 	};
 	weight_t scc_values[this->states->size()];
-	top_reachably(true, scc_values, top_values);
-	top_cycles(filter, scc_values, top_values, scc_cycles);
+	
+	std::vector<Edge*> path_to_top_scc;
+	weight_t out;
+	if (witness != nullptr){
+		out = top_reachably(true, scc_values, top_values, &path_to_top_scc);
+	}
+	else {
+		out = top_reachably(true, scc_values, top_values, nullptr);
+	}
+    
+    top_cycles(filter, scc_values, top_values, scc_cycles);
+
+    if (witness != nullptr) {
+        // Find the SCC with the top value
+        int top_scc_id = -1;
+        for (unsigned int scc_id = 0; scc_id < this->nb_SCCs; ++scc_id) {
+            if (top_values[scc_id] == out) {
+                top_scc_id = scc_id;
+                break;
+            }
+        }
+
+        if (top_scc_id != -1 && !scc_cycles[top_scc_id]->empty()) {
+            // Construct the prefix (path to the top SCC)
+            Word* prefix = new Word();
+            for (Edge* edge : path_to_top_scc) {
+                prefix->push_back(edge->getSymbol());
+            }
+
+            // Construct the cycle
+            Word* cycle = new Word();
+            for (Edge* edge : *scc_cycles[top_scc_id]) {
+                cycle->push_back(edge->getSymbol());
+            }
+
+            // Create the UltimatelyPeriodicWord
+            *witness = new UltimatelyPeriodicWord{prefix, cycle};
+        }
+    }
+
+	return out;
 }
 
 
 
 
 
-weight_t Automaton::compute_Top (value_function_t f, weight_t* top_values) const {
+weight_t Automaton::compute_Top (value_function_t f, weight_t* top_values, UltimatelyPeriodicWord** witness) const {
+	SetList<Edge*>* scc_cycles[this->nb_SCCs];
 	switch (f) {
 		case Inf:
 			return top_Inf(top_values);
@@ -2056,7 +2122,7 @@ weight_t Automaton::compute_Top (value_function_t f, weight_t* top_values) const
 		case LimInf:
 			return top_LimInf(top_values);
 		case LimSup:
-			return top_LimSup(top_values);
+			return top_LimSup_cycles(top_values, scc_cycles, witness);
 		case LimInfAvg: case LimSupAvg:
 			return top_LimAvg(top_values);
 		default:
