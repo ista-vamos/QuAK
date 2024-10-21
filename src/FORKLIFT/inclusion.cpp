@@ -82,7 +82,7 @@ bool fast_membership (TargetOf* U, Word* period, weight_t threshold) {
 
 
 
-bool inclusion (const Automaton* A, const Automaton* B)  {
+bool inclusion (const Automaton* A, const Automaton* B, UltimatelyPeriodicWord** witness)  {
 
 	//unsigned int iter_W = 1;
 	//printf("MAX prefixes fix-point: computing ... ( %u iterations )\r", iter_W);fflush(stdout);
@@ -189,7 +189,7 @@ bool inclusion (const Automaton* A, const Automaton* B)  {
 					if (setU == NULL) continue;
 					for (std::pair<TargetOf*, Word*> pairU : *setU) {
 						TargetOf* U = pairU.first;
-	//					Word* word_of_U = pairU.second;
+						Word* word_of_U = pairU.second;
 
 						if (U->smaller_than(W) == true) {
 	//						membership_counter++;
@@ -203,6 +203,10 @@ bool inclusion (const Automaton* A, const Automaton* B)  {
 							if (fast_membership(U, word_of_V, valueA) == false) {
 	//							printf("witness: %s cycle{ %s }\n", word_of_U->toString().c_str(), word_of_V->toString().c_str());
 	//							printf("FALSE\n");
+								if (witness != nullptr) {
+									(*witness)->prefix = new Word(*word_of_U);
+									(*witness)->cycle = new Word(*word_of_V);
+								}
 								delete postF;
 								delete postI;
 								delete postIrev;

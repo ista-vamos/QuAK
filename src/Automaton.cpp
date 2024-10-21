@@ -1413,19 +1413,20 @@ bool Automaton::isConstant (value_function_t f) {
 }
 
 
-bool Automaton::isIncludedIn(const Automaton* B, value_function_t f, bool booleanized) {
+bool Automaton::isIncludedIn(const Automaton* B, value_function_t f, bool booleanized, UltimatelyPeriodicWord** witness) {
     assert(alphabetsAreCompatible(B) && "Incompatible alphabets");
 
     if (booleanized == true) {
-        return isIncludedIn_booleanized(B, f);
+        return isIncludedIn_booleanized(B, f, witness);
     }
 
-    return isIncludedIn_antichains(B, f);
+    return isIncludedIn_antichains(B, f, witness);
 }
 
-bool Automaton::isIncludedIn_antichains(const Automaton* B, value_function_t f) {
+bool Automaton::isIncludedIn_antichains(const Automaton* B, value_function_t f, UltimatelyPeriodicWord** witness) {
 	if (f == LimSupAvg || f == LimInfAvg) {
 		if (B->isDeterministic()) {
+			// TODO: WITNESS THROUGH TOP
 			Automaton* C = Automaton::product(this, Minus, B);
 			weight_t Ctop = C->getTopValue(f);
 			delete C;
@@ -1439,12 +1440,12 @@ bool Automaton::isIncludedIn_antichains(const Automaton* B, value_function_t f) 
 		bool flag;
 
 		if (f == LimSup) {
-			flag = inclusion(this, B);
+			flag = inclusion(this, B, witness);
 		}
 		else {
 			Automaton* AA = Automaton::toLimSup(this, f);
 			Automaton* BB = Automaton::toLimSup(B, f);
-			flag = inclusion(AA, BB);
+			flag = inclusion(AA, BB, witness);
 			delete AA;
 			delete BB;
 		}
@@ -1456,7 +1457,7 @@ bool Automaton::isIncludedIn_antichains(const Automaton* B, value_function_t f) 
 	}
 }
 
-bool Automaton::isIncludedIn_booleanized(const Automaton* B, value_function_t f) {
+bool Automaton::isIncludedIn_booleanized(const Automaton* B, value_function_t f, UltimatelyPeriodicWord** witness) {
     // unique_ptr to keep memory in case we create new limSup automata
     std::unique_ptr<Automaton> limSupThisMem, limSupBMem;
     const Automaton *limSupThis{nullptr}, *limSupB{nullptr};
@@ -1475,7 +1476,7 @@ bool Automaton::isIncludedIn_booleanized(const Automaton* B, value_function_t f)
         auto boolA = std::unique_ptr<Automaton>(booleanize(limSupThis, weight->getValue()));
         auto boolB = std::unique_ptr<Automaton>(booleanize(limSupB, weight->getValue()));
 
-        if (!inclusion(boolA.get(), boolB.get())) {
+        if (!inclusion(boolA.get(), boolB.get()), witness) {
           return false;
         }
     }
