@@ -2202,7 +2202,7 @@ bool Automaton::alphabetsAreCompatible(const Automaton *B) const {
 // -------------------------------- toStrings -------------------------------- //
 
 
-void Automaton::print (bool full) const {
+void Automaton::print (bool full, bool bv_weights, bool bv_only) const {
 	std::cout << "automaton (" << this->name << "):\n";
 	std::cout << "\talphabet (" << this->alphabet->size() << "):";
 	std::cout << this->alphabet->toString(Symbol::toString) << "\n";
@@ -2227,12 +2227,19 @@ void Automaton::print (bool full) const {
             auto *state = states->at(state_id);
             for (auto *edge : *state->getSuccessors(symbol->getId())) {
                 std::cout << "\t\t" << edge->getSymbol()->toString() << " : ";
-                if (full) {
-                  std::cout << std::setprecision(std::numeric_limits<weight_t::T>::max_digits10)
-                            << std::fixed;
+                if (bv_only) {
+                    std::cout << "0x" << std::hex << edge->getWeight()->getValue().to_bv();
+                } else {
+                    if (full) {
+                      std::cout << std::setprecision(std::numeric_limits<weight_t::T>::max_digits10)
+                                << std::fixed;
+                    }
+                    std::cout << *edge->getWeight()->getValue();
+                    if (bv_weights) {
+                        std::cout << " (" << "0x" << std::hex << edge->getWeight()->getValue().to_bv() << ")";
+                    }
                 }
-                std::cout << *edge->getWeight()->getValue() << ", "
-                          << edge->getFrom()->getName() << " -> "
+                std::cout << ", " << edge->getFrom()->getName() << " -> "
                           << edge->getTo()->getName() << "\n";
             }
 		}
