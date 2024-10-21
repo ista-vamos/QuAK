@@ -567,7 +567,11 @@ Automaton* Automaton::booleanize(const Automaton* A, weight_t x) {
 
 
 
-Automaton* Automaton::safetyClosure(const Automaton* A, value_function_t f) {
+Automaton* Automaton::safetyClosure(Automaton* A, value_function_t f) {
+	if (f == Sup) {
+		A = Automaton::toLimSup(A, Sup);
+	}
+
 	State::RESET();
 	Symbol::RESET();
 	Weight::RESET();
@@ -1266,19 +1270,18 @@ bool Automaton::isNonEmpty (value_function_t f, weight_t x ) {
 }
 
 // OLD
+/*
 bool Automaton::isUniversal (value_function_t f, weight_t x)  {
 	return (getBottomValue(f) >= x);
 }
+*/
 
-// NEW
-/*
 bool Automaton::isUniversal (value_function_t f, weight_t x)  {
 	Automaton* C = Automaton::constantAutomaton(this, x);
 	bool flag = C->isIncludedIn(this, f);
 	delete C;
 	return flag;
 }
-*/
 
 bool Automaton::isComplete () const {
 	for (unsigned int state_id = 0; state_id < this->states->size(); ++state_id) {
@@ -1386,6 +1389,7 @@ bool Automaton::isLimAvgConstant() const {
 }
 
 // OLD
+/*
 bool Automaton::isConstant (value_function_t f) {
 	if ((f == LimSupAvg || f == LimInfAvg) && isDeterministic() == false) {
 		return isLimAvgConstant();
@@ -1394,9 +1398,8 @@ bool Automaton::isConstant (value_function_t f) {
 		return (getTopValue(f) == getBottomValue(f));
 	}
 }
+*/
 
-// NEW
-/*
 bool Automaton::isConstant (value_function_t f) {
 	if (isDeterministic() == true) {
 		return (getTopValue(f) == getBottomValue(f));
@@ -1408,7 +1411,7 @@ bool Automaton::isConstant (value_function_t f) {
 		return isUniversal(f, getTopValue(f));
 	}
 }
-*/
+
 
 bool Automaton::isIncludedIn(const Automaton* B, value_function_t f, bool booleanized) {
     assert(alphabetsAreCompatible(B) && "Incompatible alphabets");
@@ -2081,10 +2084,13 @@ weight_t Automaton::compute_Bottom (value_function_t f, weight_t* bot_values) {
 			while (!found && weight_id > 0) {
 				weight_id--;
 				x = this->weights->at(weight_id)->getValue();
-
+				// OLD
+				/*
 				Automaton* C = Automaton::constantAutomaton(this, x);
 				found = C->isIncludedIn(this, f);
 				delete C;
+				*/
+				found = this->isUniversal(f, x);
 			}
 
 			return x;

@@ -100,7 +100,7 @@ public:
 	static Automaton* determinizeInf (const Automaton* A); // TODO: make private
 	static Automaton* copy_trim_complete(const Automaton* A, value_function_t f); // TODO: make private
 	static Automaton* from_file_sync_alphabet(std::string filename, Automaton* other = nullptr);
-	static Automaton* safetyClosure(const Automaton* A, value_function_t value_function);
+	static Automaton* safetyClosure(Automaton* A, value_function_t value_function);
 	static Automaton* livenessComponent_deterministic (const Automaton* A, value_function_t type);
 	static Automaton* livenessComponent_prefixIndependent (const Automaton* A, value_function_t type);
 	static Automaton* toLimSup (const Automaton* A, value_function_t f); // TODO: make private
