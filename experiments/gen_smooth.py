@@ -1,3 +1,5 @@
+# generate the automaton to evaluate the smoothness of drone motion
+
 from math import sqrt
 
 def get_d(symbol):
