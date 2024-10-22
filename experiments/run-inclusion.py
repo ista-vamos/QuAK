@@ -123,7 +123,7 @@ parser.add_argument("--bindir", help="Use binaries from this dir.", action='stor
 parser.add_argument("--out", help="Output file", action='store', required=True)
 parser.add_argument("--value-fun", help="Value function: Sup, Inf, ...", action='store', required=True)
 parser.add_argument("--timeout", help="The timeout for one run (wall time)",
-                    action='store', type=int, default=120)
+                    action='store', type=int, default=100)
 parser.add_argument("--num", help="Number of automata to use", action='store', type=int)
 parser.add_argument("--no-booleanized", help="Do not compare with booleanized algorithm", action='store_true', default=False)
 args = parser.parse_args()

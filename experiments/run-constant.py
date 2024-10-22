@@ -11,7 +11,7 @@ import argparse
 
 
 ABORT_ON_ERROR = True
-TIMEOUT = 10
+TIMEOUT = 100
 
 def errlog(*args):
     with open(join(dirname(__file__), "log.txt"), "a") as logf:
