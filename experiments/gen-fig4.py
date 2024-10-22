@@ -19,6 +19,7 @@ from math import floor
 
 TIMEOUT=100000
 MAXTIME=101000
+OUTDIR=join(dirname(__file__), 'results')
 
 rcParams.update({'font.size': 12})
 
@@ -94,7 +95,7 @@ ax.set_yticks([10**x for x in range(1, 6)])
 
 
 
-fig.savefig(f"../plots/constant-function.pdf", bbox_inches='tight', dpi=300)
+fig.savefig(f"{OUTDIR}/constant-function.pdf", bbox_inches='tight', dpi=300)
 
 
 # In[ ]:
