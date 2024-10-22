@@ -45,9 +45,7 @@ docker run --rm -ti -v "$(pwd)/results":/opt/quak/experiments/results quak ./run
 docker run --rm -ti -v "$(pwd)/results":/opt/quak/experiments/results quak ./run-all.sh --num=3
 ```
 
-# TODO 
-Running with `--num=X` should take XX with 4 cores and should give sufficiently
-close results to the figures from the paper.
+Running with `--num=15` should take about 1 hour with 4 cores @ 2.8GHz.
 
 
 ### Random automata
