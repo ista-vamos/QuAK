@@ -32,7 +32,7 @@ int main() {
                 weight_t top = A->getTopValue(LimInfAvg);
 
                 Automaton* B = A->livenessComponent_prefixIndependent(A, LimInfAvg);
-                // // B->print();
+                // B->print();
                 bool flag = B->isLive(LimInf);
                 delete B;
                 delete A;
