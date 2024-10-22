@@ -15,7 +15,7 @@ int main() {
     std::vector<int> states = {2, 4, 8};
     std::vector<int> letters = {2, 4};
 
-    std::string directory = "samples/rand"; // Current directory
+    std::string directory = "../samples/rand"; // Current directory
     
     for (int num_states : states) {
         for (int num_letters : letters) {
@@ -28,17 +28,36 @@ int main() {
                 
                 Automaton* A = new Automaton(directory + "/" + filename.str());
                 A->print();
-                Automaton* B = A->livenessComponent_prefixIndependent(A, LimInf);
-                // B->print();
 
+                weight_t top = A->getTopValue(LimInfAvg);
+
+                Automaton* B = A->livenessComponent_prefixIndependent(A, LimInfAvg);
+                // // B->print();
                 bool flag = B->isLive(LimInf);
-
                 delete B;
                 delete A;
-
                 if (!flag) {
                     std::cout << "Error: " << filename.str() << std::endl;
                 }
+
+                // UltimatelyPeriodicWord* witness = new UltimatelyPeriodicWord();
+                // weight_t top = A->getTopValue(LimInfAvg, &witness);
+
+                // std::cout << "Witness to top value:" << std::endl;
+                // std::cout << "Prefix: " << witness->prefix->toString() << std::endl;
+                // std::cout << "Cycle: " << witness->cycle->toString() << std::endl;
+                
+                // // weight_t val = A->computeValue(LimSup, witness);
+
+                // delete witness->prefix;
+                // delete witness->cycle;
+                // delete witness;
+                // delete A;
+
+                // if (val != top) {
+                //   std::cout << "Error: " << filename.str() << std::endl;
+                //   return -1;
+                // }
             }
         }
     }
