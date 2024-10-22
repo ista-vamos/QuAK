@@ -27,7 +27,7 @@ int main() {
                 std::cout << "Processing file: " << filename.str() << std::endl;
                 
                 Automaton* A = new Automaton(directory + "/" + filename.str());
-                A->print();
+                A->print(true, true);
                 Automaton* B = A->livenessComponent_prefixIndependent(A, LimInf);
                 // B->print();
 
