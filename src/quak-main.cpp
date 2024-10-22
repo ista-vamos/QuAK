@@ -27,37 +27,37 @@ int main() {
                 std::cout << "Processing file: " << filename.str() << std::endl;
                 
                 Automaton* A = new Automaton(directory + "/" + filename.str());
-                A->print();
+                // A->print();
 
-                weight_t top = A->getTopValue(LimInfAvg);
+                // weight_t topxx = A->getTopValue(LimInfAvg);
 
-                Automaton* B = A->livenessComponent_prefixIndependent(A, LimInfAvg);
-                // B->print();
-                bool flag = B->isLive(LimInf);
-                delete B;
-                delete A;
-                if (!flag) {
-                    std::cout << "Error: " << filename.str() << std::endl;
-                }
-
-                // UltimatelyPeriodicWord* witness = new UltimatelyPeriodicWord();
-                // weight_t top = A->getTopValue(LimInfAvg, &witness);
-
-                // std::cout << "Witness to top value:" << std::endl;
-                // std::cout << "Prefix: " << witness->prefix->toString() << std::endl;
-                // std::cout << "Cycle: " << witness->cycle->toString() << std::endl;
-                
-                // // weight_t val = A->computeValue(LimSup, witness);
-
-                // delete witness->prefix;
-                // delete witness->cycle;
-                // delete witness;
+                // Automaton* B = A->livenessComponent_prefixIndependent(A, LimInfAvg);
+                // // B->print();
+                // bool flag = B->isLive(LimInf);
+                // delete B;
                 // delete A;
-
-                // if (val != top) {
-                //   std::cout << "Error: " << filename.str() << std::endl;
-                //   return -1;
+                // if (!flag) {
+                //     std::cout << "Error: " << filename.str() << std::endl;
                 // }
+
+                UltimatelyPeriodicWord* witness = new UltimatelyPeriodicWord();
+                weight_t top = A->getTopValue(LimInfAvg, &witness);
+
+                std::cout << "Witness to top value:" << std::endl;
+                std::cout << "Prefix: " << witness->prefix->toString() << std::endl;
+                std::cout << "Cycle: " << witness->cycle->toString() << std::endl;
+                
+                weight_t val = A->computeValue(LimInfAvg, witness);
+
+                delete witness->prefix;
+                delete witness->cycle;
+                delete witness;
+                delete A;
+
+                if (val != top) {
+                  std::cout << "Error: " << filename.str() << std::endl;
+                  return -1;
+                }
             }
         }
     }
