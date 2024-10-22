@@ -1,6 +1,43 @@
 import random
 import string
 import os
+from collections import deque
+
+def find_reachable_states(transitions, initial_state, num_states):
+    """Find all states reachable from the initial state using BFS."""
+    reachable = set([initial_state])
+    queue = deque([initial_state])
+    
+    while queue:
+        current = queue.popleft()
+        for _, _, source, target in transitions:
+            if source == current and target not in reachable:
+                reachable.add(target)
+                queue.append(target)
+                
+    return reachable
+
+def ensure_connectivity(transitions, num_states, alphabet, min_weight, max_weight):
+    """Ensure all states are reachable from state 0 by adding necessary transitions."""
+    initial_state = 0
+    reachable = find_reachable_states(transitions, initial_state, num_states)
+    
+    # Keep adding transitions until all states are reachable
+    while len(reachable) < num_states:
+        # Find an unreachable state
+        unreachable = set(range(num_states)) - reachable
+        target = random.choice(list(unreachable))
+        
+        # Add a transition from a reachable state to the unreachable state
+        source = random.choice(list(reachable))
+        letter = random.choice(alphabet)
+        weight = random.uniform(min_weight, max_weight)
+        transitions.append((letter, weight, source, target))
+        
+        # Update reachable states
+        reachable = find_reachable_states(transitions, initial_state, num_states)
+    
+    return transitions
 
 def generate_complete_nondeterministic_automaton(num_states, alphabet_size, extra_transitions_per_state, min_weight, max_weight):
     states = list(range(num_states))
@@ -22,14 +59,15 @@ def generate_complete_nondeterministic_automaton(num_states, alphabet_size, extr
             weight = random.uniform(min_weight, max_weight)
             transitions.append((letter, weight, state, target))
 
-    # Shuffle the transitions to randomize the initial state
-    random.shuffle(transitions)
+    # Ensure all states are reachable from the initial state
+    transitions = ensure_connectivity(transitions, num_states, alphabet, min_weight, max_weight)
 
     return transitions
 
 def save_automaton_to_file(transitions, filename):
     script_dir = os.path.dirname(os.path.abspath(__file__))
     script_dir = os.path.join(script_dir, "rand")
+    os.makedirs(script_dir, exist_ok=True)  # Create directory if it doesn't exist
     file_path = os.path.join(script_dir, filename)
     
     with open(file_path, 'w') as f:
@@ -53,12 +91,12 @@ def main():
     min_weight, max_weight = -10.0, 10.0
 
     configurations = [
-        (2, 2),  # 2 states, 2 letters
-        (4, 2),  # 4 states, 2 letters
-        (8, 2),  # 4 states, 2 letters
-        (2, 4),  # 2 states, 4 letters
-        (4, 4),   # 4 states, 4 letters
-        (8, 4)   # 4 states, 4 letters
+        (2, 2),  # (x, y) == x states, y letters
+        (4, 2),
+        (8, 2),
+        (2, 4),
+        (4, 4),
+        (8, 4)
     ]
 
     for num_states, alphabet_size in configurations:
