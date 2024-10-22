@@ -20,7 +20,7 @@ from os import listdir
 
 TIMEOUT=100000000
 MAXTIME=102000000
-OUTDIR="."
+OUTDIR=join(dirname(__file__), 'results')
 
 rcParams.update({'font.size': 12})
 
