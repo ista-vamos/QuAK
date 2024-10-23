@@ -63,7 +63,7 @@ private:
 			State* initial
 	);
 	void compute_SCC (void);
-  void appropriateStates();
+	void appropriateStates();
 	void invert_weights();
 
 	void top_dag (SCC_Dag* dag, bool* done, weight_t* top_values) const;
@@ -86,15 +86,17 @@ private:
 	weight_t top_LimInf_cycles (weight_t* top_values, SetList<Edge*>** scc_cycles, UltimatelyPeriodicWord** witness = nullptr) const;
 	weight_t top_LimSup_cycles (weight_t* top_values, SetList<Edge*>** scc_cycles, UltimatelyPeriodicWord** witness = nullptr) const;
 
+	bool isIncludedIn_booleanized (const Automaton* B, value_function_t f, UltimatelyPeriodicWord** witness = nullptr) const;
+	bool isIncludedIn_antichains (const Automaton* B, value_function_t f, UltimatelyPeriodicWord** witness = nullptr) const;
+  	bool alphabetsAreCompatible(const Automaton *B) const;
 
-	bool isIncludedIn_booleanized (const Automaton* B, value_function_t f, UltimatelyPeriodicWord** witness = nullptr);
-	bool isIncludedIn_antichains (const Automaton* B, value_function_t f, UltimatelyPeriodicWord** witness = nullptr);
-  bool alphabetsAreCompatible(const Automaton *B) const;
+	static Automaton* determinizeInf (const Automaton* A);
+	bool isLimAvgConstant(UltimatelyPeriodicWord** witness = nullptr) const;
 
 protected:
 	Automaton(const Automaton* A, value_function_t f);
 	weight_t compute_Top (value_function_t f, weight_t* top_values, UltimatelyPeriodicWord** witness = nullptr) const;
-	weight_t compute_Bottom (value_function_t f, weight_t* bot_values);
+	weight_t compute_Bottom (value_function_t f, weight_t* bot_values, UltimatelyPeriodicWord** witness = nullptr);
 	void setMaxDomain (weight_t x);
 	void setMinDomain (weight_t x);
 
@@ -102,16 +104,12 @@ public:
 	~Automaton ();
 	Automaton(std::string filename, Automaton* other = nullptr);
 	Automaton(std::string filename, value_function_t f, Automaton* other = nullptr);
-	static Automaton* determinizeInf (const Automaton* A); // TODO: make private
-	static Automaton* copy_trim_complete(const Automaton* A, value_function_t f); // TODO: make private
 	static Automaton* from_file_sync_alphabet(std::string filename, Automaton* other = nullptr);
 	static Automaton* safetyClosure(Automaton* A, value_function_t value_function);
 	static Automaton* livenessComponent_deterministic (const Automaton* A, value_function_t type);
 	static Automaton* livenessComponent_prefixIndependent (const Automaton* A, value_function_t type);
-	static Automaton* toLimSup (const Automaton* A, value_function_t f); // TODO: make private
-	bool isLimAvgConstant() const; // TODO: make private
-	static Automaton* product(const Automaton* A, aggregator_t aggregator, const Automaton* B); // TODO: make private
-	weight_t computeValue(value_function_t f, UltimatelyPeriodicWord* w);
+	static Automaton* toLimSup (const Automaton* A, value_function_t f);
+	static Automaton* product(const Automaton* A, aggregator_t aggregator, const Automaton* B);
 
   // Generate a random automaton
   static Automaton *randomAutomaton(const std::string& name,
@@ -134,7 +132,7 @@ public:
 	static Automaton* booleanize(const Automaton* A, weight_t x);
 
 	bool isDeterministic () const;
-  bool isComplete () const;
+  	bool isComplete () const;
 
     /// Print the automaton to stdout
     ///  - `full` print the weights with full precision
@@ -144,17 +142,20 @@ public:
 	void print (bool full = false, bool bv_weights = false, bool bv_only = false) const;
 	const std::string &getName() const;
 
-	bool isNonEmpty (value_function_t f, weight_t x); 				// checks if A(w) >= v for some w
-	bool isUniversal (value_function_t f, weight_t x);			// checks if A(w) >= v for all w
+	bool isNonEmpty (value_function_t f, weight_t x, UltimatelyPeriodicWord** witness = nullptr);	// checks if A(w) >= v for some w
+	bool isUniversal (value_function_t f, weight_t x, UltimatelyPeriodicWord** witness = nullptr);	// checks if A(w) >= v for all w
     // checks if A(w) <= B(w) for all w. If `booleanized` is set to true, the inclusion algorithm based
     // on booleanization is used, otherwise the one on anti-chains is used
-	bool isIncludedIn (const Automaton* B, value_function_t f, bool booleanized = false, UltimatelyPeriodicWord** witness = nullptr);
-	bool isSafe (value_function_t f);								// checks if A = SafetyClosure(A)
-	bool isConstant (value_function_t f);							// checks if Universal(A, Top_A)
-	bool isLive (value_function_t f);								// checks if SafetyClosure(A) = Top_A
+	bool isIncludedIn (const Automaton* B, value_function_t f, bool booleanized = false, UltimatelyPeriodicWord** witness = nullptr) const;
+	bool isEquivalentTo (const Automaton* B, value_function_t f, bool booleanized = false, UltimatelyPeriodicWord** witness1 = nullptr, UltimatelyPeriodicWord** witness2 = nullptr) const;
+	bool isSafe (value_function_t f, UltimatelyPeriodicWord** witness = nullptr);	// checks if A = SafetyClosure(A)
+	bool isConstant (value_function_t f, UltimatelyPeriodicWord** witness = nullptr);	// checks if Universal(A, Top_A)
+	bool isLive (value_function_t f, UltimatelyPeriodicWord** witness = nullptr);	// checks if SafetyClosure(A) = Top_A
+	weight_t computeValue(value_function_t f, UltimatelyPeriodicWord* w);
+	static Automaton* copy_trim_complete(const Automaton* A, value_function_t f);
 	
 	weight_t getTopValue (value_function_t f, UltimatelyPeriodicWord** witness = nullptr) const;
-	weight_t getBottomValue (value_function_t f);
+	weight_t getBottomValue (value_function_t f, UltimatelyPeriodicWord** witness = nullptr);
 	weight_t getMaxDomain () const;
 	weight_t getMinDomain () const;
 	State* getInitial () const;

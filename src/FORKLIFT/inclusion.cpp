@@ -229,113 +229,111 @@ bool inclusion (const Automaton* A, const Automaton* B, UltimatelyPeriodicWord**
 
 
 void debug_test2() {
-	// EGE: i can't run these tests (it probably runs out of memory?)
-	// NIC: several of then should work (not bakery, not fischerv3, probably not Odd_and_even)
-	Automaton* toto;
-	Automaton* titi;
+	// Automaton* toto;
+	// Automaton* titi;
 
-	printf("--------------------------------------------\n");
-	printf("--------------------------------------------\n");
+	// printf("--------------------------------------------\n");
+	// printf("--------------------------------------------\n");
  	
-	std::cout << "All_positive_numbers_have_a_predecessor" << std::endl;
-	toto = Automaton::from_file_sync_alphabet("./samples/All_positive_numbers_have_a_predecessor_SUBSET.txt");
-	titi = Automaton::determinizeInf(toto);
-	std::cout << toto->isIncludedIn(titi, Inf) << " " << titi->isIncludedIn(toto, Inf);
+	// std::cout << "All_positive_numbers_have_a_predecessor" << std::endl;
+	// toto = Automaton::from_file_sync_alphabet("./samples/All_positive_numbers_have_a_predecessor_SUBSET.txt");
+	// titi = Automaton::determinizeInf(toto);
+	// std::cout << toto->isIncludedIn(titi, Inf) << " " << titi->isIncludedIn(toto, Inf);
 
-	delete toto;
-	delete titi;
+	// delete toto;
+	// delete titi;
 
-	toto = Automaton::from_file_sync_alphabet("./samples/All_positive_numbers_have_a_predecessor_SUPERSET.txt");
-	titi = Automaton::determinizeInf(toto);
-	std::cout << toto->isIncludedIn(titi, Inf) << " " << titi->isIncludedIn(toto, Inf);
+	// toto = Automaton::from_file_sync_alphabet("./samples/All_positive_numbers_have_a_predecessor_SUPERSET.txt");
+	// titi = Automaton::determinizeInf(toto);
+	// std::cout << toto->isIncludedIn(titi, Inf) << " " << titi->isIncludedIn(toto, Inf);
 
-	delete toto;
-	delete titi;
+	// delete toto;
+	// delete titi;
 
-	printf("--------------------------------------------\n");
+	// printf("--------------------------------------------\n");
 
-	std::cout << "All_Sturmian_words_contain_cubes" << std::endl;
-	toto = Automaton::from_file_sync_alphabet("./samples/All_Sturmian_words_contain_cubes_SUBSET.txt");
-	titi = Automaton::determinizeInf(toto);
-	std::cout << toto->isIncludedIn(titi, Inf) << " " << titi->isIncludedIn(toto, Inf);
+	// std::cout << "All_Sturmian_words_contain_cubes" << std::endl;
+	// toto = Automaton::from_file_sync_alphabet("./samples/All_Sturmian_words_contain_cubes_SUBSET.txt");
+	// titi = Automaton::determinizeInf(toto);
+	// std::cout << toto->isIncludedIn(titi, Inf) << " " << titi->isIncludedIn(toto, Inf);
 
-	delete toto;
-	delete titi;
+	// delete toto;
+	// delete titi;
 
-	toto = Automaton::from_file_sync_alphabet("./samples/All_Sturmian_words_contain_cubes_SUPERSET.txt");
-	titi = Automaton::determinizeInf(toto);
-	std::cout << toto->isIncludedIn(titi, Inf) << " " << titi->isIncludedIn(toto, Inf);
+	// toto = Automaton::from_file_sync_alphabet("./samples/All_Sturmian_words_contain_cubes_SUPERSET.txt");
+	// titi = Automaton::determinizeInf(toto);
+	// std::cout << toto->isIncludedIn(titi, Inf) << " " << titi->isIncludedIn(toto, Inf);
 
-	delete toto;
-	delete titi;
+	// delete toto;
+	// delete titi;
 
-	printf("--------------------------------------------\n");
+	// printf("--------------------------------------------\n");
 
-	std::cout << "All_Sturmian_words_start_with_arbitarily_long_palindromes" << std::endl;
-	toto = Automaton::from_file_sync_alphabet("./samples/All_Sturmian_words_start_with_arbitarily_long_palindromes_SUBSET.txt");
-	titi = Automaton::determinizeInf(toto);
-	std::cout << toto->isIncludedIn(titi, Inf) << " " << titi->isIncludedIn(toto, Inf);
+	// std::cout << "All_Sturmian_words_start_with_arbitarily_long_palindromes" << std::endl;
+	// toto = Automaton::from_file_sync_alphabet("./samples/All_Sturmian_words_start_with_arbitarily_long_palindromes_SUBSET.txt");
+	// titi = Automaton::determinizeInf(toto);
+	// std::cout << toto->isIncludedIn(titi, Inf) << " " << titi->isIncludedIn(toto, Inf);
 
-	delete toto;
-	delete titi;
+	// delete toto;
+	// delete titi;
 
-	toto = Automaton::from_file_sync_alphabet("./samples/All_Sturmian_words_start_with_arbitarily_long_palindromes_SUPERSET.txt");
-	titi = Automaton::determinizeInf(toto);
-	std::cout << toto->isIncludedIn(titi, Inf) << " " << titi->isIncludedIn(toto, Inf);
+	// toto = Automaton::from_file_sync_alphabet("./samples/All_Sturmian_words_start_with_arbitarily_long_palindromes_SUPERSET.txt");
+	// titi = Automaton::determinizeInf(toto);
+	// std::cout << toto->isIncludedIn(titi, Inf) << " " << titi->isIncludedIn(toto, Inf);
 
-	delete toto;
-	delete titi;
+	// delete toto;
+	// delete titi;
 
-	printf("--------------------------------------------\n");
+	// printf("--------------------------------------------\n");
 
-	std::cout << "bakeryV3" << std::endl;
-	toto = Automaton::from_file_sync_alphabet("./samples/bakeryV3_SUBSET.txt");
-	titi = Automaton::determinizeInf(toto);
-	std::cout << toto->isIncludedIn(titi, Inf) << " " << titi->isIncludedIn(toto, Inf);
+	// std::cout << "bakeryV3" << std::endl;
+	// toto = Automaton::from_file_sync_alphabet("./samples/bakeryV3_SUBSET.txt");
+	// titi = Automaton::determinizeInf(toto);
+	// std::cout << toto->isIncludedIn(titi, Inf) << " " << titi->isIncludedIn(toto, Inf);
 
-	delete toto;
-	delete titi;
+	// delete toto;
+	// delete titi;
 
-	toto = Automaton::from_file_sync_alphabet("./samples/bakeryV3_SUPERSET.txt");
-	titi = Automaton::determinizeInf(toto);
-	std::cout << toto->isIncludedIn(titi, Inf) << " " << titi->isIncludedIn(toto, Inf);
+	// toto = Automaton::from_file_sync_alphabet("./samples/bakeryV3_SUPERSET.txt");
+	// titi = Automaton::determinizeInf(toto);
+	// std::cout << toto->isIncludedIn(titi, Inf) << " " << titi->isIncludedIn(toto, Inf);
 
-	delete toto;
-	delete titi;
+	// delete toto;
+	// delete titi;
 
-	printf("--------------------------------------------\n");
+	// printf("--------------------------------------------\n");
 
-	std::cout << "bigb" << std::endl;
-	toto = Automaton::from_file_sync_alphabet("./samples/bigb_SUBSET.txt");
-	titi = Automaton::determinizeInf(toto);
-	std::cout << toto->isIncludedIn(titi, Inf) << " " << titi->isIncludedIn(toto, Inf);
+	// std::cout << "bigb" << std::endl;
+	// toto = Automaton::from_file_sync_alphabet("./samples/bigb_SUBSET.txt");
+	// titi = Automaton::determinizeInf(toto);
+	// std::cout << toto->isIncludedIn(titi, Inf) << " " << titi->isIncludedIn(toto, Inf);
 
-	delete toto;
-	delete titi;
+	// delete toto;
+	// delete titi;
 
-	toto = Automaton::from_file_sync_alphabet("./samples/bigb_SUPERSET.txt");
-	titi = Automaton::determinizeInf(toto);
-	std::cout << toto->isIncludedIn(titi, Inf) << " " << titi->isIncludedIn(toto, Inf);
+	// toto = Automaton::from_file_sync_alphabet("./samples/bigb_SUPERSET.txt");
+	// titi = Automaton::determinizeInf(toto);
+	// std::cout << toto->isIncludedIn(titi, Inf) << " " << titi->isIncludedIn(toto, Inf);
 
-	delete toto;
-	delete titi;
+	// delete toto;
+	// delete titi;
 	
-	printf("--------------------------------------------\n");
+	// printf("--------------------------------------------\n");
 
-	std::cout << "BuchiCegarLoopAbstraction_SUBSET" << std::endl;
-	toto = Automaton::from_file_sync_alphabet("./samples/BuchiCegarLoopAbstraction_SUBSET.txt");
-	titi = Automaton::determinizeInf(toto);
-	std::cout << toto->isIncludedIn(titi, Inf) << " " << titi->isIncludedIn(toto, Inf);
+	// std::cout << "BuchiCegarLoopAbstraction_SUBSET" << std::endl;
+	// toto = Automaton::from_file_sync_alphabet("./samples/BuchiCegarLoopAbstraction_SUBSET.txt");
+	// titi = Automaton::determinizeInf(toto);
+	// std::cout << toto->isIncludedIn(titi, Inf) << " " << titi->isIncludedIn(toto, Inf);
 
-	delete toto;
-	delete titi;
+	// delete toto;
+	// delete titi;
 
-	toto = Automaton::from_file_sync_alphabet("./samples/BuchiCegarLoopAbstraction_SUPERSET.txt");
-	titi = Automaton::determinizeInf(toto);
-	std::cout << toto->isIncludedIn(titi, Inf) << " " << titi->isIncludedIn(toto, Inf);
+	// toto = Automaton::from_file_sync_alphabet("./samples/BuchiCegarLoopAbstraction_SUPERSET.txt");
+	// titi = Automaton::determinizeInf(toto);
+	// std::cout << toto->isIncludedIn(titi, Inf) << " " << titi->isIncludedIn(toto, Inf);
 
-	delete toto;
-	delete titi;
+	// delete toto;
+	// delete titi;
 
 
 
