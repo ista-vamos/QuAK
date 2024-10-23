@@ -11,6 +11,9 @@
 #include "Symbol.h"
 #include "Word.h"
 
+
+extern bool allweights0;
+
 class SCC_Dag;
 
 
@@ -78,13 +81,19 @@ private:
 	weight_t top_LimInf (weight_t* top_values) const;
 	weight_t top_LimAvg (weight_t* top_values) const;
 
-	void constructWitness(value_function_t f, UltimatelyPeriodicWord** witness, const weight_t* scc_values, const weight_t* top_values, SetList<Edge*>** scc_cycles, State* initial, MapArray<State*>* states) const;
+	void constructWitness(value_function_t f, UltimatelyPeriodicWord** witness, const weight_t* scc_values, const weight_t* top_values, SetList<Edge*>** scc_cycles, SetList<Edge*>* path) const;
 	weight_t top_LimAvg_cycles (weight_t* top_values, SetList<Edge*>** scc_cycles, UltimatelyPeriodicWord** witness = nullptr) const;
 	// State* top_cycles_explore (State* state, bool* spot, weight_t (*filter)(weight_t,weight_t), weight_t* top_values, SetList<Edge*>** scc_cycles) const;
 	bool top_cycles_explore (State* target, State* state, bool* spot, weight_t (*filter)(weight_t,weight_t), weight_t* top_values, SetList<Edge*>** scc_cycles) const;
 	void top_cycles (weight_t (*filter)(weight_t,weight_t), weight_t* scc_values, weight_t* top_values, SetList<Edge*>** scc_cycles) const;
 	weight_t top_LimInf_cycles (weight_t* top_values, SetList<Edge*>** scc_cycles, UltimatelyPeriodicWord** witness = nullptr) const;
 	weight_t top_LimSup_cycles (weight_t* top_values, SetList<Edge*>** scc_cycles, UltimatelyPeriodicWord** witness = nullptr) const;
+	
+	bool top_infsup_witness_explore (weight_t top, State* state, bool* spot, weight_t (*filter)(weight_t,weight_t), SetList<Edge*>* path) const;
+	void top_infsup_witness (weight_t (*filter)(weight_t,weight_t), weight_t top, SetList<Edge*>* path) const;
+	weight_t top_Sup_path (weight_t* top_values, SetList<Edge*>* path, UltimatelyPeriodicWord** witness) const;
+	weight_t top_Inf_path (weight_t* top_values, SetList<Edge*>* path, UltimatelyPeriodicWord** witness) const;
+	weight_t top_Inf_with_witness (weight_t* top_values, UltimatelyPeriodicWord** witness) const;
 
 	bool isIncludedIn_booleanized (const Automaton* B, value_function_t f, UltimatelyPeriodicWord** witness = nullptr) const;
 	bool isIncludedIn_antichains (const Automaton* B, value_function_t f, UltimatelyPeriodicWord** witness = nullptr) const;
