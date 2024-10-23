@@ -53,3 +53,7 @@ std::string Word::toString() {
 void Word::push_back(Symbol* symbol) {
     this->all->push_back(symbol);
 }
+
+void Word::pop_back() {
+    this->all->pop_back();
+}
