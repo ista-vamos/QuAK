@@ -447,9 +447,9 @@ weight_t Automaton::getTopValue (value_function_t f, UltimatelyPeriodicWord** wi
 	return top;
 }
 
-weight_t Automaton::getBottomValue (value_function_t f) {
+weight_t Automaton::getBottomValue (value_function_t f, UltimatelyPeriodicWord** witness) {
 	weight_t bot_values[this->nb_SCCs];
-	return compute_Bottom(f, bot_values);
+	return compute_Bottom(f, bot_values, witness);
 }
 
 
@@ -1113,20 +1113,14 @@ bool Automaton::isDeterministic () const {
 	return true;
 }
 
-bool Automaton::isNonEmpty (value_function_t f, weight_t x ) {
-	return (getTopValue(f) >= x);
+bool Automaton::isNonEmpty (value_function_t f, weight_t x, UltimatelyPeriodicWord** witness) {
+	return (getTopValue(f, witness) >= x);
 }
 
-// OLD
-/*
-bool Automaton::isUniversal (value_function_t f, weight_t x)  {
-	return (getBottomValue(f) >= x);
-}
-*/
 
-bool Automaton::isUniversal (value_function_t f, weight_t x)  {
+bool Automaton::isUniversal (value_function_t f, weight_t x, UltimatelyPeriodicWord** witness)  {
 	Automaton* C = Automaton::constantAutomaton(this, x);
-	bool flag = C->isIncludedIn(this, f);
+	bool flag = C->isIncludedIn(this, f, witness);
 	delete C;
 	return flag;
 }
@@ -1141,7 +1135,7 @@ bool Automaton::isComplete () const {
 }
 
 
-bool Automaton::isLimAvgConstant() const {
+bool Automaton::isLimAvgConstant(UltimatelyPeriodicWord** witness) const {
 	weight_t top = getTopValue(LimSupAvg);//top of LimSupAvg and LimInfAvg coincide
 
     int dist[this->getStates()->size()];
@@ -1231,37 +1225,29 @@ bool Automaton::isLimAvgConstant() const {
 	}
 
 	Automaton* Dist = new Automaton(newname, newalphabet, newstates, newweights, 0, 1, newinitial);
-	bool out = Dist->isUniversal(LimInf, 1);
+	bool out = Dist->isUniversal(LimInf, 1, witness);
 	delete Dist;
 	return out;
 }
 
-// OLD
-/*
-bool Automaton::isConstant (value_function_t f) {
-	if ((f == LimSupAvg || f == LimInfAvg) && isDeterministic() == false) {
-		return isLimAvgConstant();
-	}
-	else {
-		return (getTopValue(f) == getBottomValue(f));
-	}
-}
-*/
-
-bool Automaton::isConstant (value_function_t f) {
+// witness is a word whose value is strictly less than the automaton's top value
+bool Automaton::isConstant (value_function_t f, UltimatelyPeriodicWord** witness) {
 	if (isDeterministic() == true) {
-		return (getTopValue(f) == getBottomValue(f));
+		return (getTopValue(f) == getBottomValue(f, witness));
 	}
 	else if ((f == LimSupAvg || f == LimInfAvg)) {
-		return isLimAvgConstant();
+		return isLimAvgConstant(witness);
 	}
 	else {
-		return isUniversal(f, getTopValue(f));
+		return isUniversal(f, getTopValue(f), witness);
 	}
 }
 
+bool Automaton::isEquivalentTo (const Automaton* B, value_function_t f, bool booleanized, UltimatelyPeriodicWord** witness1, UltimatelyPeriodicWord** witness2) const {
+	return this->isIncludedIn(B, f, booleanized, witness1) && B->isIncludedIn(this, f, booleanized, witness2);
+}
 
-bool Automaton::isIncludedIn(const Automaton* B, value_function_t f, bool booleanized, UltimatelyPeriodicWord** witness) {
+bool Automaton::isIncludedIn(const Automaton* B, value_function_t f, bool booleanized, UltimatelyPeriodicWord** witness) const {
     assert(alphabetsAreCompatible(B) && "Incompatible alphabets");
 
     if (booleanized == true) {
@@ -1271,12 +1257,11 @@ bool Automaton::isIncludedIn(const Automaton* B, value_function_t f, bool boolea
     return isIncludedIn_antichains(B, f, witness);
 }
 
-bool Automaton::isIncludedIn_antichains(const Automaton* B, value_function_t f, UltimatelyPeriodicWord** witness) {
+bool Automaton::isIncludedIn_antichains(const Automaton* B, value_function_t f, UltimatelyPeriodicWord** witness) const {
 	if (f == LimSupAvg || f == LimInfAvg) {
 		if (B->isDeterministic()) {
-			// TODO: WITNESS THROUGH TOP
 			Automaton* C = Automaton::product(this, Minus, B);
-			weight_t Ctop = C->getTopValue(f);
+			weight_t Ctop = C->getTopValue(f, witness);
 			delete C;
 			return (Ctop <= 0);
 		}
@@ -1305,7 +1290,7 @@ bool Automaton::isIncludedIn_antichains(const Automaton* B, value_function_t f, 
 	}
 }
 
-bool Automaton::isIncludedIn_booleanized(const Automaton* B, value_function_t f, UltimatelyPeriodicWord** witness) {
+bool Automaton::isIncludedIn_booleanized(const Automaton* B, value_function_t f, UltimatelyPeriodicWord** witness) const {
     // unique_ptr to keep memory in case we create new limSup automata
     std::unique_ptr<Automaton> limSupThisMem, limSupBMem;
     const Automaton *limSupThis{nullptr}, *limSupB{nullptr};
@@ -1333,7 +1318,7 @@ bool Automaton::isIncludedIn_booleanized(const Automaton* B, value_function_t f,
 }
 
 
-bool Automaton::isSafe (value_function_t f) {
+bool Automaton::isSafe (value_function_t f, UltimatelyPeriodicWord** witness) {
 	if (f == Inf) {
 		return true;
 	}
@@ -1344,27 +1329,27 @@ bool Automaton::isSafe (value_function_t f) {
 	if ((f == LimSupAvg || f== LimInfAvg) && !this->isDeterministic()) {
 		Automaton* SS = Automaton::determinizeInf(S);
 		Automaton* C = Automaton::product(this, Minus, SS);
-		out = C->isLimAvgConstant();
+		out = C->isLimAvgConstant(witness);
 		delete SS;
 		delete C;
 	}
 	else {
-		out = S->isIncludedIn(this, f);
+		out = S->isIncludedIn(this, f, witness);
 	}
 
 	delete S;
 	return out;
 }
 
-bool Automaton::isLive (value_function_t f) {
+bool Automaton::isLive (value_function_t f, UltimatelyPeriodicWord** witness) {
 	bool out;
 
 	if (f == Inf) {
-		return this->isConstant(Inf);
+		return this->isConstant(Inf, witness);
 	}
 
 	Automaton* S = Automaton::safetyClosure(this, f);
-	out = S->isConstant(f);
+	out = S->isConstant(f, witness);
 	delete S;
 	return out;
 }
@@ -2069,10 +2054,10 @@ weight_t Automaton::compute_Top (value_function_t f, weight_t* top_values, Ultim
 }
 
 
-weight_t Automaton::compute_Bottom (value_function_t f, weight_t* bot_values) {
+weight_t Automaton::compute_Bottom (value_function_t f, weight_t* bot_values, UltimatelyPeriodicWord** witness) {
 	if (this->isDeterministic()) {
 		invert_weights();
-		weight_t bot = compute_Top(f, bot_values);
+		weight_t bot = compute_Top(f, bot_values, witness);
 		bot = -bot;
 		for (unsigned int i = 0; i < this->nb_SCCs; i++) {
 			bot_values[i] = -bot_values[i];
@@ -2089,13 +2074,7 @@ weight_t Automaton::compute_Bottom (value_function_t f, weight_t* bot_values) {
 			while (!found && weight_id > 0) {
 				weight_id--;
 				x = this->weights->at(weight_id)->getValue();
-				// OLD
-				/*
-				Automaton* C = Automaton::constantAutomaton(this, x);
-				found = C->isIncludedIn(this, f);
-				delete C;
-				*/
-				found = this->isUniversal(f, x);
+				found = this->isUniversal(f, x, witness);
 			}
 
 			return x;
@@ -2358,6 +2337,9 @@ weight_t Automaton::computeValue(value_function_t f, UltimatelyPeriodicWord* w) 
 		}
 
 		return value;
+	}
+	else {
+		fail("compute value of lasso word");
 	}
 }
 
