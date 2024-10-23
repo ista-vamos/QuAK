@@ -12,14 +12,14 @@
 
 
 int main() {
-    std::vector<int> states = {4,8};
+    std::vector<int> states = {2,4,8};
     std::vector<int> letters = {2,4};
 
-    std::string directory = "../samples/rand";
+    std::string directory = "../samples/rand (Copy)";
     
     for (int num_states : states) {
         for (int num_letters : letters) {
-            for (int id = 128; id <= 1000; ++id) {
+            for (int id = 1; id <= 1000; ++id) {
                 std::ostringstream filename;
                 filename << num_states << "_" << num_letters << "_" 
                          << std::setw(4) << std::setfill('0') << id << ".txt";
@@ -27,7 +27,7 @@ int main() {
                 std::cout << "Processing file: " << filename.str() << std::endl;
                 
                 Automaton* A = new Automaton(directory + "/" + filename.str());
-                A->print();
+                // A->print();
 
                 // weight_t topxx = A->getTopValue(LimInfAvg);
 
@@ -43,12 +43,15 @@ int main() {
                 UltimatelyPeriodicWord* witness = new UltimatelyPeriodicWord();
                 // weight_t top = A->getTopValue(LimInfAvg, &witness);
                 bool flag = A->isConstant(LimInfAvg, &witness);
-                weight_t top = A->getTopValue(LimInfAvg);
-                weight_t valWitness = A->computeValue(LimInfAvg, witness);
 
+                weight_t top = A->getTopValue(LimInfAvg);
                 std::cout << "Top:" << top << std::endl;
-                std::cout << "Witness: " << witness->prefix->toString() << " . " << witness->cycle->toString() << std::endl;
-                std::cout << "Value: " << valWitness << std::endl;
+                weight_t valWitness = top - 1;
+                if (!flag) {
+                    valWitness = A->computeValue(LimInfAvg, witness);
+                    std::cout << "Witness: " << witness->prefix->toString() << " . " << witness->cycle->toString() << std::endl;
+                    std::cout << "Value: " << valWitness << std::endl;
+                }
                 
                 delete witness->prefix;
                 delete witness->cycle;
