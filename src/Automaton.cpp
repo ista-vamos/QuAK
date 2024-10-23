@@ -1140,27 +1140,44 @@ bool Automaton::isComplete () const {
 
 bool Automaton::isLimAvgConstant(UltimatelyPeriodicWord** witness) const {
 	weight_t top = getTopValue(LimSupAvg);//top of LimSupAvg and LimInfAvg coincide
+	unsigned int N = this->states->size();
 
     weight_t dist[this->getStates()->size()];
     for (unsigned int state_id = 0; state_id < this->getStates()->size(); ++state_id) {
         dist[state_id] = 0;
     }
 
-    for (unsigned int state_id = 0; state_id < this->getStates()->size(); ++state_id) {
-        for (Symbol* symbol : *(this->getStates()->at(state_id)->getAlphabet())) {
-          for (Edge* edge : *(this->getStates()->at(state_id)->getSuccessors(symbol->getId()))) {
-            unsigned int u = edge->getFrom()->getId();
-            unsigned int v = edge->getTo()->getId();
-            //weights are inversed AND shifted by 'top': -(edge-top) = top-edge
-            weight_t value = top - edge->getWeight()->getValue();
-            weight_t du = dist[u];
-            if (du + value < dist[v]) {
-            //   dist[v] = static_cast<int>(du + value);
-            	dist[v] = (du + value);
-            }
-          }
-        }
-    }
+    // for (unsigned int state_id = 0; state_id < this->getStates()->size(); ++state_id) {
+    //     for (Symbol* symbol : *(this->getStates()->at(state_id)->getAlphabet())) {
+    //       for (Edge* edge : *(this->getStates()->at(state_id)->getSuccessors(symbol->getId()))) {
+    //         unsigned int u = edge->getFrom()->getId();
+    //         unsigned int v = edge->getTo()->getId();
+    //         //weights are inversed AND shifted by 'top': -(edge-top) = top-edge
+    //         weight_t value = top - edge->getWeight()->getValue();
+    //         weight_t du = dist[u];
+    //         if (du + value < dist[v]) {
+    //         //   dist[v] = static_cast<int>(du + value);
+    //         	dist[v] = (du + value);
+    //         }
+    //       }
+    //     }
+    // }
+	for (unsigned int len = 0; len < this->getStates()->size(); len++) {
+		for (unsigned int state_id = 0; state_id < this->getStates()->size(); ++state_id) {
+			for (Symbol* symbol : *(this->getStates()->at(state_id)->getAlphabet())) {
+				for (Edge* edge : *(this->getStates()->at(state_id)->getSuccessors(symbol->getId()))) {
+					unsigned int u = edge->getFrom()->getId();
+					unsigned int v = edge->getTo()->getId();
+					//weights are inversed AND shifted by 'top': -(edge-top) = top-edge
+					weight_t value = top - edge->getWeight()->getValue();
+					weight_t du = dist[u];
+					if (du + value < dist[v]) {
+						dist[v] = static_cast<int>(du + value);
+					}
+				}
+			}
+		}
+	}
 
 	State::RESET();
 	Symbol::RESET();
@@ -1187,7 +1204,8 @@ bool Automaton::isLimAvgConstant(UltimatelyPeriodicWord** witness) const {
 			for (Edge* edge : *(this->states->at(state_id)->getSuccessors(symbol->getId()))) {
 				unsigned int u = edge->getFrom()->getId();
 				unsigned int v = edge->getTo()->getId();
-				if ((edge->getWeight()->getValue() - dist[u] + dist[v]) == top) {
+				weight_t x = (edge->getWeight()->getValue() - dist[u] + dist[v]);
+				if (x - top < N && top - x < N) {
 					weightsSeen[1] = true;
 				}
 				else {
@@ -1219,7 +1237,9 @@ bool Automaton::isLimAvgConstant(UltimatelyPeriodicWord** witness) const {
 				//originally: -(edge-top) + from - to = 0 (<=?)
 				//inverted weights: (edge-top) - from + to = 0
 				//equivalently: edge - from + to = top
-				auto value = (((edge->getWeight()->getValue() - dist[u] + dist[v]) == top) ? 1 : 0);
+				weight_t x = (edge->getWeight()->getValue() - dist[u] + dist[v]);
+				std::cout << top << " " << x << std::endl;
+				auto value = ((x- top < N && top - x < N) ? 1 : 0);
 				Weight* weight = newweights->at(value);
 				State* from = newstates->at(edge->getFrom()->getId());
 				State* to = newstates->at(edge->getTo()->getId());
@@ -1231,7 +1251,7 @@ bool Automaton::isLimAvgConstant(UltimatelyPeriodicWord** witness) const {
 	}
 
 	Automaton* Dist = new Automaton(newname, newalphabet, newstates, newweights, 0, 1, newinitial);
-	Dist->print();
+	// Dist->print();
 	bool out = Dist->isUniversal(LimInf, 1, witness);
 	delete Dist;
 	return out;
@@ -2621,17 +2641,18 @@ weight_t Automaton::computeValue(value_function_t f, UltimatelyPeriodicWord* w) 
 	else if (f == LimInfAvg || f == LimSupAvg) {
 		SetStd<State*> current_states;
 		current_states.insert(this->initial);
-
-		for (unsigned int i = 0; i < w->prefix->getLength(); i++) {
-			Symbol* symbol = w->prefix->at(i);
-			SetStd<State*> next_states;
-			
-			for (State* state : current_states) {
-				for (Edge* edge : *(state->getSuccessors(symbol->getId()))) {
-					next_states.insert(edge->getTo());
+		if (w->prefix != nullptr) {
+			for (unsigned int i = 0; i < w->prefix->getLength(); i++) {
+				Symbol* symbol = w->prefix->at(i);
+				SetStd<State*> next_states;
+				
+				for (State* state : current_states) {
+					for (Edge* edge : *(state->getSuccessors(symbol->getId()))) {
+						next_states.insert(edge->getTo());
+					}
 				}
+				current_states = next_states;
 			}
-			current_states = next_states;
 		}
 
 		weight_t value = this->min_domain;
