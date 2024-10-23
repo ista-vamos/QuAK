@@ -18,18 +18,43 @@ Given two $\mathsf{Val}$ automata $\mathcal{A}$ and $\mathcal{B}$ with a rationa
 10. Compute the safety-liveness decomposition of $\mathcal{A}$.
 11. Construct and execute a monitor for $\mathcal{A}$.
 
+## Building
+### Building through Dockerfile
 
-## Building from sources
+You can build a container with QuAK using Docker or Podman and the provided Dockerfile
+in the top-level project directory (there is also another Dockerfile in the directory `experiments/`,
+which does more things that just building QuAK.). From the top-level directory, run:
+```
+docker build . -t quak
+```
 
-QuAK has no external dependencies. The only requirement is to have a C++ compiler that supports the C++17 standard or newer.
+Note: the container built by the other Dockerfile (`experiments/Dockerfile`) is
+also named "quak" (if you precisely follow the instructions from
+`experiments/README.md`). The command above will then overwrite the image. To
+avoid this, change `-t quak` to `-t <new_name>` where `<new_name>` is a name of
+the container different from the name of the container with the experiments. Do
+not forget to use this new name when running the contanier later.
 
-### Using CMake
+Once you have the docker image built, you can start a terminal inside the docker image as follows:
+```
+docker run --rm -ti quak
+```
 
-The easiest way to build QuAK is to use CMake + make:
 
-On Ubuntu, you can install CMake and Make with the following command:
+### Building from sources
+
+QuAK has no external dependencies. The only requirements are to have a C++ compiler that supports the C++17 standard or newer,
+and make. Recommended is to have also CMake, which is used by default to configure the project.
+
+#### Using CMake
+
+The easiest way to build QuAK is to use CMake + make. On Ubuntu, you can
+install CMake and Make with the following command:
+
 ```
 apt-get install make cmake
+# install also C++ compiler if you do not have one
+# apt-get install g++
 ```
 
 Then you can compile QuAK:
@@ -42,7 +67,8 @@ make -j4
 For debug builds, use `Debug` instead of `Release`. You can tweak compile time
 options that enable the optimization of algorithms: use
 `-DENABLE_SCC_SEARCH_OPT=OFF` to turn off an SCC-based optimization of deciding
-language inclusion (and other problems where the inclusion algorithm is used as a subroutine).
+language inclusion (and other problems where the inclusion algorithm is used as
+a subroutine).
 
 To compile the code with link-time (i.e., inter-procedural) optimizations,
 use the option `-DENABLE_IPO=ON`.
@@ -50,7 +76,7 @@ use the option `-DENABLE_IPO=ON`.
 Once compiled, you can run tests with calling `make test`.
 
 
-#### Building with VAMOS integration
+##### Building with VAMOS integration
 
 First build [VAMOS](https://github.com/ista-vamos/vamos).
 Then run cmake with these parameters:
@@ -60,15 +86,17 @@ cmake . -Dvamos_DIR=/path/to/vamos/directory
 make -j4
 ```
 
-<!-- ### Using old makefile
+#### Building with the legacy Makefile
 
-To build the project with the old makefile, run
+If you have troubles building QuAK with CMake, you can try using building it
+only with Make. To do this, run:
 
 ```
 make -f Makefile.legacy
 ```
 
-This makefile does not support integration with VAMOS. -->
+This makefile is likely out of date and does not support building tests,
+neither integration with VAMOS. It is a subject of removal in the future.
 
 ## Input Format
 
@@ -78,10 +106,14 @@ Each automata is represented as a list of transitions of the following format:
 a : v, q -> p
 ```
 which encodes a transition from state $q$ to state $p$ with letter $a$ and weight $v$.
+Weight $v$ is either a C float number, or an unsigned hexadecimal integer that represents
+the bits of a C float number.
 
 The initial state of the input automaton is the source state of the first transition in its text file.
 
-**Important:** QuAK requires that its input automata are complete (a.k.a. total), i.e., for every state $q$ and every letter $a$, there is at least one outgoing transition from $q$ with letter $a$.
+**Important:** QuAK requires that its input automata are complete (a.k.a. total),
+i.e., for every state $q$ and every letter $a$, there is at least one outgoing
+transition from $q$ with letter $a$.
 
 ## Using QuAK (as a library)
 
