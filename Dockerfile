@@ -9,7 +9,6 @@ ENV GIT_SSL_NO_VERIFY=1
 RUN apt-get -y update
 RUN apt-get install -y --no-install-recommends\
         g++\
-        gcc\
         make\
         cmake
 #        git

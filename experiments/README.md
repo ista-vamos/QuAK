@@ -10,6 +10,11 @@ Quak), and run
 docker build . -t quak -f experiments/Dockerfile
 ```
 
+Warning: if you have already built QuAK with the Dockerfile from the parent directory,
+this command will overwrite the image. To avoid this, change `-t quak` to `-t <new_name>`
+where `<new_name>` is a name of the container with experiments. Do not forget to use this new name
+when running the experiments through the contanier later.
+
 Building the artifact takes approximately 2 minutes on a laptop with 4 cores @ 2.8GHz.
 Note that the set of random automata is generated anew everytime the docker
 image is build, which may slightly influence the results of the experiments.
