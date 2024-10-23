@@ -20,6 +20,7 @@ public:
 	Symbol* at (unsigned int i);
 	std::string toString();
 	void push_back(Symbol* symbol);
+	void pop_back();
 };
 
 #endif /* WORD_H_ */
