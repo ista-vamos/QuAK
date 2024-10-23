@@ -90,6 +90,7 @@ public:
     for (unsigned int i = 0; i < this->capacity; i++){
     	s.append("\n\t\t");
     	s.append(std::to_string(i));
+    	// s.append(std::to_string(this->all[i]->getId()));
     	s.append(" -> ");
     	s.append(f_value(this->all[i]));
     }

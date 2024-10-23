@@ -31,7 +31,8 @@ def ensure_connectivity(transitions, num_states, alphabet, min_weight, max_weigh
         # Add a transition from a reachable state to the unreachable state
         source = random.choice(list(reachable))
         letter = random.choice(alphabet)
-        weight = random.uniform(min_weight, max_weight)
+        # weight = random.uniform(min_weight, max_weight)
+        weight = random.randint(min_weight, max_weight)
         transitions.append((letter, weight, source, target))
         
         # Update reachable states
@@ -48,7 +49,8 @@ def generate_complete_nondeterministic_automaton(num_states, alphabet_size, extr
     for state in states:
         for letter in alphabet:
             target = random.choice(states)
-            weight = random.uniform(min_weight, max_weight)
+            # weight = random.uniform(min_weight, max_weight)
+            weight = random.randint(min_weight, max_weight)
             transitions.append((letter, weight, state, target))
 
     # Add extra transitions to create nondeterminism
@@ -56,7 +58,8 @@ def generate_complete_nondeterministic_automaton(num_states, alphabet_size, extr
         for _ in range(extra_transitions_per_state):
             letter = random.choice(alphabet)
             target = random.choice(states)
-            weight = random.uniform(min_weight, max_weight)
+            # weight = random.uniform(min_weight, max_weight)
+            weight = random.randint(min_weight, max_weight)
             transitions.append((letter, weight, state, target))
 
     # Ensure all states are reachable from the initial state
@@ -88,7 +91,7 @@ def generate_automata_set(num_states, alphabet_size, num_automata, extra_transit
 
 def main():
     num_automata_per_set = 1000
-    min_weight, max_weight = -10.0, 10.0
+    min_weight, max_weight = -1000, 1000
 
     configurations = [
         (2, 2),  # (x, y) == x states, y letters
