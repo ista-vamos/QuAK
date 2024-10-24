@@ -537,7 +537,6 @@ int main(int argc, char **argv) {
           B->print();
         }
 
-        UltimatelyPeriodicWord *witness2;
         bool r;
         value_fun = std::get<value_function_t>(act.args[0]);
         std::cout << "isEquivalent(";
@@ -550,7 +549,7 @@ int main(int argc, char **argv) {
           TIMER_START
           r =  A->isEquivalentTo(B.get(), value_fun,
                                     act.op == Operation::isEquivalentBool,
-                                    &witness, &witness2);
+                                    &witness);
           TIMER_END
         } else {
           TIMER_START
@@ -560,7 +559,6 @@ int main(int argc, char **argv) {
         }
         std::cout << r << "\n";
         processWitness(witness, act, opts);
-        processWitness(witness2, act, opts, /*append=*/true);
         TIMER_PRINT("Cputime: ")
         PRINT_DIV
         }
