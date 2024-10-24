@@ -82,20 +82,22 @@
 
 
 int main() {
-    std::vector<int> states = {4,8};
-    std::vector<int> letters = {2,4};
+    std::vector<int> states = {3};
+    std::vector<int> letters = {2};
 
+    // std::string directory = "../samples/";
     std::string directory = "../samples/rand";
     
     for (int num_states : states) {
         for (int num_letters : letters) {
-            for (int id = 247; id <= 1000; ++id) {
+            for (int id = 32; id <= 32; ++id) {
                 std::ostringstream filename;
                 filename << num_states << "_" << num_letters << "_" 
                          << std::setw(4) << std::setfill('0') << id << ".txt";
                 
                 std::cout << "Processing file: " << filename.str() << std::endl;
                 
+                // Automaton* A = new Automaton(directory + "/" + "ainf.txt");
                 Automaton* A = new Automaton(directory + "/" + filename.str());
                 A->print();
 

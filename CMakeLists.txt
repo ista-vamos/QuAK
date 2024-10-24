@@ -36,10 +36,3 @@ target_include_directories(quakbin PRIVATE ${SRCDIR})
 target_link_libraries(quakbin PUBLIC quak quak-private)
 
 set_target_properties(quakbin PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/src" OUTPUT_NAME quak-main)
-
-
-OPTION(BUILD_EXPERIMENTS "Enable and build experiments" ON)
-add_subdirectory(experiments)
-
-enable_testing()
-add_subdirectory(tests)
