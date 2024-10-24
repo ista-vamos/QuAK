@@ -17,6 +17,7 @@ RUN apt-get install -y --no-install-recommends\
 
 COPY . /opt/quak
 WORKDIR /opt/quak/
+RUN rm -rf CMakeCache.txt CMakeFiles
 #RUN git clean -xdf
 
 RUN mkdir -p build
