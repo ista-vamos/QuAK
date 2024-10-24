@@ -1,4 +1,5 @@
 #include <iostream>
+#include <fstream>
 #include <memory>
 #include <cstring>
 #include <variant>
@@ -55,7 +56,7 @@ enum class Operation {
 
 static void printUsage(const char *bin) {
   std::cerr << "Usage: " << bin
-            << " [-cputime] [-v] [-d] automaton-file" << " [ACTION ACTION ...]\n";
+            << " [-cputime] [-v] [-d] [-print-witness] automaton-file" << " [ACTION ACTION ...]\n";
   std::cerr << "Where ACTIONs are the following, with VALF = <Inf | Sup | LimInf | LimSup | LimSupAvg | LimInfAvg>:\n";
   std::cerr << "  stats\n";
   std::cerr << "  dump\n";
@@ -72,11 +73,14 @@ static void printUsage(const char *bin) {
   std::cerr << "  eval <Inf | Sup | Avg> word-file\n";
   std::cerr << "  monitor <Inf | Sup | Avg> word-file\n";
   std::cerr << "  monitor-vamos <Inf | Sup | Avg> shmkey\n";
+  std::cerr << "  witness-file file-name\n\n";
+  std::cerr << "The action 'witness-file' instructs the previous action to store the witness into the given name.\n";
 }
 
 struct OperationClosure {
   Operation op{Operation::INVALID};
   std::vector<std::variant<std::string, weight_t, value_function_t>> args;
+  std::string witness_file{};
 };
 
 
@@ -87,6 +91,8 @@ struct Options {
   bool cputime{false};
   bool verbose{false};
   bool dump{false};
+  bool print_witness{false};
+  std::string witness_file{};
 
   static Options createError(const std::string& err) {
     Options O;
@@ -123,6 +129,8 @@ Options parseArgs(int argc, char *argv[]) {
       O.verbose = true;
     else if (streq(argv[idx], "-d"))
       O.dump = true;
+    else if (streq(argv[idx], "-print-witness"))
+      O.print_witness = true;
     else if (argv[idx][0] != '-')
       break;
 
@@ -137,6 +145,22 @@ Options parseArgs(int argc, char *argv[]) {
 
   while (idx < argc) {
     OperationClosure cl;
+
+    if (streq(argv[idx], "witness-file")) {
+      if (O.actions.empty()) {
+        return Options::createError("witness-file has no associated action.");
+      }
+
+      ++idx;
+      if (idx >= argc) {
+        return Options::createError("witness-file expects an argument (a file name).");
+      }
+      
+      O.actions.back().witness_file = argv[idx];
+      
+      ++idx;
+      continue;
+    }
 
     if (streq(argv[idx], "stats")) {
       cl.op = Operation::stats;
@@ -223,7 +247,6 @@ Options parseArgs(int argc, char *argv[]) {
 
       idx += 3;
     }
-
     else {
       return Options::createError("Unknown action: " + std::string(argv[idx]));
     }
@@ -239,6 +262,28 @@ Options parseArgs(int argc, char *argv[]) {
 #define TIMER_GET static_cast<uint64_t>((end_time.tv_sec * 1000) + (end_time.tv_nsec / 1000000.0))
 #define TIMER_PRINT(msg) if (opts.cputime) { std::cout << msg << TIMER_GET << " ms\n"; }
 #define PRINT_DIV { std::cout << "----------\n"; }
+
+void processWitness(UltimatelyPeriodicWord *witness, OperationClosure& act, Options &opts, bool append=false) {
+  if (!witness)
+    return;
+
+  if (opts.print_witness) {
+    std::cout << "Witness: " << witness->toString() << "\n";
+  }
+  
+  if (!act.witness_file.empty()) {
+    if (opts.verbose)
+      std::cerr << "Witness written to : " << act.witness_file << "\n";
+      std::ofstream fl;
+      if (append)
+        fl.open(act.witness_file, std::ios_base::app);
+      else
+        fl.open(act.witness_file);
+
+      fl << witness->toString() << "\n";
+      fl.close();
+  }
+}
 
 int main(int argc, char **argv) {
 
@@ -279,6 +324,7 @@ int main(int argc, char **argv) {
 
 
     for (auto& act : opts.actions) {
+      UltimatelyPeriodicWord *witness = nullptr;
       switch (act.op) {
       case Operation::stats:
         {
@@ -302,10 +348,18 @@ int main(int argc, char **argv) {
                   << valueFunctionToStr(value_fun)
                   << ", weight=" << weight << ") = ";
         {
-        TIMER_START
-        auto r = !A->isNonEmpty(value_fun, weight);
-        TIMER_END
+        bool r;
+        if (opts.print_witness || !act.witness_file.empty()) {
+          TIMER_START
+          r = !A->isNonEmpty(value_fun, weight, &witness);
+          TIMER_END
+        } else {
+          TIMER_START
+          r = !A->isNonEmpty(value_fun, weight);
+          TIMER_END
+        }
         std::cout << r << "\n";
+        processWitness(witness, act, opts);
         TIMER_PRINT("Cputime: ")
         PRINT_DIV
         }
@@ -318,10 +372,18 @@ int main(int argc, char **argv) {
                   << valueFunctionToStr(value_fun)
                   << ", weight=" << weight << ") = ";
         {
-        TIMER_START
-        auto r = A->isNonEmpty(value_fun, weight);
-        TIMER_END
+        bool r;
+        if (opts.print_witness || !act.witness_file.empty()) {
+          TIMER_START
+          r = A->isNonEmpty(value_fun, weight, &witness);
+          TIMER_END
+        } else {
+          TIMER_START
+          r = A->isNonEmpty(value_fun, weight);
+          TIMER_END
+        }
         std::cout << r << "\n";
+        processWitness(witness, act, opts);
         TIMER_PRINT("Cputime: ")
         PRINT_DIV
         }
@@ -334,10 +396,18 @@ int main(int argc, char **argv) {
                   << valueFunctionToStr(value_fun)
                   << ", weight=" << weight << ") = ";
         {
-        TIMER_START
-        auto r = A->isUniversal(value_fun, weight);
-        TIMER_END
+        bool r;
+        if (opts.print_witness || !act.witness_file.empty()) {
+          TIMER_START
+          r = A->isUniversal(value_fun, weight, &witness);
+          TIMER_END
+        } else {
+          TIMER_START
+          r = A->isUniversal(value_fun, weight);
+          TIMER_END
+        }
         std::cout << r << "\n";
+        processWitness(witness, act, opts);
         TIMER_PRINT("Cputime: ")
         PRINT_DIV
         }
@@ -350,10 +420,18 @@ int main(int argc, char **argv) {
                   << valueFunctionToStr(value_fun)
                   << ") = ";
         {
-        TIMER_START
-        auto r = A->isConstant(value_fun);
-        TIMER_END
+        bool r;
+        if (opts.print_witness || !act.witness_file.empty()) {
+          TIMER_START
+          r = A->isConstant(value_fun, &witness);
+          TIMER_END
+        } else {
+          TIMER_START
+          r = A->isConstant(value_fun);
+          TIMER_END
+        }
         std::cout << r << "\n";
+        processWitness(witness, act, opts);
         TIMER_PRINT("Cputime: ")
         PRINT_DIV
         }
@@ -365,10 +443,18 @@ int main(int argc, char **argv) {
                   << valueFunctionToStr(value_fun)
                   << ") = ";
         {
-        TIMER_START
-        auto r = A->isSafe(value_fun);
-        TIMER_END
+        bool r;
+        if (opts.print_witness || !act.witness_file.empty()) {
+          TIMER_START
+          r = A->isSafe(value_fun, &witness);
+          TIMER_END
+        } else {
+          TIMER_START
+          r = A->isSafe(value_fun);
+          TIMER_END
+        }
         std::cout << r << "\n";
+        processWitness(witness, act, opts);
         TIMER_PRINT("Cputime: ")
         PRINT_DIV
         }
@@ -381,10 +467,18 @@ int main(int argc, char **argv) {
                   << valueFunctionToStr(value_fun)
                   << ") = ";
         {
-        TIMER_START
-        auto r = A->isLive(value_fun);
-        TIMER_END
+        bool r;
+        if (opts.print_witness || !act.witness_file.empty()) {
+          TIMER_START
+          r = A->isLive(value_fun, &witness);
+          TIMER_END
+        } else {
+          TIMER_START
+          r = A->isLive(value_fun);
+          TIMER_END
+        }
         std::cout << r << "\n";
+        processWitness(witness, act, opts);
         TIMER_PRINT("Cputime: ")
         PRINT_DIV
         }
@@ -403,19 +497,29 @@ int main(int argc, char **argv) {
           B->print();
         }
 
-        TIMER_START
+        bool r;
         value_fun = std::get<value_function_t>(act.args[0]);
         std::cout << "isIncluded(";
         if (act.op == Operation::isIncludedBool)
           std::cout << "bool, ";
         std::cout << valueFunctionToStr(value_fun)
                   << ") = ";
-
-        TIMER_START
-        auto r =  A->isIncludedIn(B.get(), value_fun,
-                                  act.op == Operation::isIncludedBool);
-        TIMER_END
+        
+        
+        if (opts.print_witness || !act.witness_file.empty()) {
+          TIMER_START
+          r =  A->isIncludedIn(B.get(), value_fun,
+                                    act.op == Operation::isIncludedBool,
+                                    &witness);
+          TIMER_END
+        } else {
+          TIMER_START
+          r =  A->isIncludedIn(B.get(), value_fun,
+                                    act.op == Operation::isIncludedBool);
+          TIMER_END
+        }
         std::cout << r << "\n";
+        processWitness(witness, act, opts);
         TIMER_PRINT("Cputime: ")
         PRINT_DIV
         }
@@ -433,19 +537,30 @@ int main(int argc, char **argv) {
           B->print();
         }
 
-        TIMER_START
+        UltimatelyPeriodicWord *witness2;
+        bool r;
         value_fun = std::get<value_function_t>(act.args[0]);
         std::cout << "isEquivalent(";
-        if (act.op == Operation::isIncludedBool)
+        if (act.op == Operation::isEquivalentBool)
           std::cout << "bool, ";
         std::cout << valueFunctionToStr(value_fun)
                   << ") = ";
 
-        TIMER_START
-        auto r =  A->isEquivalentTo(B.get(), value_fun,
-                                  act.op == Operation::isEquivalentBool);
-        TIMER_END
+        if (opts.print_witness || !act.witness_file.empty()) {
+          TIMER_START
+          r =  A->isEquivalentTo(B.get(), value_fun,
+                                    act.op == Operation::isEquivalentBool,
+                                    &witness, &witness2);
+          TIMER_END
+        } else {
+          TIMER_START
+          r =  A->isEquivalentTo(B.get(), value_fun,
+                                    act.op == Operation::isEquivalentBool);
+          TIMER_END
+        }
         std::cout << r << "\n";
+        processWitness(witness, act, opts);
+        processWitness(witness2, act, opts, /*append=*/true);
         TIMER_PRINT("Cputime: ")
         PRINT_DIV
         }

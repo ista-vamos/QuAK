@@ -237,6 +237,7 @@ delete witness2;
 ```
 
 Note that you must delete the witness manually once you are done with it.
+The witness format is `prefix(cycle)`, e.g., `aa(ab)` is the word `aaababab...`.
 
 ### Monitor Construction and Execution
 QuAK can contsruct monitors from deterministic automata by either reading them from a file or copying an automaton object:
