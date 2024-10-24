@@ -172,7 +172,7 @@ public:
     // checks if A(w) <= B(w) for all w. If `booleanized` is set to true, the inclusion algorithm based
     // on booleanization is used, otherwise the one on anti-chains is used
 	bool isIncludedIn (const Automaton* B, value_function_t f, bool booleanized = false, UltimatelyPeriodicWord** witness = nullptr) const;
-	bool isEquivalentTo (const Automaton* B, value_function_t f, bool booleanized = false, UltimatelyPeriodicWord** witness1 = nullptr, UltimatelyPeriodicWord** witness2 = nullptr) const;
+	bool isEquivalentTo (const Automaton* B, value_function_t f, bool booleanized = false, UltimatelyPeriodicWord** witness = nullptr) const;
 
 	bool isSafe (value_function_t f, UltimatelyPeriodicWord** witness = nullptr);	// checks if A = SafetyClosure(A)
 	bool isConstant (value_function_t f, UltimatelyPeriodicWord** witness = nullptr);	// checks if Universal(A, Top_A)
