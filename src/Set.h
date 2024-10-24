@@ -62,6 +62,7 @@ public:
 	void push(T_element element) { all.push_front(element); }
 	void pop() { all.erase(all.begin()); }
 	T_element head() { return *(all.begin()); };
+	T_element back() { return all.back(); };
 	unsigned int size() const { return all.size(); }
 	bool empty() const { return all.empty(); }
 
