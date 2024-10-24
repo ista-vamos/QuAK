@@ -130,6 +130,7 @@ public:
 	static Automaton* safetyClosure(Automaton* A, value_function_t value_function);
 	static Automaton* livenessComponent_deterministic (const Automaton* A, value_function_t type);
 	static Automaton* livenessComponent_prefixIndependent (const Automaton* A, value_function_t type);
+	static Automaton* livenessComponent(const Automaton* A, value_function_t type);
 	static Automaton* toLimSup (const Automaton* A, value_function_t f);
 	static Automaton* product(const Automaton* A, aggregator_t aggregator, const Automaton* B);
 

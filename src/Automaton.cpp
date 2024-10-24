@@ -628,7 +628,7 @@ Automaton* Automaton::safetyClosure(Automaton* A, value_function_t f) {
 
 Automaton* Automaton::livenessComponent_deterministic (const Automaton* A, value_function_t f) {
 	if (A->isDeterministic() == false || f == Inf || f == LimInfAvg || f == LimSupAvg) {
-		fail("invalid automaton type for liveness component (deterministic)");
+		fail("invalid automaton type for deterministic liveness component");
 	}
 
 	State::RESET();
@@ -691,6 +691,19 @@ Automaton* Automaton::livenessComponent_deterministic (const Automaton* A, value
 }
 
 
+Automaton* Automaton::livenessComponent(const Automaton* A, value_function_t f) {
+	if ((f == Sup || f == LimInf || f == LimSup) && A->isDeterministic()) {
+		return Automaton::livenessComponent_deterministic(A, f);
+	}
+	
+	if (f == LimInf || f == LimSup || f == LimInfAvg || f == LimSupAvg) {
+		return Automaton::livenessComponent_prefixIndependent(A, f);
+	}
+	
+	fail("Cannot do safety-liveness decomposition for this type of automata.");
+}
+
+
 
 Automaton* Automaton::livenessComponent_prefixIndependent (const Automaton* A, value_function_t f) {
 	weight_t top_values[A->nb_SCCs];
@@ -705,7 +718,7 @@ Automaton* Automaton::livenessComponent_prefixIndependent (const Automaton* A, v
 		A->top_LimAvg_cycles(top_values, scc_cycles);
 	}
 	else {
-		fail("invalid automaton type for liveness component (nondeterministic)");
+		fail("invalid automaton type for prefix-independent liveness component computation");
 	}
 
 
