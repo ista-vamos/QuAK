@@ -42,6 +42,8 @@ enum class Operation {
   isUniversal,
   isIncluded,
   isIncludedBool,
+  isEquivalent,
+  isEquivalentBool,
   isConstant,
   isSafe,
   isLive,
@@ -65,6 +67,8 @@ static void printUsage(const char *bin) {
   std::cerr << "  live VALF\n";
   std::cerr << "  isIncluded VALF automaton2-file\n";
   std::cerr << "  isIncludedBool VALF automaton2-file\n";
+  std::cerr << "  isEquivalent VALF automaton2-file\n";
+  std::cerr << "  isEquivalentBool VALF automaton2-file\n";
   std::cerr << "  eval <Inf | Sup | Avg> word-file\n";
   std::cerr << "  monitor <Inf | Sup | Avg> word-file\n";
   std::cerr << "  monitor-vamos <Inf | Sup | Avg> shmkey\n";
@@ -152,6 +156,10 @@ Options parseArgs(int argc, char *argv[]) {
       cl.op = Operation::isLive;
     } else if (streq(argv[idx], "isIncluded")) {
       cl.op = Operation::isIncluded;
+    } else if (streq(argv[idx], "isEquivalent")) {
+      cl.op = Operation::isEquivalent;
+    } else if (streq(argv[idx], "isEquivalentBool")) {
+      cl.op = Operation::isEquivalentBool;
     } else if (streq(argv[idx], "isIncludedBool")) {
       cl.op = Operation::isIncludedBool;
     } else if (streq(argv[idx], "monitor")) {
@@ -192,7 +200,9 @@ Options parseArgs(int argc, char *argv[]) {
 
       idx += 2;
     } else if (cl.op == Operation::isIncluded ||
-               cl.op == Operation::isIncludedBool) {
+               cl.op == Operation::isIncludedBool ||
+               cl.op == Operation::isEquivalent ||
+               cl.op == Operation::isEquivalentBool) {
       if (idx + 2 >= argc) {
         return Options::createError("Invalid arguments for " + std::string(argv[idx]));
       }
@@ -404,6 +414,36 @@ int main(int argc, char **argv) {
         TIMER_START
         auto r =  A->isIncludedIn(B.get(), value_fun,
                                   act.op == Operation::isIncludedBool);
+        TIMER_END
+        std::cout << r << "\n";
+        TIMER_PRINT("Cputime: ")
+        PRINT_DIV
+        }
+        break;
+      case Operation::isEquivalent:
+      case Operation::isEquivalentBool:
+        {
+        TIMER_START
+        auto B = std::unique_ptr<Automaton>(
+            new Automaton(std::get<std::string>(act.args[1]), A.get()));
+        TIMER_END
+        TIMER_PRINT("Cputime of building the right-hand side automaton: ")
+
+        if (opts.dump) {
+          B->print();
+        }
+
+        TIMER_START
+        value_fun = std::get<value_function_t>(act.args[0]);
+        std::cout << "isEquivalent(";
+        if (act.op == Operation::isIncludedBool)
+          std::cout << "bool, ";
+        std::cout << valueFunctionToStr(value_fun)
+                  << ") = ";
+
+        TIMER_START
+        auto r =  A->isEquivalentTo(B.get(), value_fun,
+                                  act.op == Operation::isEquivalentBool);
         TIMER_END
         std::cout << r << "\n";
         TIMER_PRINT("Cputime: ")
