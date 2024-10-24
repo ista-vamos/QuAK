@@ -211,7 +211,7 @@ Automaton* safe_A = safetyClosure(A, Val);
 For the safety component of the decomposition, use the safety closure construction above.
 To construct the liveness component of the decomposition of $\mathcal{A}$, use the following:
 ```cpp
-Automaton* live_A = livenessComponent_deterministic(A, Val);
+Automaton* live_A = livenessComponent(A, Val);
 ```
 
 ### Witnesses
@@ -287,11 +287,15 @@ Where ACTIONs are the following, with VALF = <Inf | Sup | LimInf | LimSup | LimS
   isIncluded VALF automaton2-file
   isIncludedBool VALF automaton2-file
   isEquivalent VALF automaton2-file
+  livenessComponent VALF output-file
+  decompose VALF safety-output-file liveness-output-file
   monitor <Inf | Sup | Avg> word-file
   witness-file file-name
 ```
 
 The commands *stats* prints the size of the automaton and *dump* prints the automaton. Command *witness-file* instructs the preceding command to write a witness (if any) to the given file.
+Command *livenessComponent* computes and stores the liveness component into the specified file.
+Command *decompose* computes the safety-liveness decomposition and stores it into specified files.
 The remaining commands implement the decision procedures and monitoring algorithms as expected.
 For monitoring, the word files must contain one symbol per line.
 Use the option *-cputime* to print the running time, *-v* to print the input size, and *-d* to print the automaton.

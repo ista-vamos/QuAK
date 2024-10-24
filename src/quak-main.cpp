@@ -50,6 +50,8 @@ enum class Operation {
   isLive,
   topValue,
   bottomValue,
+  livenessComponent,
+  decompose,
   eval,
   monitor
 };
@@ -70,6 +72,8 @@ static void printUsage(const char *bin) {
   std::cerr << "  isIncludedBool VALF automaton2-file\n";
   std::cerr << "  isEquivalent VALF automaton2-file\n";
   std::cerr << "  isEquivalentBool VALF automaton2-file\n";
+  std::cerr << "  livenessComponent VALF output-file\n";
+  std::cerr << "  decompose VALF safety-output-file liveness-output-file\n";
   std::cerr << "  eval <Inf | Sup | Avg> word-file\n";
   std::cerr << "  monitor <Inf | Sup | Avg> word-file\n";
   std::cerr << "  monitor-vamos <Inf | Sup | Avg> shmkey\n";
@@ -180,12 +184,16 @@ Options parseArgs(int argc, char *argv[]) {
       cl.op = Operation::isLive;
     } else if (streq(argv[idx], "isIncluded")) {
       cl.op = Operation::isIncluded;
+    } else if (streq(argv[idx], "isIncludedBool")) {
+      cl.op = Operation::isIncludedBool;
+    } else if (streq(argv[idx], "livenessComponent")) {
+      cl.op = Operation::livenessComponent;
+    } else if (streq(argv[idx], "decompose")) {
+      cl.op = Operation::decompose;
     } else if (streq(argv[idx], "isEquivalent")) {
       cl.op = Operation::isEquivalent;
     } else if (streq(argv[idx], "isEquivalentBool")) {
       cl.op = Operation::isEquivalentBool;
-    } else if (streq(argv[idx], "isIncludedBool")) {
-      cl.op = Operation::isIncludedBool;
     } else if (streq(argv[idx], "monitor")) {
       cl.op = Operation::monitor;
     }
@@ -226,7 +234,8 @@ Options parseArgs(int argc, char *argv[]) {
     } else if (cl.op == Operation::isIncluded ||
                cl.op == Operation::isIncludedBool ||
                cl.op == Operation::isEquivalent ||
-               cl.op == Operation::isEquivalentBool) {
+               cl.op == Operation::isEquivalentBool ||
+               cl.op == Operation::livenessComponent) {
       if (idx + 2 >= argc) {
         return Options::createError("Invalid arguments for " + std::string(argv[idx]));
       }
@@ -236,6 +245,17 @@ Options parseArgs(int argc, char *argv[]) {
       O.actions.push_back(cl);
 
       idx += 3;
+    } else if (cl.op == Operation::decompose) {
+      if (idx + 3 >= argc) {
+        return Options::createError("Invalid arguments for " + std::string(argv[idx]));
+      }
+
+      cl.args.push_back(getValueFunction(argv[idx + 1]));
+      cl.args.push_back(std::string(argv[idx + 2]));
+      cl.args.push_back(std::string(argv[idx + 3]));
+      O.actions.push_back(cl);
+
+      idx += 4;
     } else if (cl.op == Operation::monitor) {
       if (idx + 2 >= argc) {
         return Options::createError("Invalid arguments for " + std::string(argv[idx]));
@@ -283,6 +303,11 @@ void processWitness(UltimatelyPeriodicWord *witness, OperationClosure& act, Opti
       fl << witness->toString() << "\n";
       fl.close();
   }
+}
+
+void writeAutomaton(Automaton *A, const std::string& path) {
+      std::ofstream fl(path);
+      A->print(fl, true, true);
 }
 
 int main(int argc, char **argv) {
@@ -563,7 +588,47 @@ int main(int argc, char **argv) {
         PRINT_DIV
         }
         break;
+      case Operation::livenessComponent:
+        {
+        value_fun = std::get<value_function_t>(act.args[0]);
+        TIMER_START
+        auto liveA
+          = std::unique_ptr<Automaton>(Automaton::livenessComponent(A.get(), value_fun));
+        TIMER_END
 
+        if (opts.dump) {
+          std::cout << "Liveness component automaton:\n";
+          liveA->print();
+        }
+
+        writeAutomaton(liveA.get(), std::get<std::string>(act.args[1]));
+        TIMER_PRINT("Cputime: ")
+        PRINT_DIV
+        }
+        break;
+      case Operation::decompose:
+        {
+        value_fun = std::get<value_function_t>(act.args[0]);
+        TIMER_START
+        auto liveA
+          = std::unique_ptr<Automaton>(Automaton::livenessComponent(A.get(), value_fun));
+        auto safeA
+          = std::unique_ptr<Automaton>(Automaton::safetyClosure(A.get(), value_fun));
+        TIMER_END
+
+        if (opts.dump) {
+          std::cout << "Safety component automaton:\n";
+          safeA->print();
+          std::cout << "Liveness component automaton:\n";
+          liveA->print();
+        }
+
+        writeAutomaton(safeA.get(), std::get<std::string>(act.args[1]));
+        writeAutomaton(liveA.get(), std::get<std::string>(act.args[2]));
+        TIMER_PRINT("Cputime: ")
+        PRINT_DIV
+        }
+        break;
       case Operation::monitor:
         value_fun = std::get<value_function_t>(act.args[0]);
         std::cout << "monitor("
