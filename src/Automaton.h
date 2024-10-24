@@ -142,6 +142,7 @@ public:
 
 	static Automaton* constantAutomaton (const Automaton* A, weight_t x);
 	static Automaton* booleanize(const Automaton* A, weight_t x);
+	static Automaton* copy_trim_complete(const Automaton* A, value_function_t f);
 
 	bool isDeterministic () const;
   	bool isComplete () const;
@@ -152,22 +153,24 @@ public:
     ///  - `bv_only` print only weights as bitvectors (otherwise they are printed also as a floating-point number).
     ///     Overrides `full` if given.
 	void print (bool full = false, bool bv_weights = false, bool bv_only = false) const;
+
 	const std::string &getName() const;
 
 	bool isNonEmpty (value_function_t f, weight_t x, UltimatelyPeriodicWord** witness = nullptr);	// checks if A(w) >= v for some w
 	bool isUniversal (value_function_t f, weight_t x, UltimatelyPeriodicWord** witness = nullptr);	// checks if A(w) >= v for all w
+                                                                                                    //
     // checks if A(w) <= B(w) for all w. If `booleanized` is set to true, the inclusion algorithm based
     // on booleanization is used, otherwise the one on anti-chains is used
 	bool isIncludedIn (const Automaton* B, value_function_t f, bool booleanized = false, UltimatelyPeriodicWord** witness = nullptr) const;
 	bool isEquivalentTo (const Automaton* B, value_function_t f, bool booleanized = false, UltimatelyPeriodicWord** witness1 = nullptr, UltimatelyPeriodicWord** witness2 = nullptr) const;
+
 	bool isSafe (value_function_t f, UltimatelyPeriodicWord** witness = nullptr);	// checks if A = SafetyClosure(A)
 	bool isConstant (value_function_t f, UltimatelyPeriodicWord** witness = nullptr);	// checks if Universal(A, Top_A)
 	bool isLive (value_function_t f, UltimatelyPeriodicWord** witness = nullptr);	// checks if SafetyClosure(A) = Top_A
-	weight_t computeValue(value_function_t f, UltimatelyPeriodicWord* w);
-	static Automaton* copy_trim_complete(const Automaton* A, value_function_t f);
-	
 	weight_t getTopValue (value_function_t f, UltimatelyPeriodicWord** witness = nullptr) const;
 	weight_t getBottomValue (value_function_t f, UltimatelyPeriodicWord** witness = nullptr);
+	weight_t computeValue(value_function_t f, UltimatelyPeriodicWord* w);
+
 	weight_t getMaxDomain () const;
 	weight_t getMinDomain () const;
 	State* getInitial () const;
