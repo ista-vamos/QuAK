@@ -204,8 +204,7 @@ bool inclusion (const Automaton* A, const Automaton* B, UltimatelyPeriodicWord**
 	//							printf("witness: %s cycle{ %s }\n", word_of_U->toString().c_str(), word_of_V->toString().c_str());
 	//							printf("FALSE\n");
 								if (witness != nullptr) {
-									(*witness)->prefix = new Word(*word_of_U);
-									(*witness)->cycle = new Word(*word_of_V);
+                                    *witness = new UltimatelyPeriodicWord{new Word(*word_of_U), new Word(*word_of_V)};
 								}
 								delete postF;
 								delete postI;
