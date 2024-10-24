@@ -163,6 +163,14 @@ If *booleanized* is false, then our quantitative extension of the antichain algo
 If *booleanized* is true, then the standard inclusion algorithm (repeatedly booleanizing the quantitative automaton and calling the boolean antichain algorithm) is used.
 By default, *booleanized* is set to false.
 
+### Equivalence Check
+To check the equivalence of $\mathcal{A}$ and $\mathcal{B}$, use the following:
+```cpp
+bool flag = A->isEquivalentTo(B, Val, booleanized);
+```
+where *booleanized* is the same a for the inclusion check.
+
+
 ### Constant-function Check
 To check if $\mathcal{A}$ defines a constant function, use the following:
 ```cpp
@@ -190,7 +198,7 @@ weight_t top = A->getTopValue(Val);
 ### Bottom-value Computation
 To compute the bottom value of $\mathcal{A}$, use the following:
 ```cpp
-weight_t top = A->getBotValue(Val);
+weight_t bot = A->getBottomValue(Val);
 ```
 
 ### Safety Closure Construction
@@ -205,6 +213,30 @@ To construct the liveness component of the decomposition of $\mathcal{A}$, use t
 ```cpp
 Automaton* live_A = livenessComponent_deterministic(A, Val);
 ```
+
+### Witnesses
+
+All the above-mentioned operations can return a witness for its results: an ultimately periodic word
+that witnesses the returned value. This is done via the optional argument `witness`:
+
+```
+UltimatelyPeriodicWord *witness;
+bool flag = A->isNonEmpty(Val, v, &witness);
+// ... process witness
+delete witness;
+
+weight_t bot = A->getBottomValue(Val, &witness);
+// ... process witness
+delete witness;
+
+UltimatelyPeriodicWord *witness1, *witness2;
+bool flag = A->isEquivalentTo(B, val, booleanized, &witness1, &witness2);
+// ... process witnesses
+delete witness1;
+delete witness2;
+```
+
+Note that you must delete the witness manually once you are done with it.
 
 ### Monitor Construction and Execution
 QuAK can contsruct monitors from deterministic automata by either reading them from a file or copying an automaton object:
@@ -241,7 +273,7 @@ weight_t l = M->getLowest();
 To use the tool directly, simply compile and follow the instructions below.
 
 ```
-Usage: ./quak [-cputime] [-v] [-d] automaton-file [ACTION ACTION ...]
+Usage: ./quak [-cputime] [-v] [-d] [-print-witness] [-witness witness-file] automaton-file [ACTION ACTION ...]
 Where ACTIONs are the following, with VALF = <Inf | Sup | LimInf | LimSup | LimSupAvg | LimInfAvg>:
   stats
   dump 
@@ -253,15 +285,18 @@ Where ACTIONs are the following, with VALF = <Inf | Sup | LimInf | LimSup | LimS
   live VALF
   isIncluded VALF automaton2-file
   isIncludedBool VALF automaton2-file
+  isEquivalent VALF automaton2-file
   monitor <Inf | Sup | Avg> word-file
-  monitor-vamos <Inf | Sup | Avg> shmkey
 ```
 
 The commands *stats* prints the size of the automaton and *dump* prints the automaton.
 The remaining commands implement the decision procedures and monitoring algorithms as expected.
 For monitoring, the word files must contain one symbol per line.
 Use the option *-cputime* to print the running time, *-v* to print the input size, and *-d* to print the automaton.
-An example is given below.
+Options *-print-witness* and *-witness witness-file* will make each operation to print the witness or store it into the given
+file, resp. When multiple operations are specified, the witness file name is extended with the name of the operation.
+For operations that provide two witnesses, the names of these witnesses will be numbered.
+Some examples are given below.
 
 ```
 ./quak -cputime -d  A.txt safe LimInfAvg
@@ -296,4 +331,27 @@ automaton (A.txt):
 isSafe(LimInfAvg) = 0
 Cputime: 4 ms
 ----------
+```
+
+```
+./quak -witness-file w.txt A.txt  constant Inf
+
+TBD
+
+cat w.txt
+```
+
+```
+./quak -print-witness -witness-file w.txt A.txt safe LimInfAvg constant Sup isEquivalent Inf
+
+TBD
+
+
+cat w.safe-LimInfAvg.txt
+
+cat w.constant-Sup.txt
+
+cat w.isEquivalent-Inf.1.txt
+
+cat w.isEquivalent-Inf.2.txt
 ```
