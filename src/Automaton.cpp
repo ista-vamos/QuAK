@@ -1236,8 +1236,8 @@ bool Automaton::isConstant (value_function_t f, UltimatelyPeriodicWord** witness
 	}
 }
 
-bool Automaton::isEquivalentTo (const Automaton* B, value_function_t f, bool booleanized, UltimatelyPeriodicWord** witness1, UltimatelyPeriodicWord** witness2) const {
-	return this->isIncludedIn(B, f, booleanized, witness1) && B->isIncludedIn(this, f, booleanized, witness2);
+bool Automaton::isEquivalentTo (const Automaton* B, value_function_t f, bool booleanized, UltimatelyPeriodicWord** witness) const {
+	return this->isIncludedIn(B, f, booleanized, witness) && B->isIncludedIn(this, f, booleanized, witness);
 }
 
 bool Automaton::isIncludedIn(const Automaton* B, value_function_t f, bool booleanized, UltimatelyPeriodicWord** witness) const {
