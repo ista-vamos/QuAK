@@ -1368,7 +1368,6 @@ void Automaton::top_dag (SCC_Dag* dag, bool* done, weight_t* top_values) const {
 
 	for (SCC_Dag* subdag : *(dag->nexts)) {
 		top_dag(subdag, done, top_values);
-		// FOR INF: FIND THE EDGE FROM DAG TO SUBDAG, TAKE MAX OF TOP_DAG WITH MIN OF EDGE_WEIGHT AND TOP_SUBDAG
 		top_values[dag->origin->getTag()] = std::max(top_values[dag->origin->getTag()],
 				top_values[subdag->origin->getTag()]);
 	}
@@ -1534,6 +1533,10 @@ void Automaton::top_safety_scc (weight_t* values, bool in_scc) const {
 		delete[] value_symbol[state_id];
 	}
 
+	for (unsigned int weight_id = 0; weight_id < this->weights->size(); ++weight_id) {
+		delete edges.at(weight_id);
+	}
+
 
 	/*for (unsigned int id=0; id < this->states->size(); ++id) {
 		printf("values[%u]=%s\n", id, std::to_string(values[id]).c_str());
@@ -1557,8 +1560,13 @@ weight_t Automaton::top_safety (bool in_scc, weight_t* values, weight_t* top_val
 
 weight_t Automaton::top_Inf (weight_t* top_values) const {
 	weight_t values[this->states->size()];
-	bool done[this->nb_SCCs];
-	top_safety_scc(values, true);
+	// top_safety_scc(values, true);
+	top_safety_scc(values, false);
+
+	for (unsigned int scc_id = 0; scc_id < this->nb_SCCs; ++scc_id) {
+		top_values[scc_id] = values[this->SCCs[scc_id]->origin->getId()];
+	}
+	
 	return values[this->initial->getId()];
 }
 
@@ -1582,7 +1590,8 @@ weight_t Automaton::top_Inf (weight_t* top_values) const {
 weight_t Automaton::top_LimInf (weight_t* top_values) const {
 	weight_t values[this->states->size()];
 	bool done[this->nb_SCCs];
-	top_safety_scc(values, false);
+	// top_safety_scc(values, false);
+	top_safety_scc(values, true);
 
 	for (unsigned int scc_id = 0; scc_id < this->nb_SCCs; ++scc_id) {
 		done[scc_id] = false;
@@ -1812,6 +1821,63 @@ weight_t Automaton::top_LimAvg_cycles (weight_t* top_values, SetList<Edge*>** sc
 }
 
 
+bool Automaton::top_Inf_cycles_explore (State* target, State* state, bool* spot, weight_t* top_values, SetList<Edge*>** state_cycles) const {
+	if (spot[state->getId()] == true) return false;
+	if (state == target) return true;
+	
+	spot[state->getId()] = true;
+	for (Symbol* symbol : *(state->getAlphabet())) {
+		for (Edge* edge : *(state->getSuccessors(symbol->getId()))) {
+			if (edge->getFrom()->getTag() == edge->getTo()->getTag()) {
+				weight_t value = std::min(edge->getWeight()->getValue(), top_values[this->initial->getTag()]);
+				if (value >= top_values[this->initial->getTag()]) {
+					if (top_Inf_cycles_explore(target, edge->getTo(), spot, top_values, state_cycles) == true) {
+						state_cycles[target->getId()]->push(edge);
+						return true;
+					}
+				}
+			}
+		}
+	}
+	return false;
+}
+void Automaton::top_Inf_cycles (weight_t* state_values, weight_t* top_values, SetList<Edge*>** state_cycles) const {
+	bool spot[this->states->size()];
+	
+	for (unsigned int state_id = 0 ; state_id < this->states->size(); ++state_id) {
+		state_cycles[state_id] = new SetList<Edge*>();
+	}
+	
+	for (unsigned int state_id = 0 ; state_id < this->states->size(); ++state_id) {
+		State* state = this->states->at(state_id);
+		
+		if (state->getTag() == -1) continue; // state not reachable
+		std::cout << state_values[state->getId()] << " " << top_values[this->initial->getTag()] << std::endl;
+		// if (scc_values[state->getId()] != top_values[state->getTag()]) continue; // top not held by SCC
+		// if (state_values[state->getId()] < top_values[state->getTag()]) continue; // top not held by SCC
+		if (state_values[state->getId()] < top_values[this->initial->getTag()]) continue; // top not held by SCC
+		std::cout << state_cycles[state->getId()]->size() << std::endl;
+		if (state_cycles[state->getId()]->size() != 0) continue; // cycle already computed
+		
+		for (Symbol* symbol : *(state->getAlphabet())) {
+			for (Edge* edge : *(state->getSuccessors(symbol->getId()))) {
+				// if (edge->getFrom()->getTag() == edge->getTo()->getTag() && edge->getWeight()->getValue() == top_values[edge->getTo()->getTag()]) {
+				if (edge->getFrom()->getTag() == edge->getTo()->getTag() && edge->getWeight()->getValue() >= top_values[this->initial->getTag()]) {
+					for (unsigned int x = 0 ; x < this->states->size(); ++x) {
+						spot[x] = false;
+					}
+					if (top_Inf_cycles_explore(edge->getFrom(), edge->getTo(), spot, top_values, state_cycles) == true) {
+						state_cycles[state_id]->push(edge);
+					}
+				}
+			}
+		}
+	}
+
+	return;
+}
+
+
 bool Automaton::top_cycles_explore (State* target, State* state, bool* spot, weight_t (*filter)(weight_t,weight_t), weight_t* top_values, SetList<Edge*>** scc_cycles) const {
 	if (spot[state->getId()] == true) return false;
 	if (state == target) return true;
@@ -1835,10 +1901,6 @@ bool Automaton::top_cycles_explore (State* target, State* state, bool* spot, wei
 void Automaton::top_cycles (weight_t (*filter)(weight_t,weight_t), weight_t* scc_values, weight_t* top_values, SetList<Edge*>** scc_cycles) const {
 	bool spot[this->states->size()];
 	
-	for (unsigned int state_id = 0 ; state_id < this->states->size(); ++state_id) {
-		spot[state_id] = false;
-	}
-	
 	for (unsigned int scc_id = 0 ; scc_id < this->nb_SCCs; ++scc_id) {
 		scc_cycles[scc_id] = new SetList<Edge*>();
 	}
@@ -1853,13 +1915,18 @@ void Automaton::top_cycles (weight_t (*filter)(weight_t,weight_t), weight_t* scc
 		for (Symbol* symbol : *(state->getAlphabet())) {
 			for (Edge* edge : *(state->getSuccessors(symbol->getId()))) {
 				if (edge->getFrom()->getTag() == edge->getTo()->getTag() && edge->getWeight()->getValue() == top_values[edge->getTo()->getTag()]) {
-				// if (edge->getFrom()->getTag() == edge->getTo()->getTag() && edge->getWeight()->getValue() == scc_values[edge->getTo()->getId()]) {
-					scc_cycles[edge->getFrom()->getTag()]->push(edge);
-					top_cycles_explore(edge->getFrom(), edge->getTo(), spot, filter, top_values, scc_cycles);
+					for (unsigned int state_id = 0 ; state_id < this->states->size(); ++state_id) {
+						spot[state_id] = false;
+					}
+					if (top_cycles_explore(edge->getFrom(), edge->getTo(), spot, filter, top_values, scc_cycles) == true) {
+						scc_cycles[edge->getFrom()->getTag()]->push(edge);
+					}
 				}
 			}
 		}
 	}
+
+	return;
 }
 
 
@@ -1895,7 +1962,7 @@ weight_t Automaton::top_LimInf_cycles (weight_t* top_values, SetList<Edge*>** sc
 }
 
 
-weight_t Automaton::top_LimSup_cycles (weight_t* top_values, SetList<Edge*>** scc_cycles, UltimatelyPeriodicWord** witness) const {
+weight_t Automaton::top_LimSup_cycles (weight_t* top_values, SetList<Edge*>** scc_cycles, UltimatelyPeriodicWord** witness, MapArray<Symbol*>* alph) const {
 	weight_t (*filter)(weight_t,weight_t) = [] (weight_t x, weight_t y) -> weight_t {
 		return std::max(x, y);
 	};
@@ -1905,15 +1972,13 @@ weight_t Automaton::top_LimSup_cycles (weight_t* top_values, SetList<Edge*>** sc
     top_cycles(filter, scc_values, top_values, scc_cycles);
 
     if (witness != nullptr) {
-		constructWitness(LimSup, witness, scc_values, top_values, scc_cycles, nullptr, nullptr);
-		for (unsigned int i = 0; i < (*witness)->prefix->getLength(); i++) {
-			Symbol* symbol = (*witness)->prefix->at(i);
-			int x = 0;
-		}
-		for (unsigned int i = 0; i < (*witness)->cycle->getLength(); i++) {
-			Symbol* symbol = (*witness)->cycle->at(i);
-			int x = 0;
-		}
+		constructWitness(LimSup, witness, scc_values, top_values, scc_cycles, nullptr, nullptr, alph);
+		// for (unsigned int i = 0; i < (*witness)->prefix->getLength(); i++) {
+		// 	Symbol* symbol = (*witness)->prefix->at(i);
+		// }
+		// for (unsigned int i = 0; i < (*witness)->cycle->getLength(); i++) {
+		// 	Symbol* symbol = (*witness)->cycle->at(i);
+		// }
 	}
 
 	return top;
@@ -1963,16 +2028,16 @@ weight_t Automaton::top_Sup_path (weight_t* top_values, SetList<Edge*>* path, Ul
 
 
 
-bool Automaton::top_Inf_witness_explore_post (weight_t top, State* state, State* target, bool* spot, SetList<Edge*>* witness_path) const {
+bool Automaton::top_Inf_witness_explore_post (weight_t* top_values, State* state, State* target, bool* spot, SetList<Edge*>* witness_path) const {
 	if (spot[state->getId()] == true) return false;
 	if (state == target) return true;
 	
 	spot[state->getId()] = true;
 	for (Symbol* symbol : *(state->getAlphabet())) {
 		for (Edge* edge : *(state->getSuccessors(symbol->getId()))) {
-			weight_t value = std::min(edge->getWeight()->getValue(), top);
-			if (value == top) {
-				if (top_Inf_witness_explore_post(top, edge->getTo(), target, spot, witness_path) == true) {
+			weight_t value = std::min(edge->getWeight()->getValue(), top_values[this->initial->getTag()]);
+			if (value == top_values[this->initial->getTag()]) {
+				if (top_Inf_witness_explore_post(top_values, edge->getTo(), target, spot, witness_path) == true) {
 					witness_path->push(edge);
 					return true;
 				}
@@ -1983,27 +2048,40 @@ bool Automaton::top_Inf_witness_explore_post (weight_t top, State* state, State*
 	return false;
 }
 
-bool Automaton::top_Inf_witness_post (State* init, weight_t top, SetList<Edge*>* witness_path, SetList<Edge*>* witness_loop) const {
-	bool spot[this->states->size()];
-	weight_t top_values[this->nb_SCCs];
-	SetList<Edge*>* scc_cycles[this->nb_SCCs];
-	top_LimInf_cycles(top_values, scc_cycles);
+
+bool Automaton::top_Inf_witness_post (State* init, weight_t* top_values, SetList<Edge*>* witness_path, SetList<Edge*>** witness_loop) const {
+	SetList<Edge*>* state_cycles[this->states->size()];
+	weight_t state_values[this->states->size()];
+	top_safety_scc(state_values, false);
+	top_Inf_cycles(state_values, top_values, state_cycles);
+
+	for (int i = 0; i < this->states->size(); i++) {
+		std::cout << "state: " << i << std::endl;
+		for (auto e : *state_cycles[i]) {
+			std::cout << e->toString() << std::endl;
+		}
+		std::cout << std::endl;
+	}
 	
-	for (unsigned int i = 0; i < this->nb_SCCs; i++) {
-		if (top_values[i] >= top) {
+	bool spot[this->states->size()];
+
+	for (unsigned int i = 0; i < this->states->size(); i++) {
+		if (state_values[i] >= top_values[this->initial->getTag()]) {
 			for (unsigned int state_id = 0 ; state_id < this->states->size(); ++state_id) {
 				spot[state_id] = false;
 			}
 			
-			State* target = scc_cycles[i]->head()->getFrom();
-			if (top_Inf_witness_explore_post (top, init, target, spot, witness_path) == true) {
-				witness_loop = scc_cycles[i];
-				for (unsigned int j = 0; j < this->nb_SCCs; j++) {
-					if (i != j) {
-						delete scc_cycles[j];
+			if (state_cycles[i]->head() != nullptr) {
+				State* target = state_cycles[i]->head()->getFrom();
+				if (top_Inf_witness_explore_post (top_values, init, target, spot, witness_path) == true) {
+					*witness_loop = state_cycles[i];
+					for (unsigned int j = 0; j < this->states->size(); j++) {
+						if (i != j) {
+							delete state_cycles[j];
+						}
 					}
+					return true;
 				}
-				return true;
 			}
 		}
 	}
@@ -2011,23 +2089,68 @@ bool Automaton::top_Inf_witness_post (State* init, weight_t top, SetList<Edge*>*
 	return false;
 }
 
-bool Automaton::top_Inf_witness_explore_pre (weight_t top, State* state, bool* spot, SetList<Edge*>* witness_path, SetList<Edge*>* witness_loop) const {
+// bool Automaton::top_Inf_witness_post (State* init, weight_t* top_values, SetList<Edge*>* witness_path, SetList<Edge*>** witness_loop) const {
+// 	weight_t (*filter)(weight_t,weight_t) = [] (weight_t x, weight_t y) -> weight_t {
+// 		return std::min(x, y);
+// 	};
+// 	SetList<Edge*>* scc_cycles[this->nb_SCCs];
+// 	weight_t scc_values[this->states->size()];
+// 	top_safety_scc(scc_values, false);
+// 	top_cycles(filter, scc_values, top_values, scc_cycles);
+
+// 	// weight_t top_values1[this->nb_SCCs];
+// 	// SetList<Edge*>* scc_cycles[this->nb_SCCs];
+// 	// top_LimInf_cycles(top_values1, scc_cycles);
+
+// 	for (int i = 0; i < nb_SCCs; i++) {
+// 		std::cout << "scc_id: " << i << std::endl;
+// 		for (auto e : *scc_cycles[i]) {
+// 			std::cout << e->toString() << std::endl;
+// 		}
+// 		std::cout << std::endl;
+// 	}
+	
+// 	bool spot[this->states->size()];
+
+// 	for (unsigned int i = 0; i < this->nb_SCCs; i++) {
+// 		if (top_values[i] >= top_values[this->initial->getTag()]) {
+// 			for (unsigned int state_id = 0 ; state_id < this->states->size(); ++state_id) {
+// 				spot[state_id] = false;
+// 			}
+			
+// 			if (scc_cycles[i]->head() != nullptr) {
+// 				State* target = scc_cycles[i]->head()->getFrom();
+// 				if (top_Inf_witness_explore_post (top_values, init, target, spot, witness_path) == true) {
+// 					*witness_loop = scc_cycles[i];
+// 					for (unsigned int j = 0; j < this->nb_SCCs; j++) {
+// 						if (i != j) {
+// 							delete scc_cycles[j];
+// 						}
+// 					}
+// 					return true;
+// 				}
+// 			}
+// 		}
+// 	}
+
+// 	return false;
+// }
+
+bool Automaton::top_Inf_witness_explore_pre (weight_t* top_values, State* state, bool* spot, SetList<Edge*>* witness_path, SetList<Edge*>** witness_loop) const {
 	if (spot[state->getId()] == true) return false;
 	
 	spot[state->getId()] = true;
 	for (Symbol* symbol : *(state->getAlphabet())) {
 		for (Edge* edge : *(state->getSuccessors(symbol->getId()))) {
-			if (edge->getWeight()->getValue() == top) {
-				// top_Inf_witness_post (edge->getTo(), top, witness_path, witness_loop);
-				// witness_path->push(edge);
+			if (edge->getWeight()->getValue() == top_values[this->initial->getTag()]) {
+				top_Inf_witness_post (edge->getTo(), top_values, witness_path, witness_loop);
 				witness_path->push(edge);
-				top_Inf_witness_post (edge->getTo(), top, witness_path, witness_loop);
 				return true;
 			}
 			else {
-				weight_t value = std::min(edge->getWeight()->getValue(), top);
-				if (value == top) {
-					if (top_Inf_witness_explore_pre(top, edge->getTo(), spot, witness_path, witness_loop) == true) {
+				weight_t value = std::min(edge->getWeight()->getValue(), top_values[this->initial->getTag()]);
+				if (value == top_values[this->initial->getTag()]) {
+					if (top_Inf_witness_explore_pre(top_values, edge->getTo(), spot, witness_path, witness_loop) == true) {
 						witness_path->push(edge);
 						return true;
 					}
@@ -2039,46 +2162,46 @@ bool Automaton::top_Inf_witness_explore_pre (weight_t top, State* state, bool* s
 	return false;
 }
 
-void Automaton::top_Inf_witness (weight_t top, SetList<Edge*>* witness_path, SetList<Edge*>* witness_loop) const {
+void Automaton::top_Inf_witness (weight_t* top_values, SetList<Edge*>* witness_path, SetList<Edge*>** witness_loop) const {
 	bool spot[this->states->size()];
 	
 	for (unsigned int state_id = 0 ; state_id < this->states->size(); ++state_id) {
 		spot[state_id] = false;
 	}
 	
-	top_Inf_witness_explore_pre (top, this->initial, spot, witness_path, witness_loop);
+	top_Inf_witness_explore_pre (top_values, this->initial, spot, witness_path, witness_loop);
 }
 
-weight_t Automaton::top_Inf_path (weight_t* top_values, SetList<Edge*>* witness_path, SetList<Edge*>* witness_loop, UltimatelyPeriodicWord** witness) const {
+weight_t Automaton::top_Inf_path (weight_t* top_values, SetList<Edge*>* witness_path, SetList<Edge*>** witness_loop, UltimatelyPeriodicWord** witness) const {
 	weight_t top = top_Inf(top_values);
-	top_Inf_witness (top, witness_path, witness_loop);
-	constructWitness(Inf, witness, nullptr, top_values, nullptr, witness_path, witness_loop);
+	top_Inf_witness(top_values, witness_path, witness_loop);
+	constructWitness(Inf, witness, nullptr, top_values, nullptr, witness_path, *witness_loop);
 	return top;
 }
 
 
-void Automaton::constructWitness(value_function_t f, UltimatelyPeriodicWord** witness, const weight_t* scc_values, const weight_t* top_values, SetList<Edge*>** scc_cycles, SetList<Edge*>* path, SetList<Edge*>* loop) const {
-    Word* prefix = new Word();
-	Word* cycle = new Word();
+void Automaton::constructWitness(value_function_t f, UltimatelyPeriodicWord** witness, const weight_t* scc_values, const weight_t* top_values, SetList<Edge*>** scc_cycles, SetList<Edge*>* path, SetList<Edge*>* loop, MapArray<Symbol*>* alph) const {
+    (*witness)->prefix = new Word();
+	(*witness)->cycle = new Word();
 
 	if (f == Sup) {
         for (Edge* edge : *path) {
-            prefix->push_back(edge->getSymbol());
+            (*witness)->prefix->push_back(edge->getSymbol());
         }
-		cycle->push_back(this->alphabet->at(0));
+		(*witness)->cycle->push_back(this->alphabet->at(0));
     }
 	else if (f == Inf) {
 		if (path->head()->getFrom()->getId() == path->back()->getTo()->getId()) {
 			for (Edge* edge : *path) {
-            	cycle->push_back(edge->getSymbol());
+            	(*witness)->cycle->push_back(edge->getSymbol());
 			}
         }
 		else {
 			for (Edge* edge : *path) {
-				prefix->push_back(edge->getSymbol());
+				(*witness)->prefix->push_back(edge->getSymbol());
 			}
 			for (Edge* edge : *loop) {
-				cycle->push_back(edge->getSymbol());
+				(*witness)->cycle->push_back(edge->getSymbol());
 			}
 		}
 	}
@@ -2155,17 +2278,41 @@ void Automaton::constructWitness(value_function_t f, UltimatelyPeriodicWord** wi
 		}
 
 		if (!scc_cycles[states->at(top_state_id)->getTag()]->empty()) {
-			for (Edge* edge : path_to_top_scc) {
-				prefix->push_back(edge->getSymbol());
-			}
+			if (alph != nullptr) { //handling inf translated to limsup ///////////////////////////////
+				for (Edge* edge : path_to_top_scc) {
+					Symbol* s = edge->getSymbol();
+					for (int i = 0; i < alph->size(); i++) {
+						if (alph->at(i)->getName() == s->getName()) {
+							(*witness)->prefix->push_back(alph->at(i));
+							break;
+						}
+					}
+				}
 
-			for (Edge* edge : *scc_cycles[states->at(top_state_id)->getTag()]) {
-				cycle->push_back(edge->getSymbol());
+				for (Edge* edge : *scc_cycles[states->at(top_state_id)->getTag()]) {
+					Symbol* s = edge->getSymbol();
+					for (int i = 0; i < alph->size(); i++) {
+						if (alph->at(i)->getName() == s->getName()) {
+							(*witness)->cycle->push_back(alph->at(i));
+							break;
+						}
+					}
+				}
 			}
+			else {
+				for (Edge* edge : path_to_top_scc) {
+					(*witness)->prefix->push_back(edge->getSymbol());
+				}
+
+				for (Edge* edge : *scc_cycles[states->at(top_state_id)->getTag()]) {
+					(*witness)->cycle->push_back(edge->getSymbol());
+				}
+			}
+			
 		}
 	}
 
-    *witness = new UltimatelyPeriodicWord{prefix, cycle};
+    // *witness = new UltimatelyPeriodicWord{prefix, cycle};
 }
 
 weight_t Automaton::compute_Top (value_function_t f, weight_t* top_values, UltimatelyPeriodicWord** witness) const {
@@ -2188,13 +2335,15 @@ weight_t Automaton::compute_Top (value_function_t f, weight_t* top_values, Ultim
 	else {
 		SetList<Edge*>* scc_cycles[this->nb_SCCs];
 		SetList<Edge*>* path = new SetList<Edge*>();
-		SetList<Edge*>* loop = new SetList<Edge*>();
+		SetList<Edge*>* loop = nullptr;
         weight_t result;
 
 		if (f == Inf) {
+			Automaton* AA = Automaton::toLimSup(this, Inf);
 			// std::unique_ptr<Automaton> AA = std::unique_ptr<Automaton>(Automaton::toLimSup(this, Inf));
-			// result = AA->top_LimSup_cycles(top_values, scc_cycles, witness);
-			result = top_Inf_path(top_values, path, loop, witness);
+			result = AA->top_LimSup_cycles(top_values, scc_cycles, witness, this->getAlphabet());
+			delete AA;
+			// result = top_Inf_path(top_values, path, &loop, witness);
 		}
 		else if (f == Sup) {
 			result = top_Sup_path(top_values, path, witness);
@@ -2236,7 +2385,7 @@ weight_t Automaton::compute_Top (value_function_t f, weight_t* top_values, Ultim
         // }
 
         delete path;
-		delete loop;
+		if (loop != nullptr) delete loop;
         return result;
 	}
 }
@@ -2355,6 +2504,14 @@ weight_t Automaton::computeValue(value_function_t f, UltimatelyPeriodicWord* w) 
 		
 		for (unsigned int i = 0; i < w->prefix->getLength(); i++) {
 			Symbol* symbol = w->prefix->at(i);
+			
+			for (int i = 0; i < this->getAlphabetSize(); i++) { ////////////////////////
+				if (this->getAlphabet()->at(i)->getName() == symbol->getName()) {
+					symbol = this->getAlphabet()->at(i);
+					break;
+				}
+			}
+
 			SetStd<std::pair<State*, weight_t>> next_pairs;
 			
 			for (const auto& pair : current_pairs) {
@@ -2373,6 +2530,14 @@ weight_t Automaton::computeValue(value_function_t f, UltimatelyPeriodicWord* w) 
 			
 			for (unsigned int i = 0; i < w->cycle->getLength(); i++) {
 				Symbol* symbol = w->cycle->at(i);
+
+				for (int i = 0; i < this->getAlphabetSize(); i++) { ///////////////////////////
+					if (this->getAlphabet()->at(i)->getName() == symbol->getName()) {
+						symbol = this->getAlphabet()->at(i);
+						break;
+					}
+				}
+
 				SetStd<std::pair<State*, weight_t>> next_pairs;
 				
 				for (const auto& pair : cycle_pairs) {
@@ -2384,8 +2549,11 @@ weight_t Automaton::computeValue(value_function_t f, UltimatelyPeriodicWord* w) 
 				cycle_pairs = next_pairs;
 			}
 			
+			// Only consider values where we return to the start state
 			for (const auto& pair : cycle_pairs) {
-				best_value = std::max(best_value, pair.second);
+				if (pair.first == start_pair.first) {  // Check if we've returned to the starting state
+					best_value = std::max(best_value, pair.second);
+				}
 			}
 		}
 		

@@ -98,16 +98,17 @@ def generate_automata_set(num_states, alphabet_size, num_automata, extra_transit
         print(f"Automaton {num_states}_{alphabet_size} #{i+1:04d} saved to {saved_path}")
 
 def main():
-    num_automata_per_set = 1000
+    num_automata_per_set = 10000
     min_weight, max_weight = -1000, 1000
 
     configurations = [
-        (2, 2),  # (x, y) == x states, y letters
-        (4, 2),
-        (8, 2),
-        (2, 4),
-        (4, 4),
-        (8, 4)
+        # (2, 2),  # (x, y) == x states, y letters
+        # (4, 2),
+        # (8, 2),
+        # (2, 4),
+        # (4, 4),
+        # (8, 4)
+        (3, 2)
     ]
 
     for num_states, alphabet_size in configurations:
