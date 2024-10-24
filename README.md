@@ -274,7 +274,7 @@ weight_t l = M->getLowest();
 To use the tool directly, simply compile and follow the instructions below.
 
 ```
-Usage: ./quak [-cputime] [-v] [-d] [-print-witness] [-witness witness-file] automaton-file [ACTION ACTION ...]
+Usage: ./quak [-cputime] [-v] [-d] [-print-witness] automaton-file [ACTION ACTION ...]
 Where ACTIONs are the following, with VALF = <Inf | Sup | LimInf | LimSup | LimSupAvg | LimInfAvg>:
   stats
   dump 
@@ -288,19 +288,18 @@ Where ACTIONs are the following, with VALF = <Inf | Sup | LimInf | LimSup | LimS
   isIncludedBool VALF automaton2-file
   isEquivalent VALF automaton2-file
   monitor <Inf | Sup | Avg> word-file
+  witness-file file-name
 ```
 
-The commands *stats* prints the size of the automaton and *dump* prints the automaton.
+The commands *stats* prints the size of the automaton and *dump* prints the automaton. Command *witness-file* instructs the preceding command to write a witness (if any) to the given file.
 The remaining commands implement the decision procedures and monitoring algorithms as expected.
 For monitoring, the word files must contain one symbol per line.
 Use the option *-cputime* to print the running time, *-v* to print the input size, and *-d* to print the automaton.
-Options *-print-witness* and *-witness witness-file* will make each operation to print the witness or store it into the given
-file, resp. When multiple operations are specified, the witness file name is extended with the name of the operation.
-For operations that provide two witnesses, the names of these witnesses will be numbered.
+Option *-print-witness* will make each operation to print the witness (if any).
 Some examples are given below.
 
 ```
-./quak -cputime -d  A.txt safe LimInfAvg
+$ ./quak -cputime -d  A.txt safe LimInfAvg
 
 Cputime of building the automaton: 3 ms
 automaton (A.txt):
@@ -335,24 +334,28 @@ Cputime: 4 ms
 ```
 
 ```
-./quak -witness-file w.txt A.txt  constant Inf
+$ ./quak A.txt constant Inf witness-file w.txt 
+----------
+isConstant(Inf) = 0
+----------
 
-TBD
-
-cat w.txt
+$ cat w.txt
+a(a)
 ```
 
 ```
-./quak -print-witness -witness-file w.txt A.txt safe LimInfAvg constant Sup isEquivalent Inf
+$ ./quak -print-witness A.txt safe LimInfAvg witness-file w1.txt constant Sup witness-file w2.txt
+----------
+isSafe(LimInfAvg) = 0
+Witness: (a)
+----------
+isConstant(Sup) = 0
+Witness: (a)
+----------
 
-TBD
-
-
-cat w.safe-LimInfAvg.txt
-
-cat w.constant-Sup.txt
-
-cat w.isEquivalent-Inf.1.txt
-
-cat w.isEquivalent-Inf.2.txt
+$ cat w1.txt
+(a)
+$ cat w2.txt
+(a)
 ```
+
