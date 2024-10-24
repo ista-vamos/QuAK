@@ -2602,47 +2602,52 @@ weight_t Automaton::computeValue(value_function_t f, UltimatelyPeriodicWord* w) 
 // -------------------------------- toStrings -------------------------------- //
 
 
-void Automaton::print (bool full, bool bv_weights, bool bv_only) const {
-	std::cout << "automaton (" << this->name << "):\n";
-	std::cout << "\talphabet (" << this->alphabet->size() << "):";
-	std::cout << this->alphabet->toString(Symbol::toString) << "\n";
-	std::cout << "\tweights (" << this->weights->size() << "):";
-	std::cout << weights->toString(Weight::toString) << "\n";
-	std::cout << "\t\tMIN = " << std::to_string(min_domain) << "\n";
-	std::cout << "\t\tMAX = " << std::to_string(max_domain) << "\n";
-	std::cout << "\tstates (" << this->states->size() << "):";
-	std::cout << states->toString(State::toString) << "\n";
-	std::cout << "\t\tINITIAL = " << initial->getName() << "\n";
-	std::cout << "\tSCCs (" << this->nb_SCCs << "):";
-	std::cout << this->SCCs[this->initial->getTag()]->toString("\t\t") << "\n";
+void Automaton::print(bool full, bool bv_weights, bool bv_only) const {
+	print(std::cout, full, bv_weights, bv_only);
+
+}
+
+void Automaton::print(std::ostream& out, bool full, bool bv_weights, bool bv_only) const {
+	out << "automaton (" << this->name << "):\n";
+	out << "\talphabet (" << this->alphabet->size() << "):";
+	out << this->alphabet->toString(Symbol::toString) << "\n";
+	out << "\tweights (" << this->weights->size() << "):";
+	out << weights->toString(Weight::toString) << "\n";
+	out << "\t\tMIN = " << std::to_string(min_domain) << "\n";
+	out << "\t\tMAX = " << std::to_string(max_domain) << "\n";
+	out << "\tstates (" << this->states->size() << "):";
+	out << states->toString(State::toString) << "\n";
+	out << "\t\tINITIAL = " << initial->getName() << "\n";
+	out << "\tSCCs (" << this->nb_SCCs << "):";
+	out << this->SCCs[this->initial->getTag()]->toString("\t\t") << "\n";
 	unsigned int nb_edge = 0;
 	for (unsigned int state_id = 0; state_id < states->size(); ++state_id) {
 		for (Symbol* symbol : *(states->at(state_id)->getAlphabet())) {
 			nb_edge += states->at(state_id)->getSuccessors(symbol->getId())->size();
 		}
 	}
-	std::cout << "\tedges (" << nb_edge << "):\n";
+	out << "\tedges (" << nb_edge << "):\n";
 	for (unsigned int state_id = 0; state_id < states->size(); ++state_id) {
 		for (Symbol* symbol : *(states->at(state_id)->getAlphabet())) {
             auto *state = states->at(state_id);
             for (auto *edge : *state->getSuccessors(symbol->getId())) {
-                std::cout << "\t\t" << edge->getSymbol()->toString() << " : ";
+                out << "\t\t" << edge->getSymbol()->toString() << " : ";
                 if (bv_only) {
-                    std::cout << "0x" << std::hex << edge->getWeight()->getValue().to_bv();
+                    out << "0x" << std::hex << edge->getWeight()->getValue().to_bv();
                 } else {
                     if (full) {
-                      std::cout << std::setprecision(std::numeric_limits<weight_t::T>::max_digits10)
+                      out << std::setprecision(std::numeric_limits<weight_t::T>::max_digits10)
                                 << std::fixed;
                     }
-                    std::cout << *edge->getWeight()->getValue();
+                    out << *edge->getWeight()->getValue();
                     if (bv_weights) {
-                        std::cout << " (" << "0x" << std::hex << edge->getWeight()->getValue().to_bv() << ")";
+                        out << " (" << "0x" << std::hex << edge->getWeight()->getValue().to_bv() << ")";
                     }
                 }
-                std::cout << ", " << edge->getFrom()->getName() << " -> "
+                out << ", " << edge->getFrom()->getName() << " -> "
                           << edge->getTo()->getName() << "\n";
             }
 		}
 	}
-	std::cout << "\n";
+	out << "\n";
 }

@@ -163,7 +163,8 @@ public:
     ///  - `bv_weights` print the weights also as bitvectors (unsigned int) type instead of as a floating-point type.
     ///  - `bv_only` print only weights as bitvectors (otherwise they are printed also as a floating-point number).
     ///     Overrides `full` if given.
-	void print (bool full = false, bool bv_weights = false, bool bv_only = false) const;
+	void print(bool full = false, bool bv_weights = false, bool bv_only = false) const;
+	void print(std::ostream& out, bool full = false, bool bv_weights = false, bool bv_only = false) const;
 
 	const std::string &getName() const;
 
