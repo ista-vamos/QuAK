@@ -35,9 +35,19 @@ typedef enum {
 } aggregator_t;
 
 struct UltimatelyPeriodicWord {
-    Word* prefix;
-    Word* cycle;
+    Word* prefix{nullptr};
+    Word* cycle{nullptr};
+	
+	~UltimatelyPeriodicWord() {
+		delete prefix;
+		delete cycle;
+	}
+	
+	std::string toString() const {
+		return prefix->toString() + "(" + cycle->toString() + ")";
+	}
 };
+
 
 class Automaton {
 protected:
