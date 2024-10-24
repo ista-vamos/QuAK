@@ -45,22 +45,30 @@ def generate_complete_nondeterministic_automaton(num_states, alphabet_size, extr
     alphabet = string.ascii_lowercase[:alphabet_size]
     transitions = []
 
-    # Ensure each state has at least one transition for each letter (completeness)
+    # Add this line to track existing transitions
+    existing_transitions = set()  # Will store (source, target, letter) tuples
+
+    # Modify this loop to track transitions
     for state in states:
         for letter in alphabet:
             target = random.choice(states)
-            # weight = random.uniform(min_weight, max_weight)
             weight = random.randint(min_weight, max_weight)
             transitions.append((letter, weight, state, target))
+            existing_transitions.add((state, target, letter))
 
-    # Add extra transitions to create nondeterminism
+    # Modify this loop to check for existing transitions
     for state in states:
-        for _ in range(extra_transitions_per_state):
+        added_transitions = 0
+        attempts = 0  # Add a counter to prevent infinite loops
+        while added_transitions < extra_transitions_per_state and attempts < 100:
             letter = random.choice(alphabet)
             target = random.choice(states)
-            # weight = random.uniform(min_weight, max_weight)
-            weight = random.randint(min_weight, max_weight)
-            transitions.append((letter, weight, state, target))
+            if (state, target, letter) not in existing_transitions:
+                weight = random.randint(min_weight, max_weight)
+                transitions.append((letter, weight, state, target))
+                existing_transitions.add((state, target, letter))
+                added_transitions += 1
+            attempts += 1
 
     # Ensure all states are reachable from the initial state
     transitions = ensure_connectivity(transitions, num_states, alphabet, min_weight, max_weight)
