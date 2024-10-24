@@ -1238,7 +1238,7 @@ bool Automaton::isLimAvgConstant(UltimatelyPeriodicWord** witness) const {
 				//inverted weights: (edge-top) - from + to = 0
 				//equivalently: edge - from + to = top
 				weight_t x = (edge->getWeight()->getValue() - dist[u] + dist[v]);
-				std::cout << top << " " << x << std::endl;
+				// std::cout << top << " " << x << std::endl;
 				auto value = ((x- top < N && top - x < N) ? 1 : 0);
 				Weight* weight = newweights->at(value);
 				State* from = newstates->at(edge->getFrom()->getId());
