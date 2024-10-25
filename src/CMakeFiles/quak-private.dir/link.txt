@@ -1,0 +1,2 @@
+/usr/bin/ar qc libquak-private.a "CMakeFiles/quak-private.dir/utils.cpp.o"
+/usr/bin/ranlib libquak-private.a

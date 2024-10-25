@@ -96,6 +96,7 @@ int main() {
     std::vector<int> letters = {2,3,4};
     // std::vector<int> states = {2};
     // std::vector<int> letters = {2};
+    // std::vector<value_function_t> valueFunctions = {Inf};
     std::vector<value_function_t> valueFunctions = {Inf, Sup, LimInf, LimSup};
     // std::vector<value_function_t> valueFunctions = {Inf, Sup, LimInf, LimSup, LimInfAvg, LimSupAvg};
 
@@ -112,7 +113,7 @@ int main() {
                     std::cout << "Processing automaton: " <<  val2str(f) << " " << filename.str() << std::endl;
                     
                     Automaton* A = new Automaton(directory + "/" + filename.str());
-                    A->print();
+                    // A->print();
 
                     // testing the top value witness
                     /*

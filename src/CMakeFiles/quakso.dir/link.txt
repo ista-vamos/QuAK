@@ -1,0 +1,1 @@
+/usr/bin/c++ -fPIC -g -shared -Wl,-soname,libquak.so -o libquak.so CMakeFiles/quakso.dir/sharedlib.cpp.o  libquak.a

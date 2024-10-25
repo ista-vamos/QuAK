@@ -206,6 +206,7 @@ bool inclusion (const Automaton* A, const Automaton* B, UltimatelyPeriodicWord**
 								if (witness != nullptr) {
 									(*witness)->prefix = new Word(*word_of_U);
 									(*witness)->cycle = new Word(*word_of_V);
+									// std::cout << (*witness)->prefix->toString() << " " << (*witness)->cycle->toString() << std::endl;
 								}
 								delete postF;
 								delete postI;
