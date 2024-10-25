@@ -363,3 +363,92 @@ $ cat w2.txt
 (a)
 ```
 
+```
+$ ./quak -d samples/ainf.txt decompose LimInf s.txt l.txt  
+automaton (samples/ainf.txt):
+	alphabet (2):
+		0 -> a
+		1 -> b
+	weights (4):
+		0 -> -1.000000
+		1 -> 0.000000
+		2 -> 1.000000
+		3 -> 2.000000
+		MIN = -1.000000
+		MAX = 2.000000
+	states (3):
+		0 -> 0, scc: 2
+		1 -> 1, scc: 0
+		2 -> 2, scc: 1
+		INITIAL = 0
+	SCCs (3):
+		0
+			1
+			2
+	edges (6):
+		a : 0, 0 -> 1
+		b : -1, 0 -> 2
+		a : 1, 1 -> 1
+		b : -1, 1 -> 1
+		a : -1, 2 -> 2
+		b : 2, 2 -> 2
+
+----------
+Safety component automaton:
+automaton (SafeOf(samples/ainf.txt)):
+	alphabet (2):
+		0 -> a
+		1 -> b
+	weights (2):
+		0 -> 1.000000
+		1 -> 2.000000
+		MIN = -1.000000
+		MAX = 2.000000
+	states (3):
+		0 -> 0, scc: 2
+		1 -> 1, scc: 0
+		2 -> 2, scc: 1
+		INITIAL = 0
+	SCCs (3):
+		0
+			1
+			2
+	edges (6):
+		a : 1, 0 -> 1
+		b : 2, 0 -> 2
+		a : 1, 1 -> 1
+		b : 1, 1 -> 1
+		a : 2, 2 -> 2
+		b : 2, 2 -> 2
+
+Liveness component automaton:
+automaton (LiveOf(samples/ainf.txt)):
+	alphabet (2):
+		0 -> a
+		1 -> b
+	weights (4):
+		0 -> -1.000000
+		1 -> 0.000000
+		2 -> 1.000000
+		3 -> 2.000000
+		MIN = -1.000000
+		MAX = 2.000000
+	states (3):
+		0 -> 0, scc: 2
+		1 -> 1, scc: 0
+		2 -> 2, scc: 1
+		INITIAL = 0
+	SCCs (3):
+		0
+			1
+			2
+	edges (6):
+		a : 0, 0 -> 1
+		b : -1, 0 -> 2
+		a : 2, 1 -> 1
+		b : -1, 1 -> 1
+		a : -1, 2 -> 2
+		b : 2, 2 -> 2
+
+----------
+```
