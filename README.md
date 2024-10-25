@@ -288,13 +288,14 @@ Where ACTIONs are the following, with VALF = <Inf | Sup | LimInf | LimSup | LimS
   isIncludedBool VALF automaton2-file
   isEquivalent VALF automaton2-file
   livenessComponent VALF output-file
+  safetyComponent VALF output-file
   decompose VALF safety-output-file liveness-output-file
   monitor <Inf | Sup | Avg> word-file
   witness-file file-name
 ```
 
 The commands *stats* prints the size of the automaton and *dump* prints the automaton. Command *witness-file* instructs the preceding command to write a witness (if any) to the given file.
-Command *livenessComponent* computes and stores the liveness component into the specified file.
+Commands *livenessComponent* and *safetyComponent* compute and store the liveness and safety, resp., components into the specified file.
 Command *decompose* computes the safety-liveness decomposition and stores it into specified files.
 The remaining commands implement the decision procedures and monitoring algorithms as expected.
 For monitoring, the word files must contain one symbol per line.
