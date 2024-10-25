@@ -23,7 +23,7 @@ Given two $\mathsf{Val}$ automata $\mathcal{A}$ and $\mathcal{B}$ with a rationa
 
 You can build a container with QuAK using Docker or Podman and the provided Dockerfile
 in the top-level project directory (there is also another Dockerfile in the directory `experiments/`,
-which does more things that just building QuAK.). From the top-level directory, run:
+which does more things than just building QuAK.). From the top-level directory, run:
 ```
 docker build . -t quak
 ```
@@ -31,9 +31,9 @@ docker build . -t quak
 Note: the container built by the other Dockerfile (`experiments/Dockerfile`) is
 also named "quak" (if you precisely follow the instructions from
 `experiments/README.md`). The command above will then overwrite the image. To
-avoid this, change `-t quak` to `-t <new_name>` where `<new_name>` is a name of
+avoid this, change `-t quak` to `-t <new_name>` where `<new_name>` is the name of
 the container different from the name of the container with the experiments. Do
-not forget to use this new name when running the contanier later.
+not forget to use this new name when running the container later.
 
 Once you have the docker image built, you can start a terminal inside the docker image as follows:
 ```
@@ -88,7 +88,7 @@ make -j4
 
 #### Building with the legacy Makefile
 
-If you have troubles building QuAK with CMake, you can try using building it
+If you have trouble building QuAK with CMake, you can try using building it
 only with Make. To do this, run:
 
 ```
@@ -96,7 +96,7 @@ make -f Makefile.legacy
 ```
 
 This makefile is likely out of date and does not support building tests,
-neither integration with VAMOS. It is a subject of removal in the future.
+or integration with VAMOS. It is a subject of removal in the future.
 
 ## Input Format
 
@@ -106,7 +106,7 @@ Each automata is represented as a list of transitions of the following format:
 a : v, q -> p
 ```
 which encodes a transition from state $q$ to state $p$ with letter $a$ and weight $v$.
-Weight $v$ is either a C float number, or an unsigned hexadecimal integer that represents
+Weight $v$ is either a C float number or an unsigned hexadecimal integer that represents
 the bits of a C float number.
 
 The initial state of the input automaton is the source state of the first transition in its text file.
@@ -139,7 +139,7 @@ The value function is unspecified during construction, but it needs to be passed
 ```cpp
 Automaton* B = new Automaton(A, valueFunction);
 ```
-Here, the value function is needed because the weights of the transitions involving the new sink state depends on the value function. -->
+Here, the value function is needed because the weights of the transitions involving the new sink state depend on the value function. -->
 
 ### Non-emptiness Check
 To check the non-emptiness of $\mathcal{A}$ with respect to $v$, use the following:
@@ -158,7 +158,7 @@ To check the inclusion of $\mathcal{A}$ in $\mathcal{B}$, use the following:
 ```cpp
 bool flag = A->isIncludedIn(B, Val, booleanized);
 ```
-where *booleanized* determines which inclusion algorithms is called.
+where *booleanized* determines which inclusion algorithm is called.
 If *booleanized* is false, then our quantitative extension of the antichain algorithm is used.
 If *booleanized* is true, then the standard inclusion algorithm (repeatedly booleanizing the quantitative automaton and calling the boolean antichain algorithm) is used.
 By default, *booleanized* is set to false.
@@ -168,7 +168,7 @@ To check the equivalence of $\mathcal{A}$ and $\mathcal{B}$, use the following:
 ```cpp
 bool flag = A->isEquivalentTo(B, Val, booleanized);
 ```
-where *booleanized* is the same a for the inclusion check.
+where *booleanized* is the same as for the inclusion check.
 
 
 ### Constant-function Check
@@ -240,7 +240,7 @@ Note that you must delete the witness manually once you are done with it.
 The witness format is `prefix(cycle)`, e.g., `aa(ab)` is the word `aaababab...`.
 
 ### Monitor Construction and Execution
-QuAK can contsruct monitors from deterministic automata by either reading them from a file or copying an automaton object:
+QuAK can construct monitors from deterministic automata by either reading them from a file or copying an automaton object:
 ```cpp
 Monitor* M = new Monitor("A.txt", Val);
 ```
@@ -300,7 +300,7 @@ Command *decompose* computes the safety-liveness decomposition and stores it int
 The remaining commands implement the decision procedures and monitoring algorithms as expected.
 For monitoring, the word files must contain one symbol per line.
 Use the option *-cputime* to print the running time, *-v* to print the input size, and *-d* to print the automaton.
-Option *-print-witness* will make each operation to print the witness (if any).
+Option *-print-witness* will make each operation print the witness (if any).
 Some examples are given below.
 
 ```
