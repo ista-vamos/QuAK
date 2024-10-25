@@ -2077,8 +2077,7 @@ weight_t Automaton::top_Inf_path (weight_t* top_values, SetList<Edge*>* witness_
 
 
 void Automaton::constructWitness(value_function_t f, UltimatelyPeriodicWord** witness, const weight_t* scc_values, const weight_t* top_values, SetList<Edge*>** scc_cycles, SetList<Edge*>* path, SetList<Edge*>* loop, MapArray<Symbol*>* alph) const {
-    (*witness)->prefix = new Word();
-	(*witness)->cycle = new Word();
+    (*witness) = new UltimatelyPeriodicWord{new Word(), new Word()};
 
 	if (f == Sup) {
         for (Edge* edge : *path) {
