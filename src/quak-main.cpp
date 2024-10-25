@@ -51,6 +51,7 @@ enum class Operation {
   topValue,
   bottomValue,
   livenessComponent,
+  safetyComponent,
   decompose,
   eval,
   monitor
@@ -73,6 +74,7 @@ static void printUsage(const char *bin) {
   std::cerr << "  isEquivalent VALF automaton2-file\n";
   std::cerr << "  isEquivalentBool VALF automaton2-file\n";
   std::cerr << "  livenessComponent VALF output-file\n";
+  std::cerr << "  safetyComponent VALF output-file\n";
   std::cerr << "  decompose VALF safety-output-file liveness-output-file\n";
   std::cerr << "  eval <Inf | Sup | Avg> word-file\n";
   std::cerr << "  monitor <Inf | Sup | Avg> word-file\n";
@@ -188,6 +190,8 @@ Options parseArgs(int argc, char *argv[]) {
       cl.op = Operation::isIncludedBool;
     } else if (streq(argv[idx], "livenessComponent")) {
       cl.op = Operation::livenessComponent;
+    } else if (streq(argv[idx], "safetyComponent")) {
+      cl.op = Operation::safetyComponent;
     } else if (streq(argv[idx], "decompose")) {
       cl.op = Operation::decompose;
     } else if (streq(argv[idx], "isEquivalent")) {
@@ -235,7 +239,8 @@ Options parseArgs(int argc, char *argv[]) {
                cl.op == Operation::isIncludedBool ||
                cl.op == Operation::isEquivalent ||
                cl.op == Operation::isEquivalentBool ||
-               cl.op == Operation::livenessComponent) {
+               cl.op == Operation::livenessComponent ||
+               cl.op == Operation::safetyComponent) {
       if (idx + 2 >= argc) {
         return Options::createError("Invalid arguments for " + std::string(argv[idx]));
       }
@@ -602,6 +607,24 @@ int main(int argc, char **argv) {
         }
 
         writeAutomaton(liveA.get(), std::get<std::string>(act.args[1]));
+        TIMER_PRINT("Cputime: ")
+        PRINT_DIV
+        }
+        break;
+      case Operation::safetyComponent:
+        {
+        value_fun = std::get<value_function_t>(act.args[0]);
+        TIMER_START
+        auto safeA
+          = std::unique_ptr<Automaton>(Automaton::safetyClosure(A.get(), value_fun));
+        TIMER_END
+
+        if (opts.dump) {
+          std::cout << "Safety component automaton:\n";
+          safeA->print();
+        }
+
+        writeAutomaton(safeA.get(), std::get<std::string>(act.args[1]));
         TIMER_PRINT("Cputime: ")
         PRINT_DIV
         }
