@@ -79,24 +79,24 @@ private:
 	weight_t top_LimInf (weight_t* top_values) const;
 	weight_t top_LimAvg (weight_t* top_values) const;
 
-	void constructWitness(value_function_t f, UltimatelyPeriodicWord** witness, const weight_t* scc_values, const weight_t* top_values, SetList<Edge*>** scc_cycles, SetList<Edge*>* path, SetList<Edge*>* loop, MapArray<Symbol*>* alph = nullptr) const;
+	void constructWitness(value_function_t f, UltimatelyPeriodicWord** witness, const weight_t* scc_values, const weight_t* top_values, SetList<Edge*>** scc_cycles, SetList<Edge*>* path, SetList<Edge*>* loop) const;
 	
 	weight_t top_LimAvg_cycles (weight_t* top_values, SetList<Edge*>** scc_cycles, UltimatelyPeriodicWord** witness = nullptr) const;
 	// State* top_cycles_explore (State* state, bool* spot, weight_t (*filter)(weight_t,weight_t), weight_t* top_values, SetList<Edge*>** scc_cycles) const;
 	bool top_cycles_explore (State* target, State* state, bool* spot, weight_t (*filter)(weight_t,weight_t), weight_t* top_values, SetList<Edge*>** scc_cycles) const;
 	void top_cycles (weight_t (*filter)(weight_t,weight_t), weight_t* scc_values, weight_t* top_values, SetList<Edge*>** scc_cycles) const;
 	weight_t top_LimInf_cycles (weight_t* top_values, SetList<Edge*>** scc_cycles, UltimatelyPeriodicWord** witness = nullptr) const;
-	weight_t top_LimSup_cycles (weight_t* top_values, SetList<Edge*>** scc_cycles, UltimatelyPeriodicWord** witness = nullptr, MapArray<Symbol*>* alph = nullptr) const;
+	weight_t top_LimSup_cycles (weight_t* top_values, SetList<Edge*>** scc_cycles, UltimatelyPeriodicWord** witness = nullptr) const;
 	
 	bool top_Sup_witness_explore (weight_t top, State* state, bool* spot, SetList<Edge*>* path) const;
 	void top_Sup_witness (weight_t top, SetList<Edge*>* path) const;
 	weight_t top_Sup_path (weight_t* top_values, SetList<Edge*>* path, UltimatelyPeriodicWord** witness) const;
 
-	int top_Inf_witness_explore_post (weight_t top, State* state, bool* spot, bool* spot_back, SetList<Edge*>* witness_path, SetList<Edge*>** witness_loop) const;
-	bool top_Inf_witness_post (State* init, weight_t top, SetList<Edge*>* witness_path, SetList<Edge*>** witness_loop) const;
-	bool top_Inf_witness_explore_pre (weight_t top, State* state, bool* spot, SetList<Edge*>* witness_path, SetList<Edge*>** witness_loop) const;
-	void top_Inf_witness (weight_t top, SetList<Edge*>* witness_path, SetList<Edge*>** witness_loop) const;
-	weight_t top_Inf_path (weight_t* top_values, SetList<Edge*>* witness_path, SetList<Edge*>** witness_loop, UltimatelyPeriodicWord** witness) const;
+	int top_Inf_witness_explore_post (weight_t top, State* state, bool* spot, bool* spot_back, SetList<Edge*>* witness_path, SetList<Edge*>* witness_loop) const;
+	bool top_Inf_witness_post (State* init, weight_t top, SetList<Edge*>* witness_path, SetList<Edge*>* witness_loop) const;
+	bool top_Inf_witness_explore_pre (weight_t top, State* state, bool* spot, SetList<Edge*>* witness_path, SetList<Edge*>* witness_loop) const;
+	void top_Inf_witness (weight_t top, SetList<Edge*>* witness_path, SetList<Edge*>* witness_loop) const;
+	weight_t top_Inf_path (weight_t* top_values, SetList<Edge*>* witness_path, SetList<Edge*>* witness_loop, UltimatelyPeriodicWord** witness) const;
 
 	bool isIncludedIn_booleanized (const Automaton* B, value_function_t f, UltimatelyPeriodicWord** witness = nullptr) const;
 	bool isIncludedIn_antichains (const Automaton* B, value_function_t f, UltimatelyPeriodicWord** witness = nullptr) const;
