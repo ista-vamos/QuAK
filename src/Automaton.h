@@ -92,13 +92,10 @@ private:
 	void top_Sup_witness (weight_t top, SetList<Edge*>* path) const;
 	weight_t top_Sup_path (weight_t* top_values, SetList<Edge*>* path, UltimatelyPeriodicWord** witness) const;
 
-	bool top_Inf_cycles_explore (State* target, State* state, bool* spot, weight_t* top_values, SetList<Edge*>** state_cycles) const;
-	void top_Inf_cycles (weight_t* state_values, weight_t* top_values, SetList<Edge*>** state_cycles) const;
-
-	bool top_Inf_witness_explore_post (weight_t* top_values, State* state, State* target, bool* spot, SetList<Edge*>* witness_path) const;
-	bool top_Inf_witness_post (State* init, weight_t* top_values, SetList<Edge*>* witness_path, SetList<Edge*>** witness_loop) const;
-	bool top_Inf_witness_explore_pre (weight_t* top_values, State* state, bool* spot, SetList<Edge*>* witness_path, SetList<Edge*>** witness_loop) const;
-	void top_Inf_witness (weight_t* top_values, SetList<Edge*>* witness_path, SetList<Edge*>** witness_loop) const;
+	int top_Inf_witness_explore_post (weight_t top, State* state, bool* spot, bool* spot_back, SetList<Edge*>* witness_path, SetList<Edge*>** witness_loop) const;
+	bool top_Inf_witness_post (State* init, weight_t top, SetList<Edge*>* witness_path, SetList<Edge*>** witness_loop) const;
+	bool top_Inf_witness_explore_pre (weight_t top, State* state, bool* spot, SetList<Edge*>* witness_path, SetList<Edge*>** witness_loop) const;
+	void top_Inf_witness (weight_t top, SetList<Edge*>* witness_path, SetList<Edge*>** witness_loop) const;
 	weight_t top_Inf_path (weight_t* top_values, SetList<Edge*>* witness_path, SetList<Edge*>** witness_loop, UltimatelyPeriodicWord** witness) const;
 
 	bool isIncludedIn_booleanized (const Automaton* B, value_function_t f, UltimatelyPeriodicWord** witness = nullptr) const;
