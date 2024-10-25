@@ -21,6 +21,8 @@ public:
 	std::string toString();
 	void push_back(Symbol* symbol);
 	void pop_back();
+	Word& operator=(const Word& other);
+
 };
 
 #endif /* WORD_H_ */
