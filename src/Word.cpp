@@ -28,8 +28,9 @@ Word::Word (Word* word, Symbol* symbol) {
 
 Word::Word(const Word& other) {
     this->all = new std::vector<Symbol*>();
-    for (const Symbol* symbol : *(other.all)) {
+    for (Symbol* symbol : *(other.all)) {
         this->all->push_back(new Symbol(*symbol));
+        // this->all->push_back(symbol);
     }
 }
 
