@@ -806,7 +806,8 @@ Automaton* Automaton::livenessComponent_prefixIndependent (const Automaton* A, v
 					new_symbol = newalphabet->at(symbol_id);
 					new_from = state_register.at(edge->getFrom()->getId());
 					new_to = sink_state;
-					new_edge = new Edge(new_symbol, new_weight, new_from, new_to);
+					// new_edge = new Edge(new_symbol, new_weight, new_from, new_to);
+					new_edge = new Edge(new_symbol, lowest, new_from, new_to);
 					new_from->addSuccessor(new_edge);
 					new_to->addPredecessor(new_edge);
 				}
