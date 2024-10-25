@@ -77,7 +77,7 @@ def generate_complete_nondeterministic_automaton(num_states, alphabet_size, extr
 
 def save_automaton_to_file(transitions, filename):
     script_dir = os.path.dirname(os.path.abspath(__file__))
-    script_dir = os.path.join(script_dir, "rand")
+    script_dir = os.path.join(script_dir, "randBig")
     os.makedirs(script_dir, exist_ok=True)  # Create directory if it doesn't exist
     file_path = os.path.join(script_dir, filename)
     
@@ -101,15 +101,9 @@ def main():
     num_automata_per_set = 10000
     min_weight, max_weight = -1000, 1000
 
-    configurations = [
-        # (2, 2),  # (x, y) == x states, y letters
-        # (4, 2),
-        # (8, 2),
-        # (2, 4),
-        # (4, 4),
-        # (8, 4)
-        (3, 2)
-    ]
+    x_values = [2, 3, 4, 5, 6, 7, 8] # states
+    y_values = [2, 3, 4] # letters
+    configurations = [(x, y) for x in x_values for y in y_values]
 
     for num_states, alphabet_size in configurations:
         print(f"\nGenerating {num_automata_per_set} automata with {num_states} states and {alphabet_size} letters:")
