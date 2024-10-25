@@ -18,18 +18,43 @@ Given two $\mathsf{Val}$ automata $\mathcal{A}$ and $\mathcal{B}$ with a rationa
 10. Compute the safety-liveness decomposition of $\mathcal{A}$.
 11. Construct and execute a monitor for $\mathcal{A}$.
 
+## Building
+### Building through Dockerfile
 
-## Building from sources
+You can build a container with QuAK using Docker or Podman and the provided Dockerfile
+in the top-level project directory (there is also another Dockerfile in the directory `experiments/`,
+which does more things than just building QuAK.). From the top-level directory, run:
+```
+docker build . -t quak
+```
 
-QuAK has no external dependencies. The only requirement is to have a C++ compiler that supports the C++17 standard or newer.
+Note: the container built by the other Dockerfile (`experiments/Dockerfile`) is
+also named "quak" (if you precisely follow the instructions from
+`experiments/README.md`). The command above will then overwrite the image. To
+avoid this, change `-t quak` to `-t <new_name>` where `<new_name>` is the name of
+the container different from the name of the container with the experiments. Do
+not forget to use this new name when running the container later.
 
-### Using CMake
+Once you have the docker image built, you can start a terminal inside the docker image as follows:
+```
+docker run --rm -ti quak
+```
 
-The easiest way to build QuAK is to use CMake + make:
 
-On Ubuntu, you can install CMake and Make with the following command:
+### Building from sources
+
+QuAK has no external dependencies. The only requirements are to have a C++ compiler that supports the C++17 standard or newer,
+and make. Recommended is to have also CMake, which is used by default to configure the project.
+
+#### Using CMake
+
+The easiest way to build QuAK is to use CMake + make. On Ubuntu, you can
+install CMake and Make with the following command:
+
 ```
 apt-get install make cmake
+# install also C++ compiler if you do not have one
+# apt-get install g++
 ```
 
 Then you can compile QuAK:
@@ -42,7 +67,8 @@ make -j4
 For debug builds, use `Debug` instead of `Release`. You can tweak compile time
 options that enable the optimization of algorithms: use
 `-DENABLE_SCC_SEARCH_OPT=OFF` to turn off an SCC-based optimization of deciding
-language inclusion (and other problems where the inclusion algorithm is used as a subroutine).
+language inclusion (and other problems where the inclusion algorithm is used as
+a subroutine).
 
 To compile the code with link-time (i.e., inter-procedural) optimizations,
 use the option `-DENABLE_IPO=ON`.
@@ -50,7 +76,7 @@ use the option `-DENABLE_IPO=ON`.
 Once compiled, you can run tests with calling `make test`.
 
 
-#### Building with VAMOS integration
+##### Building with VAMOS integration
 
 First build [VAMOS](https://github.com/ista-vamos/vamos).
 Then run cmake with these parameters:
@@ -60,15 +86,17 @@ cmake . -Dvamos_DIR=/path/to/vamos/directory
 make -j4
 ```
 
-<!-- ### Using old makefile
+#### Building with the legacy Makefile
 
-To build the project with the old makefile, run
+If you have trouble building QuAK with CMake, you can try using building it
+only with Make. To do this, run:
 
 ```
 make -f Makefile.legacy
 ```
 
-This makefile does not support integration with VAMOS. -->
+This makefile is likely out of date and does not support building tests,
+or integration with VAMOS. It is a subject of removal in the future.
 
 ## Input Format
 
@@ -78,10 +106,14 @@ Each automata is represented as a list of transitions of the following format:
 a : v, q -> p
 ```
 which encodes a transition from state $q$ to state $p$ with letter $a$ and weight $v$.
+Weight $v$ is either a C float number or an unsigned hexadecimal integer that represents
+the bits of a C float number.
 
 The initial state of the input automaton is the source state of the first transition in its text file.
 
-**Important:** QuAK requires that its input automata are complete (a.k.a. total), i.e., for every state $q$ and every letter $a$, there is at least one outgoing transition from $q$ with letter $a$.
+**Important:** QuAK requires that its input automata are complete (a.k.a. total),
+i.e., for every state $q$ and every letter $a$, there is at least one outgoing
+transition from $q$ with letter $a$.
 
 ## Using QuAK (as a library)
 
@@ -107,7 +139,7 @@ The value function is unspecified during construction, but it needs to be passed
 ```cpp
 Automaton* B = new Automaton(A, valueFunction);
 ```
-Here, the value function is needed because the weights of the transitions involving the new sink state depends on the value function. -->
+Here, the value function is needed because the weights of the transitions involving the new sink state depend on the value function. -->
 
 ### Non-emptiness Check
 To check the non-emptiness of $\mathcal{A}$ with respect to $v$, use the following:
@@ -126,10 +158,18 @@ To check the inclusion of $\mathcal{A}$ in $\mathcal{B}$, use the following:
 ```cpp
 bool flag = A->isIncludedIn(B, Val, booleanized);
 ```
-where *booleanized* determines which inclusion algorithms is called.
+where *booleanized* determines which inclusion algorithm is called.
 If *booleanized* is false, then our quantitative extension of the antichain algorithm is used.
 If *booleanized* is true, then the standard inclusion algorithm (repeatedly booleanizing the quantitative automaton and calling the boolean antichain algorithm) is used.
 By default, *booleanized* is set to false.
+
+### Equivalence Check
+To check the equivalence of $\mathcal{A}$ and $\mathcal{B}$, use the following:
+```cpp
+bool flag = A->isEquivalentTo(B, Val, booleanized);
+```
+where *booleanized* is the same as for the inclusion check.
+
 
 ### Constant-function Check
 To check if $\mathcal{A}$ defines a constant function, use the following:
@@ -158,7 +198,7 @@ weight_t top = A->getTopValue(Val);
 ### Bottom-value Computation
 To compute the bottom value of $\mathcal{A}$, use the following:
 ```cpp
-weight_t top = A->getBotValue(Val);
+weight_t bot = A->getBottomValue(Val);
 ```
 
 ### Safety Closure Construction
@@ -171,11 +211,36 @@ Automaton* safe_A = safetyClosure(A, Val);
 For the safety component of the decomposition, use the safety closure construction above.
 To construct the liveness component of the decomposition of $\mathcal{A}$, use the following:
 ```cpp
-Automaton* live_A = livenessComponent_deterministic(A, Val);
+Automaton* live_A = livenessComponent(A, Val);
 ```
 
+### Witnesses
+
+All the above-mentioned operations can return a witness for its results: an ultimately periodic word
+that witnesses the returned value. This is done via the optional argument `witness`:
+
+```
+UltimatelyPeriodicWord *witness;
+bool flag = A->isNonEmpty(Val, v, &witness);
+// ... process witness
+delete witness;
+
+weight_t bot = A->getBottomValue(Val, &witness);
+// ... process witness
+delete witness;
+
+UltimatelyPeriodicWord *witness1, *witness2;
+bool flag = A->isEquivalentTo(B, val, booleanized, &witness1, &witness2);
+// ... process witnesses
+delete witness1;
+delete witness2;
+```
+
+Note that you must delete the witness manually once you are done with it.
+The witness format is `prefix(cycle)`, e.g., `aa(ab)` is the word `aaababab...`.
+
 ### Monitor Construction and Execution
-QuAK can contsruct monitors from deterministic automata by either reading them from a file or copying an automaton object:
+QuAK can construct monitors from deterministic automata by either reading them from a file or copying an automaton object:
 ```cpp
 Monitor* M = new Monitor("A.txt", Val);
 ```
@@ -209,7 +274,7 @@ weight_t l = M->getLowest();
 To use the tool directly, simply compile and follow the instructions below.
 
 ```
-Usage: ./quak [-cputime] [-v] [-d] automaton-file [ACTION ACTION ...]
+Usage: ./quak [-cputime] [-v] [-d] [-print-witness] automaton-file [ACTION ACTION ...]
 Where ACTIONs are the following, with VALF = <Inf | Sup | LimInf | LimSup | LimSupAvg | LimInfAvg>:
   stats
   dump 
@@ -221,18 +286,25 @@ Where ACTIONs are the following, with VALF = <Inf | Sup | LimInf | LimSup | LimS
   live VALF
   isIncluded VALF automaton2-file
   isIncludedBool VALF automaton2-file
+  isEquivalent VALF automaton2-file
+  livenessComponent VALF output-file
+  safetyComponent VALF output-file
+  decompose VALF safety-output-file liveness-output-file
   monitor <Inf | Sup | Avg> word-file
-  monitor-vamos <Inf | Sup | Avg> shmkey
+  witness-file file-name
 ```
 
-The commands *stats* prints the size of the automaton and *dump* prints the automaton.
+The commands *stats* prints the size of the automaton and *dump* prints the automaton. Command *witness-file* instructs the preceding command to write a witness (if any) to the given file.
+Commands *livenessComponent* and *safetyComponent* compute and store the liveness and safety, resp., components into the specified file.
+Command *decompose* computes the safety-liveness decomposition and stores it into specified files.
 The remaining commands implement the decision procedures and monitoring algorithms as expected.
 For monitoring, the word files must contain one symbol per line.
 Use the option *-cputime* to print the running time, *-v* to print the input size, and *-d* to print the automaton.
-An example is given below.
+Option *-print-witness* will make each operation print the witness (if any).
+Some examples are given below.
 
 ```
-./quak -cputime -d  A.txt safe LimInfAvg
+$ ./quak -cputime -d  A.txt safe LimInfAvg
 
 Cputime of building the automaton: 3 ms
 automaton (A.txt):
@@ -263,5 +335,121 @@ automaton (A.txt):
 ----------
 isSafe(LimInfAvg) = 0
 Cputime: 4 ms
+----------
+```
+
+```
+$ ./quak A.txt constant Inf witness-file w.txt 
+----------
+isConstant(Inf) = 0
+----------
+
+$ cat w.txt
+a(a)
+```
+
+```
+$ ./quak -print-witness A.txt safe LimInfAvg witness-file w1.txt constant Sup witness-file w2.txt
+----------
+isSafe(LimInfAvg) = 0
+Witness: (a)
+----------
+isConstant(Sup) = 0
+Witness: (a)
+----------
+
+$ cat w1.txt
+(a)
+$ cat w2.txt
+(a)
+```
+
+```
+$ ./quak -d samples/ainf.txt decompose LimInf s.txt l.txt  
+automaton (samples/ainf.txt):
+	alphabet (2):
+		0 -> a
+		1 -> b
+	weights (4):
+		0 -> -1.000000
+		1 -> 0.000000
+		2 -> 1.000000
+		3 -> 2.000000
+		MIN = -1.000000
+		MAX = 2.000000
+	states (3):
+		0 -> 0, scc: 2
+		1 -> 1, scc: 0
+		2 -> 2, scc: 1
+		INITIAL = 0
+	SCCs (3):
+		0
+			1
+			2
+	edges (6):
+		a : 0, 0 -> 1
+		b : -1, 0 -> 2
+		a : 1, 1 -> 1
+		b : -1, 1 -> 1
+		a : -1, 2 -> 2
+		b : 2, 2 -> 2
+
+----------
+Safety component automaton:
+automaton (SafeOf(samples/ainf.txt)):
+	alphabet (2):
+		0 -> a
+		1 -> b
+	weights (2):
+		0 -> 1.000000
+		1 -> 2.000000
+		MIN = -1.000000
+		MAX = 2.000000
+	states (3):
+		0 -> 0, scc: 2
+		1 -> 1, scc: 0
+		2 -> 2, scc: 1
+		INITIAL = 0
+	SCCs (3):
+		0
+			1
+			2
+	edges (6):
+		a : 1, 0 -> 1
+		b : 2, 0 -> 2
+		a : 1, 1 -> 1
+		b : 1, 1 -> 1
+		a : 2, 2 -> 2
+		b : 2, 2 -> 2
+
+Liveness component automaton:
+automaton (LiveOf(samples/ainf.txt)):
+	alphabet (2):
+		0 -> a
+		1 -> b
+	weights (4):
+		0 -> -1.000000
+		1 -> 0.000000
+		2 -> 1.000000
+		3 -> 2.000000
+		MIN = -1.000000
+		MAX = 2.000000
+	states (3):
+		0 -> 0, scc: 2
+		1 -> 1, scc: 0
+		2 -> 2, scc: 1
+		INITIAL = 0
+	SCCs (3):
+		0
+			1
+			2
+	edges (6):
+		a : 0, 0 -> 1
+		b : -1, 0 -> 2
+		a : 2, 1 -> 1
+		b : -1, 1 -> 1
+		a : -1, 2 -> 2
+		b : 2, 2 -> 2
+
 ----------
 ```
