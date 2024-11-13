@@ -1379,7 +1379,7 @@ bool Automaton::isIncludedIn_booleanized(const Automaton* B, value_function_t f,
         auto boolA = std::unique_ptr<Automaton>(booleanize(limSupThis, weight->getValue()));
         auto boolB = std::unique_ptr<Automaton>(booleanize(limSupB, weight->getValue()));
 
-        if (!inclusion(boolA.get(), boolB.get()), witness) {
+        if (!inclusion(boolA.get(), boolB.get(), witness)) {
           return false;
         }
     }
