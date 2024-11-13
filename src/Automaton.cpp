@@ -2293,11 +2293,32 @@ weight_t Automaton::compute_Top (value_function_t f, weight_t* top_values, Ultim
 	}
 }
 
+value_function_t getValueFunctionDual (value_function_t f) {
+	if (f == Inf) {
+		return Sup;
+	}
+	else if (f == Sup) {
+		return Inf;
+	}
+	else if (f == LimInf) {
+		return LimSup;
+	}
+	else if (f == LimSup) {
+		return LimInf;
+	}
+	else if (f == LimInfAvg) {
+		return LimSupAvg;
+	}
+	else if (f == LimSupAvg) {
+		return LimInfAvg;
+	}
+}
 
 weight_t Automaton::compute_Bottom (value_function_t f, weight_t* bot_values, UltimatelyPeriodicWord** witness) {
 	if (this->isDeterministic()) {
 		invert_weights();
-		weight_t bot = compute_Top(f, bot_values, witness);
+		value_function_t f_dual = getValueFunctionDual(f);
+		weight_t bot = compute_Top(f_dual, bot_values, witness);
 		bot = -bot;
 		for (unsigned int i = 0; i < this->nb_SCCs; i++) {
 			bot_values[i] = -bot_values[i];
