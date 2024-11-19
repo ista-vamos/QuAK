@@ -53,7 +53,7 @@ Automaton *Automaton::randomAutomaton(const std::string& name,
   // generate edges
   std::uniform_real_distribution<float> rand_weight(min_weight.to_float(), max_weight.to_float());
   std::uniform_int_distribution<unsigned> rand_state(0, states_num - 1);
-  std::map<weight_t, Weight *> weights_register;
+  std::map<weight_t, int> weights_register;
 
   weight_t real_min = max_weight;
   weight_t real_max = min_weight;
@@ -67,12 +67,7 @@ Automaton *Automaton::randomAutomaton(const std::string& name,
       for (auto symbol = 0U; symbol < alphabet_size; ++symbol) {
         auto dest_state = rand_state(reng);
         auto weight = weight_t(rand_weight(reng));
-
-        auto *W = weights_register[weight];
-        if (W == nullptr) {
-          W = new Weight(weight);
-          weights_register[weight] = W;
-        }
+        weights_register[weight] = -1;
 
         if (weight < real_min)
           real_min = weight;
@@ -90,12 +85,7 @@ Automaton *Automaton::randomAutomaton(const std::string& name,
         auto dest_id = rand_state(reng);
         auto weight = weight_t(rand_weight(reng));
         auto symbol = rand_symbol(reng);
-
-        auto *W = weights_register[weight];
-        if (W == nullptr) {
-          W = new Weight(weight);
-          weights_register[weight] = W;
-        }
+        weights_register[weight] = -1;
 
         if (weight < real_min)
           real_min = weight;
@@ -116,7 +106,9 @@ Automaton *Automaton::randomAutomaton(const std::string& name,
   MapArray<Weight*>* weights = new MapArray<Weight*>(weights_register.size()); 
   unsigned n = 0;
   for (auto& it : weights_register) {
-    weights->insert(n, it.second);
+    auto *weight = new Weight(it.first);
+    weights->insert(n, weight);
+    it.second = n;
     ++n;
   }
 
@@ -134,10 +126,10 @@ Automaton *Automaton::randomAutomaton(const std::string& name,
   for (auto& tmpedge : tmpedges) {
     State *src = states->at(std::get<0>(tmpedge));
     State *dest = states->at(std::get<1>(tmpedge));
-    Weight *W = weights_register[std::get<2>(tmpedge)];
-    assert(W != nullptr);
+    int W = weights_register[std::get<2>(tmpedge)];
+    assert(W != -1);
 
-    Edge *edge = new Edge(new_alphabet->at(std::get<3>(tmpedge)), W, src, dest);
+    Edge *edge = new Edge(new_alphabet->at(std::get<3>(tmpedge)), weights->at(W), src, dest);
     src->addSuccessor(edge);
     dest->addPredecessor(edge);
   }
