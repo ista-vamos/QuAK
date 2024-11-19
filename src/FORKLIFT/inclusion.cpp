@@ -14,7 +14,7 @@
 
 
 SetStd<std::pair<State*,std::pair<unsigned int, bool>>> S;
-SetStd<State*> P;
+SetStd<std::pair<State*,unsigned int>> P;
 
 
 bool relevance_test (TargetOf* W, ContextOf* V, const Automaton* B) {
@@ -33,7 +33,7 @@ bool fast_iterable_final_product (State* from, unsigned int i, Word* period) {
 
 	for (Edge* edge : *(from->getSuccessors(period->at(i)->getId()))) {
 		unsigned int ii = ((i+1 == period->getLength()) ? 0 : i+1);
-		if (P.contains(edge->getTo())) return true;
+		if (P.contains(std::pair<State*, unsigned int>(edge->getTo(), ii))) return true;
 		if (S.contains(std::pair<State*,std::pair<unsigned int, bool>>(edge->getTo(), std::pair<unsigned int, bool>(ii, true))) == false) {
 			if (fast_iterable_final_product(edge->getTo(), ii, period) == true) return true;
 		}
@@ -46,7 +46,7 @@ bool fast_iterable_final_product (State* from, unsigned int i, Word* period) {
 
 bool fast_reachable_final_product (State* from, unsigned int i, Word* period, weight_t threshold) {
 	S.insert(std::pair<State*,std::pair<unsigned int, bool>>(from, std::pair<unsigned int, bool>(i, false)));
-	P.insert(from);
+	P.insert(std::pair<State*, unsigned int>(from, i));
 
 	for (Edge* edge : *(from->getSuccessors(period->at(i)->getId()))) {
 		unsigned int ii = ((i+1 == period->getLength()) ? 0 : i+1);
@@ -58,14 +58,14 @@ bool fast_reachable_final_product (State* from, unsigned int i, Word* period, we
 	for (Edge* edge : *(from->getSuccessors(period->at(i)->getId()))) {
 		if (edge->getWeight()->getValue() >= threshold) {
 			unsigned int ii = ((i+1 == period->getLength()) ? 0 : i+1);
-			if (P.contains(edge->getTo())) return true;
+			if (P.contains(std::pair<State*, unsigned int>(edge->getTo(), ii))) return true;
 			if (S.contains(std::pair<State*,std::pair<unsigned int, bool>>(edge->getTo(), std::pair<unsigned int, bool>(ii, true))) == false) {
 				if (fast_iterable_final_product(edge->getTo(), ii, period) == true) return true;
 			}
 		}
 	}
 
-	P.erase(from);
+	P.erase(std::pair<State*, unsigned int>(from, i));
 
 	return false;
 }
