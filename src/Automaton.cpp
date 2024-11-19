@@ -2312,6 +2312,10 @@ value_function_t getValueFunctionDual (value_function_t f) {
 	else if (f == LimSupAvg) {
 		return LimInfAvg;
 	}
+	else {
+		std::cerr << "Unknown value function dual" << "\n";
+    	abort();
+	}
 }
 
 weight_t Automaton::compute_Bottom (value_function_t f, weight_t* bot_values, UltimatelyPeriodicWord** witness) {
