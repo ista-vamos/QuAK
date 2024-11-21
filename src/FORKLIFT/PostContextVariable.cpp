@@ -87,8 +87,8 @@ bool PostContextVariable::addIfMin (State* stateA, ContextOf* setB, Word* word, 
 
 	auto iter = this->at(stateA)->begin();
 	while (iter != this->at(stateA)->end()) {
-		if (iter->first->smaller_than(setB) == true) return false;
-		if (setB->smaller_than(iter->first) == true) {
+		if (iter->first->smaller_than(setB, iter->second.second, value) == true) return false;
+		if (setB->smaller_than(iter->first, value, iter->second.second) == true) {
 			auto tmp = iter;
 			++iter;
 			this->erase(stateA, *tmp);

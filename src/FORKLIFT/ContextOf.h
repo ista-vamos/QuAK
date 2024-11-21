@@ -25,7 +25,7 @@ public:
 
 	void add (State* fromB, State* toB, unsigned int weight_id);
 	unsigned int size() const {return MapArray<StateRelation*>::size(); };
-	bool smaller_than (ContextOf* other);
+	bool smaller_than (ContextOf* other, weight_t weight_this, weight_t weight_other);
 	StateRelation* at (unsigned int weight_id) const { return MapArray<StateRelation*>::at(weight_id); }
 };
 
