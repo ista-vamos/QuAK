@@ -86,7 +86,9 @@ void ContextOf::add (State* fromB, State* toB, unsigned int weight_id) {
 
 
 
-bool ContextOf::smaller_than (ContextOf* other) {
+bool ContextOf::smaller_than (ContextOf* other, weight_t weight_this, weight_t weight_other) {
+	if (weight_this < weight_other) return false;
+
 	for (unsigned int x_id = 0; x_id < this->size(); ++x_id) {
 		for (std::pair<State*, TargetOf*> pair : *(this->at(x_id))) {
 			for (State* state : *(pair.second)) {
