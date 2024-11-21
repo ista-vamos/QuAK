@@ -254,7 +254,7 @@ std::string aggregator_name (aggregator_t aggregator) {
 		case Plus: return "Plus";
 		case Minus: return "Minus";
 		case Times: return "Times";
-		default: fail("case aggregator_t");
+		default: QUAK_FAIL("case aggregator_t");
 	}
 }
 
@@ -265,7 +265,7 @@ weight_t aggregator_apply (aggregator_t aggregator, weight_t x, weight_t y) {
 		case Plus: return x + y;
 		case Minus: return x - y;
 		case Times: return x * y;
-		default: fail("case aggregator_t");
+		default: QUAK_FAIL("case aggregator_t");
 	}
 }
 
@@ -281,7 +281,7 @@ Automaton* Automaton::product(const Automaton* A, aggregator_t f, const Automato
 
 			for (Symbol* symbol : *(A->states->at(stateA_id)->getAlphabet())) {
 				if (B->alphabet->size() <= symbol->getId()) continue;
-				if (B->alphabet->at(symbol->getId())->getName() != symbol->getName()) fail("product with unsynchronized alphabet");
+				if (B->alphabet->at(symbol->getId())->getName() != symbol->getName()) QUAK_FAIL("product with unsynchronized alphabet");
 
 				for (Edge* edgeA : *(A->states->at(stateA_id)->getSuccessors(symbol->getId()))) {
 					for (Edge* edgeB : *(B->states->at(stateB_id)->getSuccessors(symbol->getId()))) {
@@ -344,7 +344,7 @@ Parser* parse_trim_complete(const Automaton* A, value_function_t f) {
 		case Sup: case LimSup: case LimSupAvg:
 			sinkvalue = A->getMinDomain();
 			break;
-		default: fail("case value function");
+		default: QUAK_FAIL("case value function");
 	}
 
 	bool sinkFlag = false;
@@ -688,7 +688,7 @@ Automaton* Automaton::safetyClosure(Automaton* A, value_function_t f) {
 
 Automaton* Automaton::livenessComponent_deterministic (const Automaton* A, value_function_t f) {
 	if (A->isDeterministic() == false || f == Inf || f == LimInfAvg || f == LimSupAvg) {
-		fail("invalid automaton type for deterministic liveness component");
+		QUAK_FAIL("invalid automaton type for deterministic liveness component");
 	}
 
 	State::RESET();
@@ -760,7 +760,7 @@ Automaton* Automaton::livenessComponent(const Automaton* A, value_function_t f) 
 		return Automaton::livenessComponent_prefixIndependent(A, f);
 	}
 	
-	fail("Cannot do safety-liveness decomposition for this type of automata.");
+	QUAK_FAIL("Cannot do safety-liveness decomposition for this type of automata.");
 }
 
 
@@ -778,7 +778,7 @@ Automaton* Automaton::livenessComponent_prefixIndependent (const Automaton* A, v
 		A->top_LimAvg_cycles(top_values, scc_cycles);
 	}
 	else {
-		fail("invalid automaton type for prefix-independent liveness component computation");
+		QUAK_FAIL("invalid automaton type for prefix-independent liveness component computation");
 	}
 
 
@@ -1013,10 +1013,9 @@ Automaton* Automaton::toLimSup (const Automaton* A, value_function_t f) {
 		initWeightId = 0;
 		break;
 	case LimSup: case LimInfAvg: case LimSupAvg:
-		fail("invalid translation to LimSup");
+		QUAK_FAIL("invalid translation to LimSup");
 	default:
-		fail("invalid value function");
-	}
+		QUAK_FAIL("invalid value function"); }
 
 	std::string newname = "LimSup(" + A->getName() + ")";
 
@@ -1333,7 +1332,7 @@ bool Automaton::isIncludedIn_antichains(const Automaton* B, value_function_t f, 
 			return (Ctop <= 0);
 		}
 		else {
-			fail("automata inclusion undecidable for nondeterministic limavg");
+			QUAK_FAIL("automata inclusion undecidable for nondeterministic limavg");
 		}
 	}
 	else if (f == Inf || f == Sup || f == LimInf || f == LimSup) {
@@ -1356,7 +1355,7 @@ bool Automaton::isIncludedIn_antichains(const Automaton* B, value_function_t f, 
 		return flag;
 	}
 	else {
-		fail("automata inclusion type");
+		QUAK_FAIL("automata inclusion type");
 	}
 }
 
@@ -2258,7 +2257,7 @@ weight_t Automaton::compute_Top (value_function_t f, weight_t* top_values, Ultim
 			case LimInfAvg: case LimSupAvg:
 				return top_LimAvg(top_values);
 			default:
-				fail("automata top (without witness)");
+				QUAK_FAIL("automata top (without witness)");
 		}
 	}
 	else {
@@ -2284,7 +2283,7 @@ weight_t Automaton::compute_Top (value_function_t f, weight_t* top_values, Ultim
                 result = top_LimAvg_cycles(top_values, scc_cycles, witness);
                 break;
             default:
-                fail("automata top (with witness)");
+                QUAK_FAIL("automata top (with witness)");
         }
 
         delete path;
@@ -2345,7 +2344,7 @@ weight_t Automaton::compute_Bottom (value_function_t f, weight_t* bot_values, Ul
 			return x;
 		}
 		else {
-			fail("automata bot");
+			QUAK_FAIL("automata bot");
 		}
 	}
 }
@@ -2612,7 +2611,7 @@ weight_t Automaton::computeValue(value_function_t f, UltimatelyPeriodicWord* w) 
 		return value;
 	}
 	else {
-		fail("compute value of lasso word");
+		QUAK_FAIL("compute value of lasso word");
 	}
 }
 

@@ -6,25 +6,22 @@
 #include <cstdlib>
 
 
-#define fail(text)										\
-	do {												\
-		fprintf(stdout, "Failure: %s\n", text);		\
-		fprintf(stdout, "File: %s\n", __FILE__);		\
-		fprintf(stdout, "Line: %d\n", __LINE__);		\
-		fprintf(stdout, "Function: %s\n", __func__ );	\
-		fflush(stdout);									\
-		exit(EXIT_FAILURE);								\
-	} while(0)
+namespace {
 
+static inline void _fail(const char *file, int line, const char *func, const char* text) __attribute__((noreturn));
+static inline void _fail(const char *file, int line, const char *func, const char* text) {
+	fprintf(stderr, "Failure: %s\n", text);
+	fprintf(stderr, "File: %s\n", file);
+	fprintf(stderr, "Line: %d\n", line);
+	fprintf(stderr, "Function: %s\n", func );
+	fflush(stderr);
+	exit(EXIT_FAILURE);
+}
 
-#define warning(text)									\
-	do {												\
-		fprintf(stdout, "Warning: %s\n", text);			\
-		fprintf(stdout, "File: %s\n", __FILE__);		\
-		fprintf(stdout, "Line: %d\n", __LINE__);		\
-		fprintf(stdout, "Function: %s\n", __func__ );	\
-		fflush(stdout);									\
-	} while(0)
+} // anon. namespace
+
+#define QUAK_FAIL(text) _fail(__FILE__, __LINE__, __func__, (text));
+
 
 
 //#define PARSER_VERBOSE
