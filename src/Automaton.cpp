@@ -499,17 +499,20 @@ void Automaton::compute_SCC (void) {
 // -------------------------------- Getters -------------------------------- //
 
 weight_t Automaton::getTopValue (value_function_t f, UltimatelyPeriodicWord** witness) const {
-	weight_t top_values[this->nb_SCCs];
+	weight_t *top_values = new weight_t[this->nb_SCCs];
 	weight_t top = compute_Top(f, top_values, witness);
 	/*for (unsigned int id = 0;id <this->nb_SCCs; id++) {
 		printf("top[%u] = %s\n", id, std::to_string(top_values[id]).c_str());
 	}*/
+    delete top_values;
 	return top;
 }
 
 weight_t Automaton::getBottomValue (value_function_t f, UltimatelyPeriodicWord** witness) {
-	weight_t bot_values[this->nb_SCCs];
-	return compute_Bottom(f, bot_values, witness);
+	weight_t *bot_values = new weight_t[this->nb_SCCs];
+	auto bot = compute_Bottom(f, bot_values, witness);
+    delete bot_values;
+    return bot;
 }
 
 
@@ -649,8 +652,9 @@ Automaton* Automaton::safetyClosure(Automaton* A, value_function_t f) {
 	}
 	State* newinitial = newstates->at(A->initial->getId());
 
-	weight_t top_values[A->nb_SCCs];
+	weight_t *top_values = new weight_t[A->nb_SCCs];
 	A->compute_Top(f, top_values);
+
 
 	SetSorted<weight_t> weight_values;
 	MapStd<weight_t, Weight*> weight_register;
@@ -681,6 +685,7 @@ Automaton* Automaton::safetyClosure(Automaton* A, value_function_t f) {
 		}
 	}
 
+    delete top_values;
 	return new Automaton(newname, newalphabet, newstates, newweights, newmin_domain, newmax_domain, newinitial);
 }
 
@@ -708,7 +713,7 @@ Automaton* Automaton::livenessComponent_deterministic (const Automaton* A, value
 	}
 	State* newinitial = newstates->at(A->initial->getId());
 
-	weight_t top_values[A->nb_SCCs];
+	weight_t *top_values = new weight_t[A->nb_SCCs];
 	A->compute_Top(f, top_values);
 
 	SetSorted<weight_t> weight_values;
@@ -747,6 +752,7 @@ Automaton* Automaton::livenessComponent_deterministic (const Automaton* A, value
 		}
 	}
 
+    delete top_values;
 	return new Automaton(newname, newalphabet, newstates, newweights, newmin_domain, newmax_domain, newinitial);
 }
 
@@ -766,18 +772,22 @@ Automaton* Automaton::livenessComponent(const Automaton* A, value_function_t f) 
 
 
 Automaton* Automaton::livenessComponent_prefixIndependent (const Automaton* A, value_function_t f) {
-	weight_t top_values[A->nb_SCCs];
+	weight_t *top_values = new weight_t[A->nb_SCCs];
 	SetList<Edge*>* scc_cycles[A->nb_SCCs];
 	if (f == LimInf) {
 		A->top_LimInf_cycles(top_values, scc_cycles);
+        delete top_values;
 	}
 	else if (f == LimSup) {
 		A->top_LimSup_cycles(top_values, scc_cycles);
+        delete top_values;
 	}
 	else if (f == LimInfAvg || f == LimSupAvg) {
 		A->top_LimAvg_cycles(top_values, scc_cycles);
+        delete top_values;
 	}
 	else {
+        delete top_values;
 		QUAK_FAIL("invalid automaton type for prefix-independent liveness component computation");
 	}
 
@@ -894,7 +904,7 @@ Automaton* Automaton::livenessComponent_prefixIndependent (const Automaton* A, v
 	}
 
 	for (unsigned int scc_id = 0; scc_id < A->nb_SCCs; ++scc_id) {
-		delete scc_cycles[scc_id];
+		delete[] scc_cycles[scc_id];
 	}
 
 	Automaton* that = new Automaton(newname, newalphabet, newstates, newweights, newmin_domain, newmax_domain, newinitial);
