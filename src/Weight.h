@@ -72,7 +72,7 @@ namespace std {
 
   template <> struct hash<weight_t> {
     size_t operator()(const weight_t x) const {
-      return x.value;
+      return static_cast<size_t>(x.value);
     }
   };
 }
