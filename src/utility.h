@@ -8,7 +8,11 @@
 
 namespace {
 
+#ifdef __linux__
 static inline void _fail(const char *file, int line, const char *func, const char* text) __attribute__((noreturn));
+#else
+__declspec(noreturn)
+#endif
 static inline void _fail(const char *file, int line, const char *func, const char* text) {
 	fprintf(stderr, "Failure: %s\n", text);
 	fprintf(stderr, "File: %s\n", file);
