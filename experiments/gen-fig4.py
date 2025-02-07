@@ -26,7 +26,7 @@ rcParams.update({'font.size': 12})
 
 TO = TIMEOUT * 1.2
 def read_csv(path):
-    print("Reading", path)
+    print(" ↪ INFO: Reading", path)
     D = pd.read_csv(path, sep=" ", on_bad_lines='warn')
     D.columns = ["A", "value_fun", "status", "verdict",
                  "states", "edges", "cputime", "returncode"]
@@ -52,7 +52,11 @@ def read_csv(path):
 
 
 data_frames = []
-for path in sys.argv[:1]:
+for path in sys.argv[1:]:
+    print(f"INFO: Input: {path}")
+    if not path.endswith(".csv"):
+        print(f" ↪ WARNING: Skipping non-CSV file: '{path}'")
+        continue
     D = read_csv(path)
     data_frames.append(D)
 data = pd.concat(data_frames, ignore_index=True)
