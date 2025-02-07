@@ -28,6 +28,23 @@ done
 # 			> automata-4-sym/A${I}-${STATES_NUM}.txt;
 # 	done;
 # done
+
+mkdir -p automata-4-sym
+rm -f automata-4-sym/*.txt
+
+
+for I in `seq 1 100`; do
+	for STATES_NUM in 5 10 20 30 40 50 60 70 80 100; do
+		python3 ./rand_automaton.py\
+			--alphabet a,b,c,d\
+			--states-num $STATES_NUM\
+			--max-weight 10\
+			--min-weight -10\
+			--edges-num $((($STATES_NUM * 4) + ($RANDOM % (2*$STATES_NUM)) + 1))\
+			> automata-4-sym/A${I}-${STATES_NUM}.txt;
+	done;
+done
+#
 # 
 # mkdir -p automata-large-4-sym
 # rm -f automata-large-4-sym/*.txt

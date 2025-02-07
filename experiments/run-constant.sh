@@ -10,7 +10,7 @@ BUILD=$(dirname $0)/../build
 mkdir -p results
 
 for VALUE_FUN in LimInfAvg LimSupAvg; do
-for S in 2-sym; do
+for S in 4-sym; do
 	echo ""
 	echo " -- Running experiments for $VALUE_FUN with $S alphabet --"
 
