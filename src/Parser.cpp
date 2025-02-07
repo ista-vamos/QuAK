@@ -36,7 +36,7 @@ std::string readEdge (std::string line, Parser* parser) {
 
 	index = line.find('#');
 	if (index != std::string::npos) {
-		unsigned int i = index;
+		auto i = index;
 		while (i < line.length()) {
 			line[i++] = ' ';
 		}
@@ -99,7 +99,7 @@ void readDomain (std::string line, Parser* parser) {
 
 	index = line.find('#');
 	if (index != std::string::npos) {
-		unsigned int i = index;
+		auto i = index;
 		while (i < line.length()) {
 			line[i++] = ' ';
 		}

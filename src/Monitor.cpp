@@ -62,7 +62,7 @@ weight_t MonitorAvg::next(Symbol *s) {
   state = edge->getTo();
   sum += edge->getWeight()->getValue();
 
-  return sum / ++N;
+  return sum / static_cast<weight_t::T>(++N);
 }
 
 

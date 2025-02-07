@@ -16,7 +16,7 @@ public:
 	Word (Symbol* symbol);
 	Word (Word* word, Symbol* symbol);
 	Word(const Word& other);
-	unsigned int getLength ();
+	size_t getLength ();
 	Symbol* at (unsigned int i);
 	std::string toString();
 	void push_back(Symbol* symbol);

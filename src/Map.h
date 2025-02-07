@@ -26,7 +26,7 @@ public:
 	  this->all.insert(std::pair<T_key, T_value>(key, value));
   }
 
-	unsigned int size () const {
+	auto size () const {
 	  return this->all.size();
   }
 

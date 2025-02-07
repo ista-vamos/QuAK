@@ -15,7 +15,7 @@ private:
 	std::set<T_element> all;
 public:
 	void insert(T_element element) { this->all.insert(element); }
-	unsigned int size() const { return this->all.size(); }
+	auto size() const { return this->all.size(); }
 
 	auto begin() -> auto {return all.begin();};
 	auto end() -> auto {return all.end();};

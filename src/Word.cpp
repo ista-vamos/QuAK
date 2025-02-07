@@ -56,7 +56,7 @@ Word::Word(const Word& other) {
     }
 }
 
-unsigned int Word::getLength() {
+size_t Word::getLength() {
     return this->all->size();
 }
 
