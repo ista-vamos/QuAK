@@ -776,18 +776,18 @@ Automaton* Automaton::livenessComponent_prefixIndependent (const Automaton* A, v
 	SetList<Edge*>* scc_cycles[A->nb_SCCs];
 	if (f == LimInf) {
 		A->top_LimInf_cycles(top_values, scc_cycles);
-        delete top_values;
+        delete[] top_values;
 	}
 	else if (f == LimSup) {
 		A->top_LimSup_cycles(top_values, scc_cycles);
-        delete top_values;
+        delete[] top_values;
 	}
 	else if (f == LimInfAvg || f == LimSupAvg) {
 		A->top_LimAvg_cycles(top_values, scc_cycles);
-        delete top_values;
+        delete[] top_values;
 	}
 	else {
-        delete top_values;
+        delete[] top_values;
 		QUAK_FAIL("invalid automaton type for prefix-independent liveness component computation");
 	}
 
@@ -903,12 +903,15 @@ Automaton* Automaton::livenessComponent_prefixIndependent (const Automaton* A, v
 		new_to->addPredecessor(new_edge);
 	}
 
-	for (unsigned int scc_id = 0; scc_id < A->nb_SCCs; ++scc_id) {
-		delete[] scc_cycles[scc_id];
-	}
-
 	Automaton* that = new Automaton(newname, newalphabet, newstates, newweights, newmin_domain, newmax_domain, newinitial);
 	Automaton* AA = copy_trim_complete(that, f);
+
+	AA->print();
+
+	for (unsigned int scc_id = 0; scc_id < A->nb_SCCs; ++scc_id) {
+		delete scc_cycles[scc_id];
+	}
+
 	delete that;
 	return AA;
 }
@@ -1855,7 +1858,7 @@ weight_t Automaton::top_LimAvg_cycles (weight_t* top_values, SetList<Edge*>** sc
 				}
 			}
 		}
-		if (len_flag && top_values[this->states->at(state_id)->getTag()] < min_lenght_avg) {
+		if (len_flag && top_values[this->states->at(state_id)->getTag()] <= min_lenght_avg) {
 			top_values[this->states->at(state_id)->getTag()] = min_lenght_avg;
 			scc_values[this->states->at(state_id)->getTag()] = min_lenght_avg;
 			scc_back[this->states->at(state_id)->getTag()] = this->states->at(state_id);
