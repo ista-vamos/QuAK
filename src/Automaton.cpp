@@ -355,13 +355,13 @@ Parser* parse_trim_complete(const Automaton* A, value_function_t f) {
 			if (parser->alphabet.contains(A->getAlphabet()->at(symbol_id)->getName()) == false) continue;
 			if (A->getStates()->at(stateA_id)->getSuccessors(symbol_id)->size() > 0) continue;
 			// if (A->getStates()->at(stateA_id)->getAlphabet()->contains(A->getAlphabet()->at(symbol_id)) == true) continue;
-			parser->states.insert("#sink#");
+			parser->states.insert("@sink@");
 			parser->weights.insert(sinkvalue);
 			std::pair<std::pair<std::string, weight_t>,std::pair<std::string, std::string>> edge;
 			edge.first.first = A->getAlphabet()->at(symbol_id)->getName();
 			edge.first.second = sinkvalue;
 			edge.second.first = A->getStates()->at(stateA_id)->getName();
-			edge.second.second = "#sink#";
+			edge.second.second = "@sink@";
 			parser->edges.insert(edge);
 			sinkFlag = true;
 		}
@@ -372,8 +372,8 @@ Parser* parse_trim_complete(const Automaton* A, value_function_t f) {
 			std::pair<std::pair<std::string, weight_t>,std::pair<std::string, std::string>> edge;
 			edge.first.first = symbolname;
 			edge.first.second = sinkvalue;
-			edge.second.first = "#sink#";
-			edge.second.second = "#sink#";
+			edge.second.first = "@sink@";
+			edge.second.second = "@sink@";
 			parser->edges.insert(edge);
 		}
 	}
@@ -827,7 +827,7 @@ Automaton* Automaton::livenessComponent_prefixIndependent (const Automaton* A, v
 			}
 		}
 	}
-	State* sink_state = new State("#sink#", A->alphabet->size(), A->min_domain, A->max_domain);
+	State* sink_state = new State("@sink@", A->alphabet->size(), A->min_domain, A->max_domain);
 	newstates->insert(sink_state->getId(), sink_state);
 
 	weight_t newmin_domain = A->min_domain;
@@ -2680,3 +2680,32 @@ void Automaton::print(std::ostream& out, bool full, bool bv_weights, bool bv_onl
 	}
 	out << "\n";
 }
+
+
+void Automaton::write(std::ostream& out) const {
+	unsigned int initID = this->initial->getId();
+	for (Symbol* symbol : *(states->at(initID)->getAlphabet())) {
+		auto *state = states->at(initID);
+		for (auto *edge : *state->getSuccessors(symbol->getId())) {
+			out << edge->getSymbol()->toString() << " : ";
+			out << "0x" << std::hex << edge->getWeight()->getValue().to_bv();
+			//out << *edge->getWeight()->getValue();
+			out << ", " << edge->getFrom()->getName() << " -> " << edge->getTo()->getName() << "\n";
+		}
+	}
+	for (unsigned int state_id = 0; state_id < states->size(); ++state_id) {
+		if (state_id == initID) continue;
+		for (Symbol* symbol : *(states->at(state_id)->getAlphabet())) {
+            auto *state = states->at(state_id);
+            for (auto *edge : *state->getSuccessors(symbol->getId())) {
+                out << edge->getSymbol()->toString() << " : ";
+                out << "0x" << std::hex << edge->getWeight()->getValue().to_bv();
+                //out << *edge->getWeight()->getValue();
+                out << ", " << edge->getFrom()->getName() << " -> " << edge->getTo()->getName() << "\n";
+            }
+		}
+	}
+	out << "\n";
+}
+
+
