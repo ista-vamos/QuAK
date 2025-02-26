@@ -906,7 +906,7 @@ Automaton* Automaton::livenessComponent_prefixIndependent (const Automaton* A, v
 	Automaton* that = new Automaton(newname, newalphabet, newstates, newweights, newmin_domain, newmax_domain, newinitial);
 	Automaton* AA = copy_trim_complete(that, f);
 
-	AA->print();
+	// AA->print();
 
 	for (unsigned int scc_id = 0; scc_id < A->nb_SCCs; ++scc_id) {
 		delete scc_cycles[scc_id];
