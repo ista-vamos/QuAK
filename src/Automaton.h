@@ -166,6 +166,7 @@ public:
     ///     Overrides `full` if given.
 	void print(bool full = false, bool bv_weights = false, bool bv_only = false) const;
 	void print(std::ostream& out, bool full = false, bool bv_weights = false, bool bv_only = false) const;
+	void write(std::ostream& out) const;
 
 	const std::string &getName() const;
 
