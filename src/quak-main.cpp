@@ -311,8 +311,8 @@ void processWitness(UltimatelyPeriodicWord *witness, OperationClosure& act, Opti
 }
 
 void writeAutomaton(Automaton *A, const std::string& path) {
-      std::ofstream fl(path);
-      A->print(fl, true, true);
+	std::ofstream fl(path);
+	A->write(fl);
 }
 
 int main(int argc, char **argv) {
