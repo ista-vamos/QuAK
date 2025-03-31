@@ -1883,18 +1883,20 @@ weight_t Automaton::top_LimAvg_cycles (weight_t* top_values, SetList<Edge*>** sc
 				seek_state = back_distance[length][seek_state->getId()]->getFrom();
 				length--;
 			}
-			
-			State* state = scc_back[scc_id];
-			length = this->states->size();
-			while (state != seek_state) {
-				state = back_distance[length][state->getId()]->getFrom();
-				length--;
+
+			if (seek_state != nullptr) {
+				State* state = scc_back[scc_id];
+				length = this->states->size();
+				while (state != seek_state) {
+					state = back_distance[length][state->getId()]->getFrom();
+					length--;
+				}
+				do {
+					scc_cycles[scc_id]->push(back_distance[length][state->getId()]);
+					state = back_distance[length][state->getId()]->getFrom();
+					length--;
+				} while (state != seek_state);
 			}
-			do {
-				scc_cycles[scc_id]->push(back_distance[length][state->getId()]);
-				state = back_distance[length][state->getId()]->getFrom();
-				length--;
-			} while (state != seek_state);
 		}
 	}
 
