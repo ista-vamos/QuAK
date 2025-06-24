@@ -10,8 +10,7 @@
 #include "Monitor.h"
 
 int main() {
-    
-    debug_test();
+    debug_test3();
 
     return 0;
 }
