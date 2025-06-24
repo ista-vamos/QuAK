@@ -35,7 +35,8 @@ add_executable(quakbin src/quak-main.cpp)
 target_include_directories(quakbin PRIVATE ${SRCDIR})
 target_link_libraries(quakbin PUBLIC quak quak-private)
 
-set_target_properties(quakbin PROPERTIES OUTPUT_NAME quak)
+# set_target_properties(quakbin PROPERTIES OUTPUT_NAME quak)
+set_target_properties(quakbin PROPERTIES OUTPUT_NAME quak-main RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/src")
 
 
 OPTION(BUILD_EXPERIMENTS "Enable and build experiments" ON)
